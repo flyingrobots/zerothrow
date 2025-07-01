@@ -34,6 +34,11 @@ class UserManager {
   private dbConfig: DatabaseConfig;
   private initialized: boolean = false;
   private initTime: Date;
+  
+  // Test control: set to true to simulate connection failure
+  static simulateConnectionFailure: boolean = false;
+  static simulateUserLoadFailure: boolean = false;
+  static simulateUpdateFailure: boolean = false;
 
   private constructor(config: DatabaseConfig) {
     this.dbConfig = config;
@@ -129,8 +134,8 @@ class UserManager {
         // Simulate database connection
         await new Promise(resolve => setTimeout(resolve, 50));
         
-        // Simulate connection failure chance
-        if (Math.random() < 0.05) {
+        // Controlled failure for testing
+        if (UserManager.simulateConnectionFailure) {
           throw new Error('Connection timeout');
         }
 
@@ -149,9 +154,8 @@ class UserManager {
         // Simulate loading user from session/cache
         await new Promise(resolve => setTimeout(resolve, 20));
         
-        // Simulate no current user
-        const hasCurrentUser = Math.random() > 0.5;
-        if (!hasCurrentUser) {
+        // Controlled user load for testing
+        if (UserManager.simulateUserLoadFailure) {
           throw new Error('No current user');
         }
 
@@ -228,7 +232,7 @@ class UserManager {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 50));
         
-        if (Math.random() < 0.1) {
+        if (UserManager.simulateUpdateFailure) {
           throw new Error('Update failed');
         }
 
@@ -259,6 +263,9 @@ class UserManager {
     UserManager.instance = null;
     UserManager.initializationPromise = null;
     UserManager.initializationError = null;
+    UserManager.simulateConnectionFailure = false;
+    UserManager.simulateUserLoadFailure = false;
+    UserManager.simulateUpdateFailure = false;
   }
 
   getInitTime(): Date {
@@ -448,6 +455,58 @@ describe('User Singleton Integration Tests', () => {
     expect(currentUserResult.ok).toBe(false);
     if (!currentUserResult.ok) {
       expect(currentUserResult.error.code).toBe('NOT_INITIALIZED');
+    }
+  });
+
+  it('should handle database connection failure during initialization', async () => {
+    const config: DatabaseConfig = {
+      host: 'localhost',
+      port: 5432,
+      database: 'test_db',
+      timeout: 5000
+    };
+
+    // Simulate connection failure
+    UserManager.simulateConnectionFailure = true;
+
+    const result = await UserManager.getInstance(config);
+    
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.code).toBe('INIT_FAILED');
+      expect(result.error.cause?.code).toBe('DB_CONNECTION_ERROR');
+    }
+  });
+
+  it('should handle update failures gracefully', async () => {
+    const config: DatabaseConfig = {
+      host: 'localhost',
+      port: 5432,
+      database: 'test_db',
+      timeout: 5000
+    };
+
+    const managerResult = await UserManager.getInstance(config);
+    expect(managerResult.ok).toBe(true);
+    if (!managerResult.ok) return;
+
+    const manager = managerResult.value;
+
+    // Login first
+    const loginResult = await manager.login('testuser', 'password123');
+    expect(loginResult.ok).toBe(true);
+
+    // Simulate update failure
+    UserManager.simulateUpdateFailure = true;
+
+    const updateResult = await manager.updatePreferences({
+      theme: 'dark'
+    });
+
+    expect(updateResult.ok).toBe(false);
+    if (!updateResult.ok) {
+      expect(updateResult.error.code).toBe('UPDATE_ERROR');
+      expect(updateResult.error.message).toContain('Failed to update preferences');
     }
   });
 });
