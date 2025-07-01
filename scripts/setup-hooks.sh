@@ -4,12 +4,12 @@
 # This script intelligently sets up git hooks to enforce no-throw discipline
 # It respects existing setups and asks for permission before modifying anything
 
-set -e
+set -euo pipefail
 
 # Check for Windows compatibility
-if [[ "$OS" == "Windows_NT" ]]; then
-    # Check if we're in Git Bash, WSL, or have bash available
-    if [[ -z "$BASH_VERSION" ]] && ! command -v bash >/dev/null 2>&1; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    # Check if we're in a proper bash environment
+    if [[ -z "$BASH_VERSION" ]]; then
         echo "[ZeroThrow] Error: This script requires Git Bash or WSL on Windows."
         echo "Please run this script from Git Bash or Windows Subsystem for Linux."
         exit 1
@@ -39,11 +39,15 @@ for arg in "$@"; do
     esac
 done
 
-# Colors for output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Colors for output (only if terminal supports it)
+if [[ -t 1 ]]; then
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+else
+    GREEN=''; YELLOW=''; RED=''; NC=''
+fi
 
 # Helper functions
 print_success() {
@@ -368,11 +372,12 @@ setup_vanilla_hooks() {
         echo "---"
         echo
         
+        if grep -q "ZeroThrow" "$hook_file"; then
+            print_success "ZeroThrow hook is already installed"
+            return 0
+        fi
+        
         if ask_confirmation "Do you want to append to the end of your existing hooks?"; then
-            # Check if our hook is already there
-            if grep -q "ZeroThrow" "$hook_file"; then
-                print_success "ZeroThrow hook is already in the pre-commit hook"
-            else
                 # Append our hook
                 cat >> "$hook_file" << EOF
 
@@ -559,12 +564,9 @@ EOF
     fi
     
     [ "$QUIET" = false ] && echo
-    print_success "✨ Git hooks setup complete!"
+    echo -e "\n${GREEN}✨ ZeroThrow setup complete!${NC}"
     if [ "$QUIET" = false ]; then
-        echo
         echo "Your commits will now be checked for throw statements."
-        echo "Try it out by creating a file with a throw and attempting to commit it."
-        echo
         echo "For more information, see: docs/githooks.md"
     fi
 }
