@@ -32,13 +32,24 @@ export async function tryR<T>(
 }
 
 /**
- * wrap(cause, code, msg, ctx) lifts an existing error into a new coded layer.
+ * wrap(cause, code?, msg?, ctx?) lifts an existing error into a new coded layer.
+ * If code/msg are not provided, they are extracted from the cause error.
  */
 export function wrap<C extends ErrorContext = ErrorContext>(
   cause: Error,
-  code: ErrorCode,
-  msg: string,
+  code?: ErrorCode,
+  msg?: string,
   ctx?: C
 ): ZeroError<C> {
-  return new ZeroError(code, msg, { cause, context: ctx });
+  // Extract code from cause if not provided
+  const errorCode = code ?? (
+    cause instanceof ZeroError ? cause.code : 
+    'code' in cause && cause.code ? cause.code as ErrorCode :
+    'WRAPPED_ERROR'
+  );
+  
+  // Use cause's message if msg not provided
+  const message = msg ?? cause.message;
+  
+  return new ZeroError(errorCode, message, { cause, context: ctx });
 }

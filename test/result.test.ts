@@ -38,6 +38,73 @@ describe("wrap function", () => {
     
     expect(wrapped.context).toEqual(context);
   });
+
+  it("uses cause's message when msg not provided", () => {
+    const cause = new Error("original error message");
+    const wrapped = wrap(cause, "DB_ERR");
+    
+    expect(wrapped.message).toBe("original error message");
+    expect(wrapped.code).toBe("DB_ERR");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("extracts code and message from ZeroError cause", () => {
+    const cause = new ZeroError("ORIGINAL_CODE", "original message");
+    const wrapped = wrap(cause);
+    
+    expect(wrapped.code).toBe("ORIGINAL_CODE");
+    expect(wrapped.message).toBe("original message");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("uses WRAPPED_ERROR code for regular errors when code not provided", () => {
+    const cause = new Error("some error");
+    const wrapped = wrap(cause);
+    
+    expect(wrapped.code).toBe("WRAPPED_ERROR");
+    expect(wrapped.message).toBe("some error");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("preserves stack trace through cause chain", () => {
+    const cause = new Error("original error");
+    const wrapped = wrap(cause, "WRAP_CODE", "wrapped message");
+    
+    expect(wrapped.cause).toBe(cause);
+    expect(wrapped.stack).toContain("wrap");
+    // The original error's stack is preserved via the cause chain
+    expect(cause.stack).toBeDefined();
+  });
+
+  it("displays full error chain with toString()", () => {
+    const originalError = new Error("database connection timeout");
+    const dbError = wrap(originalError, "DB_ERROR", "Failed to fetch user", { userId: 123 });
+    const apiError = wrap(dbError, "API_ERROR", "User endpoint failed", { endpoint: "/api/user/123" });
+    
+    const str = apiError.toString();
+    
+    // Check top-level error
+    expect(str).toContain("ZeroError [API_ERROR]: User endpoint failed");
+    expect(str).toContain('"endpoint": "/api/user/123"');
+    
+    // Check middle error
+    expect(str).toContain("Caused by: ZeroError: Failed to fetch user");
+    expect(str).toContain('"userId": 123');
+    
+    // Check original error
+    expect(str).toContain("Caused by: Error: database connection timeout");
+  });
+
+  it("getFullStack includes all stack traces", () => {
+    const originalError = new Error("original");
+    const wrapped = wrap(originalError, "WRAPPED", "wrapped error");
+    
+    const fullStack = wrapped.getFullStack();
+    
+    expect(fullStack).toContain("wrapped error");
+    expect(fullStack).toContain("Caused by:");
+    expect(fullStack).toContain("original");
+  });
 });
 
 describe("tryR advanced cases", () => {
@@ -60,6 +127,7 @@ describe("tryR advanced cases", () => {
   });
 
   it("normalizes non-Error throws to ZeroError", async () => {
+    // eslint-disable-next-line no-throw-literal
     const r = await tryR(() => { throw "string error"; });
     
     expect(r.ok).toBe(false);
@@ -81,7 +149,9 @@ describe("tryR advanced cases", () => {
   });
 
   it("handles null and undefined throws", async () => {
+    // eslint-disable-next-line no-throw-literal
     const r1 = await tryR(() => { throw null; });
+    // eslint-disable-next-line no-throw-literal
     const r2 = await tryR(() => { throw undefined; });
     
     expect(r1.ok).toBe(false);
