@@ -1,0 +1,58 @@
+# Test files only
+test/
+
+# Scripts except the setup hook
+scripts/*
+!scripts/setup-hooks.sh
+
+# Config files
+.eslintrc*
+eslint.config.js
+.prettierrc*
+tsconfig.json
+vitest.config.ts
+.lintstagedrc.json
+
+# Documentation
+docs/
+*.md
+!README.md
+!LICENSE
+
+# Git and CI
+.git/
+.github/
+.gitignore
+.gitattributes
+.husky/
+.githooks/
+
+# Development files
+coverage/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+.env*
+
+# Build artifacts that shouldn't be published
+*.tsbuildinfo
+*.map
+
+# Test files
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Examples (users can get from GitHub)
+examples/
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Misc
+.obsidian/
+.claude/

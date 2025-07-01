@@ -58,3 +58,5 @@ Thumbs.db
 !.yarn/versions
 
 .obsidian/*
+.husky/_
+.claude/*
