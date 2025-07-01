@@ -12,6 +12,7 @@
 - [Throw-ban in 60 seconds](#throw-ban-in-60-seconds)
   - [1. Add the rule](#1-add-the-rule)
   - [2. Hook into CI](#2-hook-into-ci)
+- [Git Hooks Setup](#git-hooks-setup)
 - [Competitive landscape — why ZeroThrow?](#competitive-landscape--why-zerothrow)
 - [ROADMAP](#roadmap)
   - [Stretch targets](#stretch-targets)
@@ -120,6 +121,23 @@ function Profile({ id }: { id: string }) {
 ```bash
 npm run lint && npm test && npm run build
 ```  
+
+---
+## Git Hooks Setup
+
+Prevent `throw` statements from ever being committed with our automated git hooks setup:
+
+```bash
+npm run githooks
+```
+
+This intelligent script will:
+- 🔍 Detect your package manager (npm/yarn/pnpm)
+- 🤝 Respect existing git hooks
+- 📦 Install missing dependencies
+- ⚙️ Configure ESLint if needed
+
+For manual setup or more options, see [docs/githooks.md](docs/githooks.md).
 
 ---
 ## Competitive landscape — why __ZeroThrow__?
