@@ -24,13 +24,23 @@ This project and everyone participating in it is governed by the [ZeroThrow Code
 
 ## Getting Started
 
-1. Fork the repo on GitHub
-2. Clone your fork locally
-3. Set up the development environment (see [Development Setup](#development-setup))
-4. Create a branch for your changes
-5. Make your changes
-6. Run tests and lint
-7. Push to your fork and submit a pull request
+### First-Time Setup Checklist
+
+- [ ] Fork the repo on GitHub
+- [ ] Clone your fork locally
+- [ ] Install dependencies: `npm install`
+- [ ] **Set up Git hooks**: `npm run githooks` (see [Git Hooks Documentation](docs/githooks.md))
+- [ ] Run tests to verify setup: `npm test`
+- [ ] Configure your editor for TypeScript and ESLint
+
+### Making Changes
+
+1. Create a branch for your changes
+2. Make your changes
+3. Run tests and lint: `npm test && npm run lint`
+4. Commit your changes (pre-commit hooks will run automatically)
+5. Push to your fork (pre-push hooks will run comprehensive tests)
+6. Submit a pull request
 
 ## How Can I Contribute?
 
@@ -76,6 +86,13 @@ cd zerothrow
 # Install dependencies
 npm install
 
+# IMPORTANT: Set up git hooks for automated quality checks
+npm run githooks
+# This enables:
+# - Pre-commit: runs tests and linting on staged files
+# - Pre-push: runs full test suite in Docker containers
+# See docs/githooks.md for details
+
 # Run tests
 npm test
 
@@ -87,10 +104,15 @@ npm run lint
 
 # Build the project
 npm run build
-
-# Set up git hooks (optional but recommended)
-npm run githooks
 ```
+
+### Git Hooks
+
+We strongly recommend setting up Git hooks to maintain code quality. The hooks will:
+- **Pre-commit**: Run tests and ESLint on staged files
+- **Pre-push**: Run the full test matrix in Docker containers to ensure CI will pass
+
+For more information, see the [Git Hooks Documentation](docs/githooks.md).
 
 ## Style Guidelines
 
