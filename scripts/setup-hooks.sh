@@ -4,111 +4,33 @@
 # This script intelligently sets up git hooks to enforce no-throw discipline
 # It respects existing setups and asks for permission before modifying anything
 
-set -euo pipefail
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/utils.sh"
+
+# Enable strict mode
+set_strict_mode
 
 # Check for Windows compatibility
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
-    # Check if we're in a proper bash environment
-    if [[ -z "$BASH_VERSION" ]]; then
-        echo "[ZeroThrow] Error: This script requires Git Bash or WSL on Windows."
-        echo "Please run this script from Git Bash or Windows Subsystem for Linux."
-        exit 1
-    fi
-fi
-
-# Parse command line arguments
-QUIET=false
-VERBOSE=false
-for arg in "$@"; do
-    case $arg in
-        --quiet|-q)
-            QUIET=true
-            ;;
-        --verbose|-v)
-            VERBOSE=true
-            ;;
-        --help|-h)
-            echo "Usage: $(basename $0) [OPTIONS]"
-            echo ""
-            echo "Options:"
-            echo "  -q, --quiet    Suppress non-essential output"
-            echo "  -v, --verbose  Show detailed output"
-            echo "  -h, --help     Show this help message"
-            exit 0
-            ;;
-    esac
-done
-
-# Colors for output (only if terminal supports it)
-if [[ -t 1 ]]; then
-    GREEN='\033[0;32m'
-    YELLOW='\033[1;33m'
-    RED='\033[0;31m'
-    NC='\033[0m' # No Color
-else
-    GREEN=''; YELLOW=''; RED=''; NC=''
-fi
-
-# Helper functions
-print_success() {
-    [ "$QUIET" = true ] && return
-    echo -e "${GREEN}✓${NC} [ZeroThrow] $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠${NC} [ZeroThrow] $1"
-}
-
-print_error() {
-    echo -e "${RED}✗${NC} [ZeroThrow] $1" >&2
-}
-
-print_verbose() {
-    [ "$VERBOSE" = true ] && echo -e "[ZeroThrow] $1"
-}
-
-# Find the project root (where package.json is AND git repo root)
-find_project_root() {
-    local dir="$PWD"
-    
-    # First, find the git repository root
-    local git_root=$(git rev-parse --show-toplevel 2>/dev/null)
-    if [ -z "$git_root" ]; then
-        return 1
-    fi
-    
-    # Now look for package.json starting from current dir up to git root
-    while [ "$dir" != "/" ]; do
-        if [ -f "$dir/package.json" ]; then
-            # Make sure this directory is within the git repo
-            if [[ "$dir" == "$git_root"* ]]; then
-                # Prefer the git root if it has package.json
-                if [ -f "$git_root/package.json" ]; then
-                    echo "$git_root"
-                else
-                    echo "$dir"
-                fi
-                return 0
-            fi
-        fi
-        # Stop at git root - don't go beyond it
-        if [ "$dir" = "$git_root" ]; then
-            break
-        fi
-        dir=$(dirname "$dir")
-    done
-    
-    return 1
-}
-
-# Get project root
-PROJECT_ROOT=$(find_project_root)
-if [ -z "$PROJECT_ROOT" ]; then
-    print_error "Could not find project root (needs both package.json and .git directory)"
+if is_windows && [[ -z "$BASH_VERSION" ]]; then
+    print_error "This script requires Git Bash or WSL on Windows."
+    echo "Please run this script from Git Bash or Windows Subsystem for Linux."
     exit 1
 fi
 
-# Change to project root
+# Parse command line arguments
+if ! parse_common_args "$@"; then
+    echo "Usage: $(basename "$0") [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -q, --quiet    Suppress non-essential output"
+    echo "  -v, --verbose  Show detailed output"
+    echo "  -h, --help     Show this help message"
+    exit 0
+fi
+
+# Get project root
+PROJECT_ROOT=$(find_project_root) || exit 1
 cd "$PROJECT_ROOT"
 print_success "Working in project root: $PROJECT_ROOT"
 
@@ -118,127 +40,8 @@ if [ "$QUIET" = false ]; then
     echo
 fi
 
-# Function to check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Detect package manager from lockfiles
-detect_package_manager() {
-    local has_npm=false
-    local has_yarn=false
-    local has_pnpm=false
-    local count=0
-    
-    if [ -f "package-lock.json" ]; then
-        has_npm=true
-        ((count++))
-    fi
-    if [ -f "yarn.lock" ]; then
-        has_yarn=true
-        ((count++))
-    fi
-    if [ -f "pnpm-lock.yaml" ]; then
-        has_pnpm=true
-        ((count++))
-    fi
-    
-    # If only one lockfile exists, use that
-    if [ $count -eq 1 ]; then
-        if [ "$has_pnpm" = true ]; then
-            echo "pnpm"
-        elif [ "$has_yarn" = true ]; then
-            echo "yarn"
-        else
-            echo "npm"
-        fi
-        return
-    fi
-    
-    # If multiple or none, prompt user
-    if [ $count -gt 1 ]; then
-        print_warning "Multiple lockfiles detected! This may indicate inconsistent dependency tooling."
-        echo "Consider cleaning up unused lockfiles to avoid dependency conflicts."
-        echo
-    else
-        print_warning "No lockfile detected, choosing package manager"
-    fi
-    
-    echo "Which package manager do you want to use?"
-    echo "1) npm"
-    echo "2) yarn"
-    echo "3) pnpm"
-    echo
-    read -p "Enter your choice (1-3): " -n 1 -r
-    echo
-    
-    case $REPLY in
-        1) echo "npm" ;;
-        2) echo "yarn" ;;
-        3) echo "pnpm" ;;
-        *) echo "npm" ;; # Default to npm
-    esac
-}
-
 # Global package manager variable
 PKG_MGR=""
-
-# Get package manager install command
-get_install_cmd() {
-    case $PKG_MGR in
-        yarn) echo "yarn add --dev" ;;
-        pnpm) echo "pnpm add -D" ;;
-        *) echo "npm install --save-dev" ;;
-    esac
-}
-
-# Get package manager run command
-get_run_cmd() {
-    local script="$1"
-    case $PKG_MGR in
-        yarn) echo "yarn $script" ;;
-        pnpm) echo "pnpm $script" ;;
-        *) echo "npm run $script" ;;
-    esac
-}
-
-# Get package manager exec command
-get_exec_cmd() {
-    local cmd="$1"
-    case $PKG_MGR in
-        yarn) echo "yarn dlx $cmd" ;;
-        pnpm) echo "pnpm dlx $cmd" ;;
-        *) echo "npx $cmd" ;;
-    esac
-}
-
-# Function to ask for user confirmation
-ask_confirmation() {
-    local prompt="$1"
-    local default="${2:-n}"
-    
-    # In quiet mode, use defaults
-    if [ "$QUIET" = true ]; then
-        print_verbose "Auto-selecting default for: $prompt"
-        [ "$default" = "y" ]
-        return
-    fi
-    
-    if [ "$default" = "y" ]; then
-        prompt="$prompt [Y/n]"
-    else
-        prompt="$prompt [y/N]"
-    fi
-    
-    read -p "$prompt " -n 1 -r
-    echo
-    
-    if [ "$default" = "y" ]; then
-        [[ ! $REPLY =~ ^[Nn]$ ]]
-    else
-        [[ $REPLY =~ ^[Yy]$ ]]
-    fi
-}
 
 # Check for existing Husky setup
 check_husky() {
