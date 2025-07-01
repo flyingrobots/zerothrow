@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
+    setupFiles: ['./test/polyfills/crypto.ts'],
     include: ["test/integration/**/*.test.{ts,tsx}"],
     exclude: ["node_modules", "dist", "build"],
     globals: true,
