@@ -1,0 +1,4 @@
+npm test
+
+# ZeroThrow: Check for throw statements
+npm run lint:staged
