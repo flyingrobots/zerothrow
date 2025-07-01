@@ -1,7 +1,8 @@
 
-export { ZeroError, ErrorCode, ErrorContext } from "./error";
+export { ZeroError } from "./error";
+export type { ErrorCode, ErrorContext } from "./error";
 export {
   ok, err,
-  tryR, wrap,
-  Ok, Err, Result
+  tryR, wrap
 } from "./result";
+export type { Ok, Err, Result } from "./result";

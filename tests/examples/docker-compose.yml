@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  react-examples:
+    build:
+      context: ..
+      dockerfile: examples/react/Dockerfile
+    container_name: zerothrow-react-examples
+    volumes:
+      - ../src:/app/src:ro
+      - ./react:/app/examples/react:ro
+    environment:
+      - NODE_ENV=test
+
+  node-examples:
+    build:
+      context: ..
+      dockerfile: examples/node/Dockerfile
+    container_name: zerothrow-node-examples
+    volumes:
+      - ../src:/app/src:ro
+      - ./node:/app/examples/node:ro
+    environment:
+      - NODE_ENV=test
+
+  database-examples:
+    build:
+      context: ..
+      dockerfile: examples/database/Dockerfile
+    container_name: zerothrow-database-examples
+    volumes:
+      - ../src:/app/src:ro
+      - ./database:/app/examples/database:ro
+    environment:
+      - NODE_ENV=test
+
+  async-patterns:
+    build:
+      context: ..
+      dockerfile: examples/async-patterns/Dockerfile
+    container_name: zerothrow-async-patterns
+    volumes:
+      - ../src:/app/src:ro
+      - ./async-patterns.ts:/app/examples/async-patterns.ts:ro
+    environment:
+      - NODE_ENV=test
+
+  framework-examples:
+    build:
+      context: ..
+      dockerfile: examples/frameworks/Dockerfile
+    container_name: zerothrow-framework-examples
+    volumes:
+      - ../src:/app/src:ro
+      - ./frameworks:/app/examples/frameworks:ro
+    environment:
+      - NODE_ENV=test
