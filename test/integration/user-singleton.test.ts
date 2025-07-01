@@ -392,16 +392,26 @@ describe('User Singleton Integration Tests', () => {
       timeout: 5000
     };
 
+    // Mock Math.random to ensure deterministic behavior
+    const originalRandom = Math.random;
+    Math.random = () => 0.2; // Always > 0.05 and 0.1 to avoid random failures
+
     const managerResult = await UserManager.getInstance(config);
     expect(managerResult.ok).toBe(true);
-    if (!managerResult.ok) return;
+    if (!managerResult.ok) {
+      Math.random = originalRandom;
+      return;
+    }
 
     const manager = managerResult.value;
 
     // Login
     const loginResult = await manager.login('testuser', 'password123');
     expect(loginResult.ok).toBe(true);
-    if (!loginResult.ok) return;
+    if (!loginResult.ok) {
+      Math.random = originalRandom;
+      return;
+    }
 
     expect(loginResult.value.username).toBe('testuser');
 
@@ -423,6 +433,9 @@ describe('User Singleton Integration Tests', () => {
     if (currentUserResult.ok) {
       expect(currentUserResult.value.preferences.theme).toBe('dark');
     }
+
+    // Restore original random
+    Math.random = originalRandom;
   });
 
   it('should handle operations on uninitialized manager', async () => {
