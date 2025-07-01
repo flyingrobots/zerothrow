@@ -11,7 +11,7 @@
     "zerothrow-setup-hooks": "./scripts/setup-hooks.sh"
   },
   "engines": {
-    "node": ">=16.14"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",

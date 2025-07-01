@@ -1,0 +1,92 @@
+# Docker Compose configuration for running CI tests locally
+name: zerothrow-tests
+
+services:
+  # Unit tests on Node 22
+  unit-tests-node22:
+    container_name: zerothrow-tests-a-unit-node22
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+      - NODE_ENV=test
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npm test
+      "
+
+  # Integration tests on Node 22
+  integration-tests:
+    container_name: zerothrow-tests-b-integration
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+      - NODE_ENV=test
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npx vitest run --config vitest.integration.config.ts
+      "
+
+  # Lint check
+  lint-check:
+    container_name: zerothrow-tests-c-lint
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npm run lint
+      "
+
+  # Build check
+  build-check:
+    container_name: zerothrow-tests-d-build
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npm run build &&
+        test -d dist
+      "
+
+  # Coverage check
+  coverage-check:
+    container_name: zerothrow-tests-e-coverage
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+      - NODE_ENV=test
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npm test &&
+        npx vitest run --config vitest.integration.config.ts --coverage
+      "
+
+networks:
+  default:
+    name: zerothrow-tests-network
