@@ -2,6 +2,6 @@
 export { ZeroError, ErrorCode, ErrorContext } from "./error";
 export {
   ok, err,
-  tryR, wrap,
+  tryR, tryRSync, tryRBatch, wrap,
   Ok, Err, Result
 } from "./result";
