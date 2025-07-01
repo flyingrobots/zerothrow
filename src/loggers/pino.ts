@@ -11,10 +11,9 @@ export const zerothrowPinoSerializers: PinoSerializers = {
     if (error instanceof ZeroError) {
       return {
         type: 'ZeroError',
-        code: error.code,
+        code: typeof error.code === 'symbol' ? String(error.code) : error.code,
         message: error.message,
-        statusCode: error.statusCode,
-        details: error.details,
+        context: error.context,
         stack: error.stack,
         timestamp: new Date().toISOString()
       };
@@ -30,8 +29,8 @@ export const zerothrowPinoSerializers: PinoSerializers = {
   },
   
   result: (result: any) => {
-    if (result && typeof result === 'object' && 'isOk' in result && 'isErr' in result) {
-      if (result.isOk()) {
+    if (result && typeof result === 'object' && 'ok' in result) {
+      if (result.ok) {
         return {
           type: 'Result',
           status: 'ok',

@@ -1,12 +1,10 @@
 import { ESLintUtils, TSESTree, TSESLint } from '@typescript-eslint/utils';
 
 export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
-  name: 'no-throw',
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow throw statements in favor of Result types',
-      recommended: 'error',
+      description: 'Disallow throw statements in favor of Result types'
     },
     fixable: 'code',
     schema: [
@@ -32,7 +30,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
     },
   },
   defaultOptions: [{ allowInTests: false, allowedFiles: [] }],
-  create(context) {
+  create(context: any) {
     const options = context.options[0] || {};
     const filename = context.getFilename();
     
@@ -41,7 +39,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
       return {};
     }
     
-    if (options.allowedFiles?.some(pattern => filename.includes(pattern))) {
+    if (options.allowedFiles?.some((pattern: string) => filename.includes(pattern))) {
       return {};
     }
 

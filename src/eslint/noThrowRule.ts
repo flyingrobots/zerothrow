@@ -7,6 +7,9 @@ export const noThrowRule = ESLintUtils.RuleCreator(
 )({
   name: "no-throw",
   meta: {
+    docs: {
+      description: "Disallow throw statements in favor of Result types"
+    },
     type: "problem",
     messages: { disallowThrow: "Use Result<T,E> instead of throw." },
     schema: []

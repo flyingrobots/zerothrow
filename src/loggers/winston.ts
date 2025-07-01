@@ -11,22 +11,22 @@ export const zerothrowWinstonFormat = {
   transform(info: WinstonFormatInfo): WinstonFormatInfo {
     // Format ZeroError instances
     if (info.error instanceof ZeroError) {
+      const codeStr = typeof info.error.code === 'symbol' ? String(info.error.code) : String(info.error.code);
       info.zerothrow = {
         type: 'ZeroError',
-        code: info.error.code,
+        code: codeStr,
         message: info.error.message,
-        statusCode: info.error.statusCode,
-        details: info.error.details,
+        context: info.error.context,
         stack: info.error.stack
       };
-      info.message = `[${info.error.code}] ${info.error.message}`;
+      info.message = `[${codeStr}] ${info.error.message}`;
     }
     
     // Format Result types
-    if (info.result && typeof info.result === 'object' && 'isOk' in info.result && 'isErr' in info.result) {
+    if (info.result && typeof info.result === 'object' && 'ok' in info.result) {
       const result = info.result as Result<any, any>;
       
-      if (result.isOk()) {
+      if (result.ok) {
         info.zerothrow = {
           type: 'Result',
           status: 'ok',
@@ -38,10 +38,9 @@ export const zerothrowWinstonFormat = {
           type: 'Result',
           status: 'err',
           error: result.error instanceof ZeroError ? {
-            code: result.error.code,
+            code: typeof result.error.code === 'symbol' ? String(result.error.code) : result.error.code,
             message: result.error.message,
-            statusCode: result.error.statusCode,
-            details: result.error.details
+            context: result.error.context
           } : {
             message: result.error.message || String(result.error)
           }

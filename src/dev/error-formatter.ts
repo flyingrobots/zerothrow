@@ -1,4 +1,4 @@
-import { ZeroError } from '../error';
+import { ZeroError, ErrorCode } from '../error';
 import { Result } from '../result';
 
 interface FormatOptions {
@@ -36,16 +36,17 @@ export class ErrorFormatter {
     const { colors } = this.options;
     
     // Header with error code
+    const codeStr = typeof error.code === 'symbol' ? String(error.code) : String(error.code);
     const header = colors 
-      ? `${COLORS.red}${COLORS.bold}[${error.code}]${COLORS.reset} ${COLORS.red}${error.message}${COLORS.reset}`
-      : `[${error.code}] ${error.message}`;
+      ? `${COLORS.red}${COLORS.bold}[${codeStr}]${COLORS.reset} ${COLORS.red}${error.message}${COLORS.reset}`
+      : `[${codeStr}] ${error.message}`;
     lines.push(header);
     
-    // Status code
-    if (error.statusCode) {
+    // Context
+    if (error.context && 'statusCode' in error.context) {
       const statusLine = colors
-        ? `${COLORS.gray}Status Code: ${COLORS.yellow}${error.statusCode}${COLORS.reset}`
-        : `Status Code: ${error.statusCode}`;
+        ? `${COLORS.gray}Status Code: ${COLORS.yellow}${error.context.statusCode}${COLORS.reset}`
+        : `Status Code: ${error.context.statusCode}`;
       lines.push(statusLine);
     }
     
@@ -58,15 +59,15 @@ export class ErrorFormatter {
       lines.push(timestampLine);
     }
     
-    // Details
-    if (this.options.details && error.details) {
+    // Context details
+    if (this.options.details && error.context) {
       lines.push('');
       const detailsHeader = colors
-        ? `${COLORS.blue}Details:${COLORS.reset}`
-        : 'Details:';
+        ? `${COLORS.blue}Context:${COLORS.reset}`
+        : 'Context:';
       lines.push(detailsHeader);
       
-      const detailsStr = JSON.stringify(error.details, null, 2);
+      const detailsStr = JSON.stringify(error.context, null, 2);
       const detailsLines = detailsStr.split('\n').map(line => 
         colors ? `${COLORS.gray}  ${line}${COLORS.reset}` : `  ${line}`
       );
@@ -90,8 +91,8 @@ export class ErrorFormatter {
     return lines.join('\n');
   }
 
-  formatResult<T, E>(result: Result<T, E>): string {
-    if (result.isOk()) {
+  formatResult<T, E extends Error>(result: Result<T, E>): string {
+    if (result.ok) {
       const { colors } = this.options;
       return colors
         ? `${COLORS.green}✓ Success${COLORS.reset}`
@@ -115,7 +116,7 @@ export class ErrorFormatter {
     console.error(this.formatZeroError(error));
   }
 
-  logResult<T, E>(result: Result<T, E>): void {
+  logResult<T, E extends Error>(result: Result<T, E>): void {
     console.log(this.formatResult(result));
   }
 }
