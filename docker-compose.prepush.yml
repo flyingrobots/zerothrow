@@ -11,12 +11,14 @@ services:
       - .:/source:ro
     environment:
       - CI=true
+      - PREPUSH=true
       - NODE_ENV=test
+      - PREPUSH=true
     command: >
       sh -c "
-        cp -r /source/* /app/ &&
+        cp -r /source/. /app/ &&
         npm ci --quiet &&
-        npm test
+        npx vitest run --config vitest.prepush.config.ts --coverage
       "
 
   # Integration tests on Node 22
@@ -28,12 +30,14 @@ services:
       - .:/source:ro
     environment:
       - CI=true
+      - PREPUSH=true
       - NODE_ENV=test
+      - PREPUSH=true
     command: >
       sh -c "
-        cp -r /source/* /app/ &&
+        cp -r /source/. /app/ &&
         npm ci --quiet &&
-        npx vitest run --config vitest.integration.config.ts
+        npx vitest run --config vitest.integration.prepush.config.ts
       "
 
   # Lint check
@@ -45,6 +49,7 @@ services:
       - .:/source:ro
     environment:
       - CI=true
+      - PREPUSH=true
     command: >
       sh -c "
         cp -r /source/* /app/ &&
@@ -61,6 +66,7 @@ services:
       - .:/source:ro
     environment:
       - CI=true
+      - PREPUSH=true
     command: >
       sh -c "
         cp -r /source/* /app/ &&
@@ -78,13 +84,14 @@ services:
       - .:/source:ro
     environment:
       - CI=true
+      - PREPUSH=true
       - NODE_ENV=test
+      - PREPUSH=true
     command: >
       sh -c "
-        cp -r /source/* /app/ &&
+        cp -r /source/. /app/ &&
         npm ci --quiet &&
-        npm test &&
-        npx vitest run --config vitest.integration.config.ts --coverage
+        npx vitest run --config vitest.prepush.config.ts --coverage
       "
 
 networks:

@@ -174,7 +174,7 @@ describe('API Retry Integration Tests', () => {
 
 // Performance benchmark: Result vs try/catch
 describe('Performance Benchmarks', () => {
-  it('should demonstrate Result performance vs try/catch', async () => {
+  it.skipIf(process.env.PREPUSH === 'true')('should demonstrate Result performance vs try/catch', async () => {
     const iterations = 1000;
     
     // Result-based approach

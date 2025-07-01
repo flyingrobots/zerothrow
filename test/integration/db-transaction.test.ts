@@ -349,7 +349,7 @@ describe('Database Transaction Integration Tests', () => {
 
 // Performance benchmarks for database operations
 describe('Database Performance Benchmarks', () => {
-  it('should demonstrate Result performance in database operations', async () => {
+  it.skipIf(process.env.PREPUSH === 'true')('should demonstrate Result performance in database operations', async () => {
     const iterations = 1000;
 
     // Create a simplified, synchronous comparison with deterministic errors

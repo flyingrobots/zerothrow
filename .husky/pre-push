@@ -1,5 +1,4 @@
 #!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
 
 echo "🚀 Running full CI test matrix locally before push..."
 
@@ -35,49 +34,27 @@ echo "   Running 6 containers simultaneously for maximum speed!"
 echo ""
 
 # Run all services in parallel
-$DOCKER_COMPOSE -f docker-compose.test.yml up \
-    --abort-on-container-exit \
-    --exit-code-from unit-tests-node22 \
+$DOCKER_COMPOSE -f docker-compose.prepush.yml up \
+    --abort-on-container-failure \
     --remove-orphans
 
 EXIT_CODE=$?
 
-# Check the exit codes of all services
+# Clean up
+$DOCKER_COMPOSE -f docker-compose.prepush.yml down --remove-orphans
+
+# Check the exit code
 if [ $EXIT_CODE -eq 0 ]; then
-    # All services exited with 0, but let's make sure by checking each one
-    FAILED=0
-    
     echo ""
-    echo "📊 Checking individual service results..."
-    
-    for service in unit-tests-node22 integration-tests lint-check build-check coverage-check; do
-        EXIT=$($DOCKER_COMPOSE -f docker-compose.test.yml ps -q $service | xargs docker inspect -f '{{ .State.ExitCode }}' 2>/dev/null || echo "1")
-        if [ "$EXIT" = "0" ]; then
-            echo "${GREEN}✅ $service passed${NC}"
-        else
-            echo "${RED}❌ $service failed (exit code: $EXIT)${NC}"
-            FAILED=1
-        fi
-    done
-    
-    # Clean up
-    $DOCKER_COMPOSE -f docker-compose.test.yml down --remove-orphans
-    
-    if [ $FAILED -eq 0 ]; then
-        echo ""
-        echo "${GREEN}🎉 All tests passed! Safe to push.${NC}"
-        exit 0
-    fi
-else
-    # Clean up
-    $DOCKER_COMPOSE -f docker-compose.test.yml down --remove-orphans
+    echo "${GREEN}🎉 All tests passed! Safe to push.${NC}"
+    exit 0
 fi
 
 echo ""
 echo "${RED}❌ Some tests failed!${NC}"
 echo ""
 echo "To see detailed logs for a specific service:"
-echo "  $DOCKER_COMPOSE -f docker-compose.test.yml logs <service-name>"
+echo "  $DOCKER_COMPOSE -f docker-compose.prepush.yml logs <service-name>"
 echo ""
 echo "Available services:"
 echo "  - unit-tests-node22" 

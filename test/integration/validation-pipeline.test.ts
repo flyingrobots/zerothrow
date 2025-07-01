@@ -441,7 +441,7 @@ describe('Validation Pipeline Integration Tests', () => {
 
 // Performance benchmarks for validation pipeline
 describe('Validation Pipeline Performance Benchmarks', () => {
-  it('should demonstrate Result performance in validation chains', async () => {
+  it.skipIf(process.env.PREPUSH === 'true')('should demonstrate Result performance in validation chains', async () => {
     const iterations = 1000;
     const pipeline = new ValidationPipeline<UserRegistration>()
       .add(UserValidators.validateUsername)

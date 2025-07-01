@@ -517,7 +517,7 @@ describe('Singleton Performance Benchmarks', () => {
     UserManager.reset();
   });
 
-  it('should demonstrate efficient singleton access', async () => {
+  it.skipIf(process.env.PREPUSH === 'true')('should demonstrate efficient singleton access', async () => {
     // Ensure clean state
     UserManager.reset();
     

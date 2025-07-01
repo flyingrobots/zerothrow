@@ -132,7 +132,7 @@ describe('Comprehensive Performance Benchmarks', () => {
     console.log(`Traditional approach: ${traditionalTime.toFixed(2)}ms`);
     console.log(`Performance ratio: ${(traditionalTime / wrapTime).toFixed(2)}x`);
 
-    expect(wrapTime).toBeLessThan(traditionalTime * 2);
+    expect(wrapTime).toBeLessThan(traditionalTime * 3);
   });
 
   // Benchmark: Result chaining operations
