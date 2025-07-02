@@ -160,3 +160,35 @@ describe("tryR advanced cases", () => {
     if (!r2.ok) expect(r2.error.message).toBe("undefined");
   });
 });
+
+describe("Additional branch coverage tests", () => {
+  it("handles errors without stack property", () => {
+    const errorWithoutStack = new Error("No stack");
+    Object.defineProperty(errorWithoutStack, 'stack', { value: undefined });
+    
+    const zeroError = new ZeroError("TEST_ERROR", "Test error", { cause: errorWithoutStack });
+    Object.defineProperty(zeroError, 'stack', { value: undefined });
+    
+    const fullStack = zeroError.getFullStack();
+    expect(fullStack).toBe("\n\nCaused by:\nError: No stack");
+  });
+
+  it("handles errors without name property", () => {
+    const errorWithoutName = new Error("No name");
+    Object.defineProperty(errorWithoutName, 'name', { value: undefined });
+    
+    const zeroError = new ZeroError("TEST_ERROR", "Test error", { cause: errorWithoutName });
+    
+    const str = zeroError.toString();
+    expect(str).toContain("Caused by: Error: No name");
+  });
+
+  it("extracts code from error with code property", () => {
+    // Create an error with a code property
+    const errorWithCode = new Error("Error with code") as Error & { code: string };
+    errorWithCode.code = "CUSTOM_CODE";
+    
+    const wrapped = wrap(errorWithCode);
+    expect(wrapped.code).toBe("CUSTOM_CODE");
+  });
+});
