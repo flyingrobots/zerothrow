@@ -9,17 +9,20 @@ interface WinstonFormatInfo {
 
 export const zerothrowWinstonFormat = {
   transform(info: WinstonFormatInfo): WinstonFormatInfo {
+    // Create a shallow copy to avoid mutation
+    const transformed = { ...info };
+    
     // Format ZeroError instances
     if (info.error instanceof ZeroError) {
       const codeStr = typeof info.error.code === 'symbol' ? String(info.error.code) : String(info.error.code);
-      info.zerothrow = {
+      transformed.zerothrow = {
         type: 'ZeroError',
         code: codeStr,
         message: info.error.message,
         context: info.error.context,
         stack: info.error.stack
       };
-      info.message = `[${codeStr}] ${info.error.message}`;
+      transformed.message = `[${codeStr}] ${info.error.message}`;
     }
     
     // Format Result types
@@ -27,14 +30,14 @@ export const zerothrowWinstonFormat = {
       const result = info.result as Result<any, any>;
       
       if (result.ok) {
-        info.zerothrow = {
+        transformed.zerothrow = {
           type: 'Result',
           status: 'ok',
           value: result.value
         };
-        info.message = `[OK] ${info.message || 'Operation succeeded'}`;
+        transformed.message = `[OK] ${info.message || 'Operation succeeded'}`;
       } else {
-        info.zerothrow = {
+        transformed.zerothrow = {
           type: 'Result',
           status: 'err',
           error: result.error instanceof ZeroError ? {
@@ -45,19 +48,42 @@ export const zerothrowWinstonFormat = {
             message: result.error.message || String(result.error)
           }
         };
-        info.message = `[ERR] ${result.error instanceof ZeroError ? result.error.message : info.message || 'Operation failed'}`;
+        transformed.message = `[ERR] ${result.error instanceof ZeroError ? result.error.message : info.message || 'Operation failed'}`;
       }
     }
     
     // Add timestamp if not present
-    if (!info.timestamp) {
-      info.timestamp = new Date().toISOString();
+    if (!transformed.timestamp) {
+      transformed.timestamp = new Date().toISOString();
     }
     
-    return info;
+    return transformed;
   }
 };
 
+/**
+ * Creates a Winston logger with ZeroThrow format.
+ * 
+ * Usage:
+ * ```typescript
+ * import winston from 'winston';
+ * import { createWinstonLogger } from '@flyingrobots/zerothrow/loggers';
+ * 
+ * const logger = createWinstonLogger(winston, {
+ *   level: 'info',
+ *   // other winston options
+ * });
+ * 
+ * // Or use the format directly:
+ * const logger = winston.createLogger({
+ *   format: winston.format.combine(
+ *     winston.format.timestamp(),
+ *     zerothrowWinstonFormat,
+ *     winston.format.json()
+ *   )
+ * });
+ * ```
+ */
 export function createWinstonLogger(winston: any, options: any = {}) {
   const format = winston.format;
   

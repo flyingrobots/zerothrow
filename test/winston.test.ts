@@ -119,6 +119,29 @@ describe("Winston formatter", () => {
       expect(transformed.timestamp).toBeDefined();
       expect(new Date(transformed.timestamp)).toBeInstanceOf(Date);
     });
+    
+    it("does not mutate original info object", () => {
+      const originalInfo = {
+        level: "error",
+        message: "Original message",
+        error: new ZeroError("TEST_ERROR", "Test error")
+      };
+      
+      // Create a deep copy to compare later
+      const infoCopy = JSON.parse(JSON.stringify(originalInfo));
+      
+      const transformed = zerothrowWinstonFormat.transform(originalInfo);
+      
+      // Check that original wasn't mutated
+      expect(originalInfo.message).toBe("Original message");
+      expect(originalInfo.zerothrow).toBeUndefined();
+      expect(originalInfo.timestamp).toBeUndefined();
+      
+      // Check that transformed has the changes
+      expect(transformed.message).toBe("[TEST_ERROR] Test error");
+      expect(transformed.zerothrow).toBeDefined();
+      expect(transformed.timestamp).toBeDefined();
+    });
 
     it("preserves existing timestamp", () => {
       const existingTimestamp = "2025-01-01T00:00:00.000Z";
