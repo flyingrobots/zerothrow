@@ -1,8 +1,24 @@
 import { ZeroError } from '../error.js';
+import { type Result } from '../result.js';
 
 interface PinoSerializers {
   err?: (error: unknown) => unknown;
   result?: (result: unknown) => unknown;
+}
+
+/**
+ * Type guard to check if a value is a Result type
+ */
+function isResult(value: unknown): value is Result<unknown, Error> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'ok' in value &&
+    typeof (value as Record<string, unknown>).ok === 'boolean' &&
+    ((value as Record<string, unknown>).ok === true
+      ? 'value' in value
+      : 'error' in value)
+  );
 }
 
 export const zerothrowPinoSerializers: PinoSerializers = {
@@ -42,28 +58,19 @@ export const zerothrowPinoSerializers: PinoSerializers = {
   },
 
   result: (result: unknown) => {
-    if (
-      result &&
-      typeof result === 'object' &&
-      'ok' in result &&
-      typeof (result as Record<string, unknown>).ok === 'boolean'
-    ) {
-      const typedResult = result as {
-        ok: boolean;
-        value?: unknown;
-        error?: unknown;
-      };
-      if (typedResult.ok) {
+    // Use type guard for Result<T, E>
+    if (isResult(result)) {
+      if (result.ok) {
         return {
           type: 'Result',
           status: 'ok',
-          value: typedResult.value,
+          value: result.value,
         };
       } else {
         return {
           type: 'Result',
           status: 'err',
-          error: zerothrowPinoSerializers.err!(typedResult.error),
+          error: zerothrowPinoSerializers.err!(result.error),
         };
       }
     }

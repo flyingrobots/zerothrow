@@ -1,4 +1,5 @@
 import { ZeroError } from '../error.js';
+import { type Result } from '../result.js';
 
 interface WinstonFormatInfo {
   level: string;
@@ -8,6 +9,21 @@ interface WinstonFormatInfo {
   timestamp?: string;
   zerothrow?: unknown;
   [key: string]: unknown;
+}
+
+/**
+ * Type guard to check if a value is a Result type
+ */
+function isResult(value: unknown): value is Result<unknown, Error> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    'ok' in value &&
+    typeof (value as Record<string, unknown>).ok === 'boolean' &&
+    ((value as Record<string, unknown>).ok === true
+      ? 'value' in value
+      : 'error' in value)
+  );
 }
 
 export const zerothrowWinstonFormat = {
@@ -37,17 +53,8 @@ export const zerothrowWinstonFormat = {
     }
 
     // Format Result types
-    if (
-      info.result &&
-      typeof info.result === 'object' &&
-      'ok' in info.result &&
-      typeof (info.result as Record<string, unknown>).ok === 'boolean'
-    ) {
-      const result = info.result as {
-        ok: boolean;
-        value?: unknown;
-        error?: unknown;
-      };
+    if (info.result && isResult(info.result)) {
+      const result = info.result;
 
       if (result.ok) {
         transformed.zerothrow = {
