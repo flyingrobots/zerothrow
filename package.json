@@ -22,7 +22,7 @@
     "test:all": "npm run test && npm run test:integration",
     "test:watch": "vitest watch",
     "bench": "vitest bench --run",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"benchmark/**\"",
     "githooks": "bash scripts/setup-hooks.sh",
     "prepare": "husky",
     "lint:staged": "lint-staged"
