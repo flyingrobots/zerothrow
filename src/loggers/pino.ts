@@ -36,7 +36,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
   },
   
   result: (result: unknown) => {
-    if (result && typeof result === 'object' && 'ok' in result) {
+    if (result && typeof result === 'object' && 'ok' in result && typeof (result as Record<string, unknown>).ok === 'boolean') {
       const typedResult = result as { ok: boolean; value?: unknown; error?: unknown };
       if (typedResult.ok) {
         return {

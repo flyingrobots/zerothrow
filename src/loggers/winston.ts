@@ -31,7 +31,7 @@ export const zerothrowWinstonFormat = {
     }
     
     // Format Result types
-    if (info.result && typeof info.result === 'object' && 'ok' in info.result) {
+    if (info.result && typeof info.result === 'object' && 'ok' in info.result && typeof (info.result as Record<string, unknown>).ok === 'boolean') {
       const result = info.result as { ok: boolean; value?: unknown; error?: unknown };
       
       if (result.ok) {
