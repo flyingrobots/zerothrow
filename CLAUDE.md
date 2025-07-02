@@ -46,8 +46,12 @@
 🔲 **MANDATE 8: Patch Pino and Winston serializers to support Result types**
 - Update logger serializer functions to handle Result<T, E> objects
 
-🔲 **MANDATE 9: Patch no-throw ESLint fixer**
-- Modify fixer to inject Result<*, *> return types when transforming throw to return err(...)
+✅ **MANDATE 9: Patch no-throw ESLint fixer**
+- Modified fixer to inject Result<*, *> return types when transforming throw to return err(...)
+- Implemented in refactored no-throw modules (fix-builder.ts and return-type-utils.ts)
+- Adds Result<unknown, ZeroError> for Error throws with literal messages
+- Adds Result<unknown, unknown> for other throws
+- Handles async functions with Promise<Result<*, *>>
 
 🔲 **MANDATE 10: Un-ignore test/** in eslint.config.js**
 - Remove or adjust `ignores: ['test/**']` to allow linting test
