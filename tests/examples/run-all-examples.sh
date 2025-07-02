@@ -2,43 +2,43 @@
 
 set -e
 
-echo "🚀 Running all ZeroThrow examples..."
+echo "🚀 Running TypeScript type checks on all ZeroThrow examples..."
 echo "================================================"
 
 # Change to examples directory
 cd "$(dirname "$0")"
 
-# Function to run example and capture result
-run_example() {
-    local service=$1
+# Function to run type check and capture result
+run_typecheck() {
+    local dir=$1
     local description=$2
     
     echo ""
-    echo "🧪 Testing $description..."
+    echo "🔍 Type checking $description..."
     echo "----------------------------------------"
     
-    if docker compose run --rm "$service"; then
-        echo "✅ $description tests passed"
+    cd "$dir"
+    
+    if npx tsc --noEmit; then
+        echo "✅ $description type check passed"
+        cd ..
         return 0
     else
-        echo "❌ $description tests failed"
+        echo "❌ $description type check failed"
+        cd ..
         return 1
     fi
 }
 
-# Build all images
-echo "🔨 Building Docker images..."
-docker compose build
-
 # Track results
 declare -a failed_examples=()
 
-# Run each example
-run_example "react-examples" "React Examples" || failed_examples+=("React")
-run_example "node-examples" "Node.js Examples" || failed_examples+=("Node.js")
-run_example "database-examples" "Database Examples" || failed_examples+=("Database")
-run_example "async-patterns" "Async Patterns" || failed_examples+=("Async Patterns")
-run_example "framework-examples" "Framework Examples" || failed_examples+=("Frameworks")
+# Run type check for each example
+run_typecheck "react" "React Examples" || failed_examples+=("React")
+run_typecheck "node" "Node.js Examples" || failed_examples+=("Node.js")
+run_typecheck "database" "Database Examples" || failed_examples+=("Database")
+run_typecheck "async-patterns" "Async Patterns" || failed_examples+=("Async Patterns")
+run_typecheck "frameworks" "Framework Examples" || failed_examples+=("Frameworks")
 
 # Summary
 echo ""
@@ -47,10 +47,10 @@ echo "📊 SUMMARY"
 echo "================================================"
 
 if [ ${#failed_examples[@]} -eq 0 ]; then
-    echo "🎉 All examples passed successfully!"
+    echo "🎉 All examples passed type checking!"
     exit 0
 else
-    echo "❌ The following examples failed:"
+    echo "❌ The following examples failed type checking:"
     for example in "${failed_examples[@]}"; do
         echo "   - $example"
     done

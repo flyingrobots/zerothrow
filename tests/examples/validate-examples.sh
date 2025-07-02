@@ -31,12 +31,6 @@ validate_example() {
         return 1
     fi
     
-    # Check if Dockerfile exists
-    if [ ! -f "Dockerfile" ]; then
-        echo "❌ Dockerfile not found in $dir"
-        cd ..
-        return 1
-    fi
     
     # Check if test files exist
     if ls *.test.* 1> /dev/null 2>&1; then
@@ -80,16 +74,6 @@ validate_example "database" "Database Examples" || failed_examples+=("Database")
 validate_example "async-patterns" "Async Patterns" || failed_examples+=("Async Patterns")
 validate_example "frameworks" "Framework Examples" || failed_examples+=("Frameworks")
 
-# Check if docker-compose.yml exists
-echo ""
-echo "🐳 Checking Docker setup..."
-echo "----------------------------------------"
-if [ -f "docker-compose.yml" ]; then
-    echo "✅ docker-compose.yml found"
-else
-    echo "❌ docker-compose.yml not found"
-    failed_examples+=("Docker Setup")
-fi
 
 # Check if run script exists
 if [ -f "run-all-examples.sh" ]; then
@@ -108,16 +92,15 @@ echo "================================================"
 if [ ${#failed_examples[@]} -eq 0 ]; then
     echo "🎉 All examples validation passed!"
     echo ""
-    echo "Examples are ready to run in Docker containers:"
-    echo "  • React Examples: Complete with React Testing Library tests"
-    echo "  • Node.js Examples: Express and Fastify API tests"
-    echo "  • Database Examples: SQL integration tests"
-    echo "  • Async Patterns: Comprehensive async pattern tests"
-    echo "  • Framework Examples: Next.js and Remix pattern tests"
+    echo "Examples are ready for type checking:"
+    echo "  • React Examples: Complete with React component types"
+    echo "  • Node.js Examples: Express and Fastify API types"
+    echo "  • Database Examples: SQL integration types"
+    echo "  • Async Patterns: Comprehensive async pattern types"
+    echo "  • Framework Examples: Next.js and Remix pattern types"
     echo ""
-    echo "To run examples in Docker:"
-    echo "  cd examples && docker compose run react-examples"
-    echo "  cd examples && ./run-all-examples.sh"
+    echo "To run type checking on examples:"
+    echo "  npm run test:examples"
     exit 0
 else
     echo "❌ The following validations failed:"

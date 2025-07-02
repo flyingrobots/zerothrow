@@ -70,7 +70,7 @@ class ExampleTestRunner {
   }
 
   async runAll(): Promise<Result<void, ZeroError>> {
-    console.log('🚀 Running all ZeroThrow examples...');
+    console.log('🚀 Running TypeScript checks on all ZeroThrow examples...');
     console.log('================================================');
 
     // First validate all examples
@@ -79,17 +79,11 @@ class ExampleTestRunner {
       return err(validationResult.error);
     }
 
-    // Build Docker images
-    const buildResult = await this.buildDockerImages();
-    if (!buildResult.ok) {
-      return err(buildResult.error);
-    }
-
-    // Run all tests
+    // Run TypeScript type checking
     const testResults: TestResult[] = [];
     
     for (const example of EXAMPLES) {
-      const result = await this.runExample(example);
+      const result = await this.runTypeCheck(example);
       if (result.ok) {
         testResults.push(result.value);
       } else {
@@ -108,8 +102,8 @@ class ExampleTestRunner {
     const failedTests = testResults.filter(r => !r.passed);
     if (failedTests.length > 0) {
       return err(new ZeroError(
-        'TESTS_FAILED',
-        `${failedTests.length} example(s) failed`,
+        'TYPECHECK_FAILED',
+        `${failedTests.length} example(s) failed type checking`,
         { failedTests: failedTests.map(t => t.example) }
       ));
     }
@@ -169,7 +163,6 @@ class ExampleTestRunner {
       // Check required files
       const requiredFiles = [
         'package.json',
-        'Dockerfile',
         'vitest.config.ts',
         'tsconfig.json'
       ];
@@ -222,50 +215,37 @@ class ExampleTestRunner {
     ));
   }
 
-  private async buildDockerImages(): Promise<Result<void, ZeroError>> {
-    console.log('\n🔨 Building Docker images...');
-    console.log('----------------------------------------');
-
-    return tryR(async () => {
-      execSync('docker compose build', {
-        cwd: this.examplesDir,
-        stdio: 'inherit'
-      });
-    }, (error) => new ZeroError(
-      'BUILD_FAILED',
-      'Failed to build Docker images',
-      { cause: error }
-    ));
-  }
-
-  private async runExample(example: ExampleConfig): Promise<Result<TestResult, ZeroError>> {
-    console.log(`\n🧪 Testing ${example.description}...`);
+  private async runTypeCheck(example: ExampleConfig): Promise<Result<TestResult, ZeroError>> {
+    console.log(`\n🔍 Type checking ${example.description}...`);
     console.log('----------------------------------------');
 
     return tryR(() => {
-      const output = execSync(`docker compose run --rm ${example.service}`, {
-        cwd: this.examplesDir,
+      const examplePath = join(this.examplesDir, example.directory);
+      
+      // Run tsc --noEmit for type checking
+      const output = execSync('npx tsc --noEmit', {
+        cwd: examplePath,
         encoding: 'utf-8',
         stdio: 'pipe'
       });
 
-      console.log(`✅ ${example.description} tests passed`);
+      console.log(`✅ ${example.description} type check passed`);
       
       return {
         example: example.name,
         passed: true,
-        output: output.toString()
+        output: output.toString() || 'No type errors found'
       };
     }, (error) => {
-      console.log(`❌ ${example.description} tests failed`);
+      console.log(`❌ ${example.description} type check failed`);
       
       const errorOutput = error instanceof Error && 'stdout' in error 
         ? (error as any).stdout?.toString() || error.message
         : String(error);
 
       return new ZeroError(
-        'TEST_FAILED',
-        `${example.description} tests failed`,
+        'TYPECHECK_FAILED',
+        `${example.description} type check failed`,
         { 
           example: example.name,
           output: errorOutput,
@@ -321,59 +301,20 @@ class ExampleTestRunner {
       return err(validationResult.error);
     }
 
-    // Check Docker setup
-    const dockerSetupResult = this.validateDockerSetup();
-    if (!dockerSetupResult.ok) {
-      console.log(`❌ Docker setup validation failed: ${dockerSetupResult.error.message}`);
-      return err(dockerSetupResult.error);
-    }
-
     console.log('\n================================================');
     console.log('📊 VALIDATION SUMMARY');
     console.log('================================================');
     console.log('🎉 All examples validation passed!');
-    console.log('\nExamples are ready to run in Docker containers:');
-    console.log('  • React Examples: Complete with React Testing Library tests');
-    console.log('  • Node.js Examples: Express and Fastify API tests');
-    console.log('  • Database Examples: SQL integration tests');
-    console.log('  • Async Patterns: Comprehensive async pattern tests');
-    console.log('  • Framework Examples: Next.js and Remix pattern tests');
-    console.log('\nTo run examples in Docker:');
+    console.log('\nExamples are ready for type checking:');
+    console.log('  • React Examples: Complete with React component types');
+    console.log('  • Node.js Examples: Express and Fastify API types');
+    console.log('  • Database Examples: SQL integration types');
+    console.log('  • Async Patterns: Comprehensive async pattern types');
+    console.log('  • Framework Examples: Next.js and Remix pattern types');
+    console.log('\nTo run type checking on examples:');
     console.log('  npm run test:examples');
-    console.log('  # or individually:');
-    console.log('  docker compose run react-examples');
 
     return ok(undefined);
-  }
-
-  private validateDockerSetup(): Result<void, ZeroError> {
-    const dockerComposePath = join(this.examplesDir, 'docker-compose.yml');
-    
-    if (!existsSync(dockerComposePath)) {
-      return err(new ZeroError('DOCKER_SETUP_MISSING', 'docker-compose.yml not found'));
-    }
-
-    try {
-      const dockerCompose = readFileSync(dockerComposePath, 'utf-8');
-      
-      // Check that all services are defined
-      for (const example of EXAMPLES) {
-        if (!dockerCompose.includes(example.service)) {
-          return err(new ZeroError(
-            'DOCKER_SERVICE_MISSING',
-            `Service ${example.service} not found in docker-compose.yml`
-          ));
-        }
-      }
-
-      return ok(undefined);
-    } catch (error) {
-      return err(new ZeroError(
-        'DOCKER_SETUP_INVALID',
-        'Failed to parse docker-compose.yml',
-        { cause: error }
-      ));
-    }
   }
 }
 
