@@ -1,5 +1,7 @@
-import typescript from '@typescript-eslint/eslint-plugin';
+import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+
+const tsRecommended = tseslint.configs.recommended;
 
 export default [
   {
@@ -19,16 +21,13 @@ export default [
       }
     },
     plugins: {
-      '@typescript-eslint': typescript
+      '@typescript-eslint': tseslint
     },
     rules: {
-      ...typescript.configs.recommended.rules,
+      ...tsRecommended.rules,
       'no-console': 'error',
       'no-var': 'error',
-      'prefer-const': 'error',
-      'no-throw-literal': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
+      'prefer-const': 'error'
     }
   },
   {
