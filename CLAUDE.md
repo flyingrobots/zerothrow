@@ -22,9 +22,10 @@
 - Affected all .ts, .tsx, .test.ts, and .test.tsx files
 - Used sed to batch update all files
 
-🔲 **MANDATE 4: Convert all export type lines to combined syntax**
-- Change separate export statements to combined syntax
-- Example: `export { Foo }; export type { Bar };` → `export { Foo, type Bar };`
+✅ **MANDATE 4: Convert all export type lines to combined syntax**
+- Verified all exports already use combined syntax
+- No separate `export { Foo }; export type { Bar };` patterns found
+- Codebase already follows the pattern: `export { Foo, type Bar };`
 
 🔲 **MANDATE 5: Rip out @eslint/js and use @typescript-eslint**
 - Remove @eslint/js from eslint.config.js
