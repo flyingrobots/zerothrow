@@ -11,7 +11,7 @@ export {
   type Result,
 } from './result.js';
 export {
-  ResultCombinable,
+  type ResultCombinable,
   makeCombinable,
   pipe,
   collect,

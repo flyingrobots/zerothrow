@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Result } from './result.js';
+import { type Result } from './result.js';
 import { ZeroError } from './error.js';
 
 export interface UseResultState<T, E extends Error = ZeroError> {

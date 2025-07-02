@@ -1,4 +1,4 @@
-import { Result, ok, err } from './result.js';
+import { type Result, ok, err } from './result.js';
 import { ZeroError } from './error.js';
 
 /**
