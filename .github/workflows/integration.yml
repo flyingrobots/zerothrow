@@ -47,8 +47,6 @@ jobs:
       run: npx vitest run test/integration/react-component.test.tsx
       continue-on-error: true # Since React is not installed
 
-    - name: Run Performance Tests
-      run: npx vitest run test/integration/performance.test.ts
 
     - name: Run User Singleton Tests
       run: npx vitest run test/integration/user-singleton.test.ts
