@@ -27,7 +27,7 @@ export const zerothrowWinstonFormat = {
         // Only include stack in debug mode
         ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: info.error.stack } : {})
       };
-      transformed.message = `[${codeStr}] ${info.error.message}`;
+      transformed.formattedMessage = `[${codeStr}] ${info.error.message}`;
       // Leave original error untouched for downstream formats
     }
     
@@ -41,7 +41,7 @@ export const zerothrowWinstonFormat = {
           status: 'ok',
           value: result.value
         };
-        transformed.message = `[OK] ${info.message || 'Operation succeeded'}`;
+        transformed.formattedMessage = `[OK] ${info.message || 'Operation succeeded'}`;
       } else {
         transformed.zerothrow = {
           type: 'Result',
@@ -59,7 +59,7 @@ export const zerothrowWinstonFormat = {
         const errorMessage = result.error instanceof ZeroError 
           ? result.error.message 
           : info.message || 'Operation failed';
-        transformed.message = `[ERR] ${errorMessage}`;
+        transformed.formattedMessage = `[ERR] ${errorMessage}`;
       }
       // Leave original result untouched for downstream formats
     }

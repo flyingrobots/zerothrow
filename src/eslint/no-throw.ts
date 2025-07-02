@@ -144,7 +144,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                       return spec.imported.name;
                     });
                   
-                  const allImports = [...existingImports, ...missingImports];
+                  const allImports = Array.from(new Set([...existingImports, ...missingImports]));
                   const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
                   
                   fixes.push(fixer.replaceText(zerothrowImport, newImportText));
@@ -188,7 +188,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                     return spec.imported.name;
                   });
                 
-                const allImports = [...existingImports, 'err'];
+                const allImports = Array.from(new Set([...existingImports, 'err']));
                 const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
                 
                 fixes.push(fixer.replaceText(zerothrowImport, newImportText));

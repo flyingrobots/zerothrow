@@ -24,7 +24,7 @@ describe("Winston formatter", () => {
         message: "Connection failed",
         context: { host: "localhost", port: 5432 }
       });
-      expect(transformed.message).toBe("[DATABASE_ERROR] Connection failed");
+      expect(transformed.formattedMessage).toBe("[DATABASE_ERROR] Connection failed");
     });
 
     it("includes stack trace when debug mode is enabled", () => {
@@ -64,7 +64,7 @@ describe("Winston formatter", () => {
       const transformed = zerothrowWinstonFormat.transform(info);
       
       expect(transformed.zerothrow.code).toBe("Symbol(CUSTOM_ERROR)");
-      expect(transformed.message).toBe("[Symbol(CUSTOM_ERROR)] Custom error");
+      expect(transformed.formattedMessage).toBe("[Symbol(CUSTOM_ERROR)] Custom error");
     });
 
     it("formats Ok results", () => {
@@ -83,7 +83,7 @@ describe("Winston formatter", () => {
         status: "ok",
         value: { success: true }
       });
-      expect(transformed.message).toBe("[OK] Operation completed");
+      expect(transformed.formattedMessage).toBe("[OK] Operation completed");
     });
 
     it("formats Ok results with default message when none provided", () => {
@@ -97,7 +97,7 @@ describe("Winston formatter", () => {
       
       const transformed = zerothrowWinstonFormat.transform(info);
       
-      expect(transformed.message).toBe("[OK] Operation succeeded");
+      expect(transformed.formattedMessage).toBe("[OK] Operation succeeded");
     });
 
     it("formats Err results with ZeroError", () => {
@@ -120,7 +120,7 @@ describe("Winston formatter", () => {
           message: "Invalid credentials"
         }
       });
-      expect(transformed.message).toBe("[ERR] Invalid credentials");
+      expect(transformed.formattedMessage).toBe("[ERR] Invalid credentials");
     });
 
     it("formats Err results with regular Error", () => {
@@ -142,7 +142,7 @@ describe("Winston formatter", () => {
           message: "Generic error"
         }
       });
-      expect(transformed.message).toBe("[ERR] Something went wrong");
+      expect(transformed.formattedMessage).toBe("[ERR] Something went wrong");
     });
 
     it("does not mutate original info object", () => {
@@ -162,7 +162,8 @@ describe("Winston formatter", () => {
       expect(originalInfo.zerothrow).toBeUndefined();
       
       // Check that transformed has the changes
-      expect(transformed.message).toBe("[TEST_ERROR] Test error");
+      expect(transformed.message).toBe("Original message"); // Original message preserved
+      expect(transformed.formattedMessage).toBe("[TEST_ERROR] Test error");
       expect(transformed.zerothrow).toBeDefined();
     });
 
@@ -184,7 +185,7 @@ describe("Winston formatter", () => {
           message: "string error"
         }
       });
-      expect(transformed.message).toBe("[ERR] Operation failed");
+      expect(transformed.formattedMessage).toBe("[ERR] Operation failed");
     });
 
     it("uses info.message for non-ZeroError errors", () => {
@@ -199,7 +200,7 @@ describe("Winston formatter", () => {
       
       const transformed = zerothrowWinstonFormat.transform(info);
       
-      expect(transformed.message).toBe("[ERR] Custom error message");
+      expect(transformed.formattedMessage).toBe("[ERR] Custom error message");
     });
 
     it("formats Err results with ZeroError having symbol code", () => {

@@ -89,3 +89,6 @@ export function createPinoConfig(options: PinoOptions = {}) {
   };
 }
 
+/** @deprecated Use createPinoConfig instead. This returns a config object, not a logger instance. */
+export const createPinoLogger = createPinoConfig;
+

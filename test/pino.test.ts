@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { zerothrowPinoSerializers, createPinoConfig } from "../src/loggers/pino";
+import { zerothrowPinoSerializers, createPinoConfig, createPinoLogger } from "../src/loggers/pino";
 import { ZeroError } from "../src/error";
 import { ok, err } from "../src/result";
 
@@ -177,5 +177,8 @@ describe("Pino serializers", () => {
       expect(config.serializers.result).toBe(zerothrowPinoSerializers.result);
     });
     
+    it("createPinoLogger is alias for backward compatibility", () => {
+      expect(createPinoLogger).toBe(createPinoConfig);
+    });
   });
 });
