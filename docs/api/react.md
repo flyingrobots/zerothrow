@@ -388,7 +388,7 @@ function SearchableList() {
         onChange={setQuery}
         placeholder="Search..."
       />
-      {loading && <SearchingIndicator />}
+      {loading && <SearchIndicator />}
       {error && <ErrorMessage error={error} />}
       {data && (
         <SearchResults

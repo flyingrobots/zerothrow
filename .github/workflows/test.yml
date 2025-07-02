@@ -160,11 +160,29 @@ jobs:
         fi
 
     - name: Generate coverage badge
-      uses: cicirello/jacoco-badge-generator@v2
       if: github.ref == 'refs/heads/main'
-      with:
-        coverage-badge-filename: coverage.svg
-        generate-coverage-badge: true
+      run: |
+        # Extract coverage percentage from vitest coverage JSON
+        COVERAGE=$(node -e "
+          const summary = require('./coverage/coverage-summary.json');
+          const total = summary.total;
+          const pct = (total.lines.pct + total.statements.pct + total.functions.pct + total.branches.pct) / 4;
+          console.log(Math.round(pct));
+        ")
+        
+        # Generate badge URL using shields.io
+        BADGE_COLOR="red"
+        if [ "$COVERAGE" -ge 80 ]; then
+          BADGE_COLOR="green"
+        elif [ "$COVERAGE" -ge 60 ]; then
+          BADGE_COLOR="yellow"
+        fi
+        
+        echo "Coverage: ${COVERAGE}%"
+        echo "Badge color: ${BADGE_COLOR}"
+        
+        # Create coverage badge using shields.io
+        curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-${BADGE_COLOR}" > coverage.svg
 
 
   lint-check:

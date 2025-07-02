@@ -9,7 +9,9 @@ Browser-based playground to experiment with ZeroThrow:
 - Live code editor with syntax highlighting
 - Pre-built examples for common patterns
 - Real-time console output
-- No setup required - just open in browser
+- No setup required - **open locally in your browser**
+
+> **Note**: The playground is a standalone HTML file. Download and open it locally for the best experience.
 
 ### 2. [Express API](./express-api.ts)
 Complete REST API implementation with:

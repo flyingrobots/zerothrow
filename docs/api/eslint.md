@@ -14,7 +14,7 @@ npm install @flyingrobots/zerothrow
 
 ### .eslintrc.json
 
-```json
+```jsonc
 {
   "extends": [
     // Your other extends...
@@ -181,7 +181,7 @@ interface NoThrowOptions {
 
 Allow throw statements in test files (default: `false`).
 
-```json
+```jsonc
 {
   "@flyingrobots/zerothrow/no-throw": ["error", {
     "allowInTests": true
@@ -198,7 +198,7 @@ This allows throws in files matching common test patterns:
 
 Array of regex patterns for files where throws are allowed.
 
-```json
+```jsonc
 {
   "@flyingrobots/zerothrow/no-throw": ["error", {
     "allowedPatterns": [
@@ -213,7 +213,7 @@ Array of regex patterns for files where throws are allowed.
 
 Custom error message to display.
 
-```json
+```jsonc
 {
   "@flyingrobots/zerothrow/no-throw": ["error", {
     "message": "Use Result types instead of throwing. See: https://docs.example.com/error-handling"
@@ -238,7 +238,7 @@ When you encounter a violation, consider:
 
 Start by enabling the rule as a warning:
 
-```json
+```jsonc
 {
   "rules": {
     "@flyingrobots/zerothrow/no-throw": "warn"

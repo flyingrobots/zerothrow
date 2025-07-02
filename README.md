@@ -8,7 +8,6 @@
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [API surface](#api-surface)
-- [React hook (alpha)](#react-hook-alpha)
 - [Throw-ban in 60 seconds](#throw-ban-in-60-seconds)
   - [1. Add the rule](#1-add-the-rule)
   - [2. Hook into CI](#2-hook-into-ci)
@@ -90,26 +89,8 @@ class ZeroError extends Error {
 - **[API Reference](docs/api/)** - Complete API documentation with TypeScript types
 - **[Tutorials](docs/tutorials/)** - Step-by-step guides from basics to advanced patterns
 - **[Examples](docs/examples/)** - Real-world code examples (Express, React, file processing)
+- **[React Hook](docs/api/react.md)** - useResult hook for React applications
 - **[Migration Guide](docs/guides/migration-guide.md)** - Migrate from try/catch or other libraries
-
----
-## React hook (alpha)
-
-```typescript
-import { useResult } from "@flyingrobots/zerothrow/react";
-
-function Profile({ id }: { id: string }) {
-    const { state, data, error } = useResult(
-        () => api.fetchProfile(id), [id]
-    );
-
-    if (state === "loading") return <Spinner />;
-    
-    if (state === "err") return <ErrorView code={error!.code} />;
-    
-    return <ProfileCard user={data!} />;
-}
-```
 
 ---
 ## Throw-ban in 60 seconds
