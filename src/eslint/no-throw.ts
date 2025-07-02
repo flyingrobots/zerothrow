@@ -170,6 +170,100 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                 // but the comment documents this limitation
               }
               
+              // Find the parent function to add Result type annotation
+              let parent = node.parent;
+              while (parent && 
+                     parent.type !== 'FunctionDeclaration' && 
+                     parent.type !== 'FunctionExpression' && 
+                     parent.type !== 'ArrowFunctionExpression' &&
+                     parent.type !== 'MethodDefinition') {
+                parent = parent.parent;
+              }
+              
+              if (parent && 
+                  (parent.type === 'FunctionDeclaration' || 
+                   parent.type === 'FunctionExpression' || 
+                   parent.type === 'ArrowFunctionExpression' ||
+                   (parent.type === 'MethodDefinition' && parent.value))) {
+                
+                const func = parent.type === 'MethodDefinition' ? parent.value : parent;
+                
+                // Check if function already has a return type annotation
+                if (func && 'returnType' in func && !func.returnType) {
+                  // Add Result import if needed
+                  const hasResultImport = zerothrowImport?.specifiers.some(spec => 
+                    spec.type === 'ImportSpecifier' && spec.imported.name === 'Result'
+                  ) ?? false;
+                  
+                  if (!hasResultImport) {
+                    // Update imports to include Result
+                    const existingImports = zerothrowImport?.specifiers
+                      .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
+                      .map(spec => {
+                        if (spec.local && spec.local.name !== spec.imported.name) {
+                          return `${spec.imported.name} as ${spec.local.name}`;
+                        }
+                        return spec.imported.name;
+                      }) || [];
+                    
+                    const neededImports = ['err', 'ZeroError', 'Result'];
+                    const allImports = Array.from(new Set([...existingImports, ...neededImports]));
+                    const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
+                    
+                    // Find if we already have a fix for the import
+                    const existingImportFixIndex = fixes.findIndex(fix => 
+                      fix.range && zerothrowImport?.range && 
+                      fix.range[0] === zerothrowImport.range[0] && 
+                      fix.range[1] === zerothrowImport.range[1]
+                    );
+                    
+                    if (existingImportFixIndex >= 0) {
+                      // Update existing fix
+                      fixes[existingImportFixIndex] = fixer.replaceText(zerothrowImport!, newImportText);
+                    } else if (zerothrowImport) {
+                      // Add new fix for existing import
+                      fixes.push(fixer.replaceText(zerothrowImport, newImportText));
+                    } else {
+                      // Update the insertTextBefore fix we might have added
+                      const insertFixIndex = fixes.findIndex(fix => 
+                        fix.text && fix.text.includes('import {') && fix.text.includes('@flyingrobots/zerothrow')
+                      );
+                      
+                      if (insertFixIndex >= 0) {
+                        fixes[insertFixIndex] = fixer.insertTextBefore(
+                          sourceCode.ast.body[0],
+                          `${newImportText}\n`
+                        );
+                      }
+                    }
+                  }
+                  
+                  // Add return type annotation
+                  const isAsync = func.async ?? false;
+                  const returnType = isAsync ? ': Promise<Result<unknown, ZeroError>>' : ': Result<unknown, ZeroError>';
+                  
+                  if (func.type === 'ArrowFunctionExpression') {
+                    // For arrow functions, add before the arrow
+                    const arrowToken = sourceCode.getTokenAfter(func.params[func.params.length - 1] || func, 
+                      token => token.type === 'Punctuator' && token.value === '=>'
+                    );
+                    
+                    if (arrowToken) {
+                      fixes.push(fixer.insertTextBefore(arrowToken, returnType + ' '));
+                    }
+                  } else {
+                    // For regular functions, add after the parameters
+                    const closeParenToken = sourceCode.getTokenAfter(func.params[func.params.length - 1] || func,
+                      token => token.type === 'Punctuator' && token.value === ')'
+                    );
+                    
+                    if (closeParenToken) {
+                      fixes.push(fixer.insertTextAfter(closeParenToken, returnType));
+                    }
+                  }
+                }
+              }
+              
               return fixes;
             }
             
@@ -206,6 +300,99 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
               node,
               `return err(${argumentText})`
             ));
+            
+            // Find the parent function to add Result type annotation
+            let parent = node.parent;
+            while (parent && 
+                   parent.type !== 'FunctionDeclaration' && 
+                   parent.type !== 'FunctionExpression' && 
+                   parent.type !== 'ArrowFunctionExpression' &&
+                   parent.type !== 'MethodDefinition') {
+              parent = parent.parent;
+            }
+            
+            if (parent && 
+                (parent.type === 'FunctionDeclaration' || 
+                 parent.type === 'FunctionExpression' || 
+                 parent.type === 'ArrowFunctionExpression' ||
+                 (parent.type === 'MethodDefinition' && parent.value))) {
+              
+              const func = parent.type === 'MethodDefinition' ? parent.value : parent;
+              
+              // Check if function already has a return type annotation
+              if (func && 'returnType' in func && !func.returnType) {
+                // Add Result import if needed
+                const hasResultImport = zerothrowImport?.specifiers.some(spec => 
+                  spec.type === 'ImportSpecifier' && spec.imported.name === 'Result'
+                ) ?? false;
+                
+                if (!hasResultImport) {
+                  // Update imports to include Result
+                  const existingImports = zerothrowImport?.specifiers
+                    .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
+                    .map(spec => {
+                      if (spec.local && spec.local.name !== spec.imported.name) {
+                        return `${spec.imported.name} as ${spec.local.name}`;
+                      }
+                      return spec.imported.name;
+                    }) || [];
+                  
+                  const updatedImports = Array.from(new Set([...existingImports, 'err', 'Result']));
+                  
+                  if (zerothrowImport) {
+                    // Replace existing import
+                    const importIndex = fixes.findIndex(fix => 
+                      fix.range && zerothrowImport.range && 
+                      fix.range[0] === zerothrowImport.range[0] && 
+                      fix.range[1] === zerothrowImport.range[1]
+                    );
+                    
+                    if (importIndex >= 0) {
+                      fixes[importIndex] = fixer.replaceText(
+                        zerothrowImport, 
+                        `import { ${updatedImports.join(', ')} } from '@flyingrobots/zerothrow';`
+                      );
+                    }
+                  } else {
+                    // Update the new import we're adding
+                    const importFixIndex = fixes.findIndex(fix => 
+                      fix.text && fix.text.includes("import { err }") 
+                    );
+                    
+                    if (importFixIndex >= 0) {
+                      fixes[importFixIndex] = fixer.insertTextBefore(
+                        sourceCode.ast.body[0],
+                        `import { err, Result } from '@flyingrobots/zerothrow';\n`
+                      );
+                    }
+                  }
+                }
+                
+                // Add return type annotation
+                const isAsync = func.async ?? false;
+                const returnType = isAsync ? ': Promise<Result<unknown, ZeroError>>' : ': Result<unknown, ZeroError>';
+                
+                if (func.type === 'ArrowFunctionExpression') {
+                  // For arrow functions, add before the arrow
+                  const arrowToken = sourceCode.getTokenAfter(func.params[func.params.length - 1] || func, 
+                    token => token.type === 'Punctuator' && token.value === '=>'
+                  );
+                  
+                  if (arrowToken) {
+                    fixes.push(fixer.insertTextBefore(arrowToken, returnType + ' '));
+                  }
+                } else {
+                  // For regular functions, add after the parameters
+                  const closeParenToken = sourceCode.getTokenAfter(func.params[func.params.length - 1] || func,
+                    token => token.type === 'Punctuator' && token.value === ')'
+                  );
+                  
+                  if (closeParenToken) {
+                    fixes.push(fixer.insertTextAfter(closeParenToken, returnType));
+                  }
+                }
+              }
+            }
             
             return fixes;
           },
