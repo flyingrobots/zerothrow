@@ -27,9 +27,10 @@
 - No separate `export { Foo }; export type { Bar };` patterns found
 - Codebase already follows the pattern: `export { Foo, type Bar };`
 
-🔲 **MANDATE 5: Rip out @eslint/js and use @typescript-eslint**
-- Remove @eslint/js from eslint.config.js
-- Replace with @typescript-eslint/eslint-plugin and parser
+✅ **MANDATE 5: Rip out @eslint/js and use @typescript-eslint**
+- Verified eslint.config.js already uses @typescript-eslint
+- No direct @eslint/js dependency found
+- @typescript-eslint/eslint-plugin and parser already in use
 
 🔲 **MANDATE 6: Update .lintstagedrc.json**
 - Ensure Prettier runs after ESLint
