@@ -17,7 +17,8 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@flyingrobots/zerothrow": ["./src/index.ts"]
-    }
+    },
+    "verbatimModuleSyntax": true
   },
   "include": ["src", "examples/react", "*.ts", "*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
