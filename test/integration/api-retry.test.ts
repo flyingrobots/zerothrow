@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index';
+import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
 
 // Real-world API client integration test
 interface User {
@@ -25,26 +25,28 @@ class ApiClient {
   async fetchUser(userId: string): Promise<Result<User, ZeroError>> {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       const result = await this.attemptFetch(userId, attempt);
-      
+
       if (result.ok) {
         return result;
       }
 
       const error = result.error;
       const isRetryable = this.isRetryableError(error);
-      
+
       if (!isRetryable || attempt === this.maxRetries) {
-        return err(wrap(
-          error,
-          'API_FETCH_FAILED',
-          `Failed to fetch user after ${attempt} attempts`,
-          {
-            userId,
-            attempts: attempt,
-            lastError: error.code,
-            timestamp: new Date().toISOString()
-          }
-        ));
+        return err(
+          wrap(
+            error,
+            'API_FETCH_FAILED',
+            `Failed to fetch user after ${attempt} attempts`,
+            {
+              userId,
+              attempts: attempt,
+              lastError: error.code,
+              timestamp: new Date().toISOString(),
+            }
+          )
+        );
       }
 
       await this.delay(this.retryDelay * attempt);
@@ -53,29 +55,40 @@ class ApiClient {
     return err(new ZeroError('RETRY_EXHAUSTED', 'All retry attempts failed'));
   }
 
-  private async attemptFetch(userId: string, attempt: number): Promise<Result<User, ZeroError>> {
+  private async attemptFetch(
+    userId: string,
+    attempt: number
+  ): Promise<Result<User, ZeroError>> {
     try {
       const response = await fetch(`${this.baseUrl}/users/${userId}`);
-      
+
       if (!response.ok) {
         // Return HTTP error directly without wrapping as NETWORK_ERROR
-        return err(new ZeroError('HTTP_ERROR', `HTTP ${response.status}: ${response.statusText}`, {
-          status: response.status,
-          statusText: response.statusText,
-          userId,
-          attempt
-        }));
+        return err(
+          new ZeroError(
+            'HTTP_ERROR',
+            `HTTP ${response.status}: ${response.statusText}`,
+            {
+              status: response.status,
+              statusText: response.statusText,
+              userId,
+              attempt,
+            }
+          )
+        );
       }
 
       const data: ApiResponse<User> = await response.json();
       return ok(data.data);
     } catch (e) {
       // Only network/connection errors get wrapped as NETWORK_ERROR
-      return err(wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
-        userId,
-        attempt,
-        originalError: (e as Error).message
-      }));
+      return err(
+        wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
+          userId,
+          attempt,
+          originalError: (e as Error).message,
+        })
+      );
     }
   }
 
@@ -85,7 +98,7 @@ class ApiClient {
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -103,10 +116,14 @@ describe('API Retry Integration Tests', () => {
   });
 
   it('should successfully fetch user on first attempt', async () => {
-    const user = { id: 'user-123', name: 'John Doe', email: 'john@example.com' };
+    const user = {
+      id: 'user-123',
+      name: 'John Doe',
+      email: 'john@example.com',
+    };
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ data: user, timestamp: Date.now() })
+      json: async () => ({ data: user, timestamp: Date.now() }),
     });
 
     const api = new ApiClient('https://api.example.com');
@@ -119,15 +136,19 @@ describe('API Retry Integration Tests', () => {
   });
 
   it('should retry on network errors and eventually succeed', async () => {
-    const user = { id: 'user-123', name: 'John Doe', email: 'john@example.com' };
-    
+    const user = {
+      id: 'user-123',
+      name: 'John Doe',
+      email: 'john@example.com',
+    };
+
     // Fail twice, then succeed
     mockFetch
       .mockRejectedValueOnce(new Error('Network timeout'))
       .mockRejectedValueOnce(new Error('Connection refused'))
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ data: user, timestamp: Date.now() })
+        json: async () => ({ data: user, timestamp: Date.now() }),
       });
 
     const api = new ApiClient('https://api.example.com');
@@ -152,7 +173,7 @@ describe('API Retry Integration Tests', () => {
       expect(result.error.context).toMatchObject({
         userId: 'user-123',
         attempts: 3,
-        lastError: 'NETWORK_ERROR'
+        lastError: 'NETWORK_ERROR',
       });
     }
   });
@@ -162,7 +183,7 @@ describe('API Retry Integration Tests', () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
-      statusText: 'Not Found'
+      statusText: 'Not Found',
     });
 
     const result = await api.fetchUser('user-404');

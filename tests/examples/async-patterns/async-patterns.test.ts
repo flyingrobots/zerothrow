@@ -5,7 +5,7 @@ import {
   processBatch, 
   CircuitBreaker,
   AsyncQueue
-} from './async-patterns';
+} from './async-patterns.js';
 import { ok, err, ZeroError } from '@flyingrobots/zerothrow';
 
 describe('Async Patterns', () => {

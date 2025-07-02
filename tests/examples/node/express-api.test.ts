@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
-import { createApp } from './express-api';
+import { createApp } from './express-api.js';
 
 describe('Express API with ZeroThrow', () => {
   const app = createApp();

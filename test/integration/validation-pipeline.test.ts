@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index';
+import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
 
 // Real-world Validation Pipeline Integration Test
 interface UserRegistration {
@@ -23,7 +23,9 @@ class ValidationPipeline<T> {
   private validators: Array<(data: T) => Promise<ValidationResult<T>>> = [];
   private errors: ValidationError[] = [];
 
-  add(validator: (data: T) => Promise<ValidationResult<T>>): ValidationPipeline<T> {
+  add(
+    validator: (data: T) => Promise<ValidationResult<T>>
+  ): ValidationPipeline<T> {
     this.validators.push(validator);
     return this;
   }
@@ -34,7 +36,7 @@ class ValidationPipeline<T> {
 
     for (const validator of this.validators) {
       const result = await validator(currentData);
-      
+
       if (!result.ok) {
         // Collect errors but continue validation to find all issues
         const error = result.error;
@@ -42,7 +44,7 @@ class ValidationPipeline<T> {
           this.errors.push({
             field: error.context.field as string,
             message: error.message,
-            code: error.code as string
+            code: error.code as string,
           });
         }
       } else {
@@ -51,12 +53,14 @@ class ValidationPipeline<T> {
     }
 
     if (this.errors.length > 0) {
-      return err(new ZeroError('VALIDATION_FAILED', 'Validation pipeline failed', {
-        context: {
-          errors: this.errors,
-          errorCount: this.errors.length
-        }
-      }));
+      return err(
+        new ZeroError('VALIDATION_FAILED', 'Validation pipeline failed', {
+          context: {
+            errors: this.errors,
+            errorCount: this.errors.length,
+          },
+        })
+      );
     }
 
     return ok(currentData);
@@ -67,11 +71,11 @@ class ValidationPipeline<T> {
 
     for (const validator of this.validators) {
       const result = await validator(currentData);
-      
+
       if (!result.ok) {
         return result;
       }
-      
+
       currentData = result.value;
     }
 
@@ -81,92 +85,130 @@ class ValidationPipeline<T> {
 
 // Individual validators
 class UserValidators {
-  static async validateUsername(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validateUsername(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     const { username } = data;
 
     if (!username || username.trim().length === 0) {
-      return err(new ZeroError('EMPTY_USERNAME', 'Username is required', {
-        context: {
-          field: 'username'
-        }
-      }));
+      return err(
+        new ZeroError('EMPTY_USERNAME', 'Username is required', {
+          context: {
+            field: 'username',
+          },
+        })
+      );
     }
 
     if (username.length < 3) {
-      return err(new ZeroError('USERNAME_TOO_SHORT', 'Username must be at least 3 characters', {
-        context: {
-          field: 'username',
-          minLength: 3,
-          actualLength: username.length
-        }
-      }));
+      return err(
+        new ZeroError(
+          'USERNAME_TOO_SHORT',
+          'Username must be at least 3 characters',
+          {
+            context: {
+              field: 'username',
+              minLength: 3,
+              actualLength: username.length,
+            },
+          }
+        )
+      );
     }
 
     if (username.length > 20) {
-      return err(new ZeroError('USERNAME_TOO_LONG', 'Username must be at most 20 characters', {
-        context: {
-          field: 'username',
-          maxLength: 20,
-          actualLength: username.length
-        }
-      }));
+      return err(
+        new ZeroError(
+          'USERNAME_TOO_LONG',
+          'Username must be at most 20 characters',
+          {
+            context: {
+              field: 'username',
+              maxLength: 20,
+              actualLength: username.length,
+            },
+          }
+        )
+      );
     }
 
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
-      return err(new ZeroError('INVALID_USERNAME_FORMAT', 'Username can only contain letters, numbers, underscores, and hyphens', {
-        context: {
-          field: 'username',
-          pattern: '^[a-zA-Z0-9_-]+$'
-        }
-      }));
+      return err(
+        new ZeroError(
+          'INVALID_USERNAME_FORMAT',
+          'Username can only contain letters, numbers, underscores, and hyphens',
+          {
+            context: {
+              field: 'username',
+              pattern: '^[a-zA-Z0-9_-]+$',
+            },
+          }
+        )
+      );
     }
 
     return ok(data);
   }
 
-  static async validateEmail(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validateEmail(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     const { email } = data;
 
     if (!email || email.trim().length === 0) {
-      return err(new ZeroError('EMPTY_EMAIL', 'Email is required', {
-        context: {
-          field: 'email'
-        }
-      }));
+      return err(
+        new ZeroError('EMPTY_EMAIL', 'Email is required', {
+          context: {
+            field: 'email',
+          },
+        })
+      );
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return err(new ZeroError('INVALID_EMAIL_FORMAT', 'Invalid email format', {
-        context: {
-          field: 'email',
-          value: email
-        }
-      }));
+      return err(
+        new ZeroError('INVALID_EMAIL_FORMAT', 'Invalid email format', {
+          context: {
+            field: 'email',
+            value: email,
+          },
+        })
+      );
     }
 
     return ok(data);
   }
 
-  static async validatePassword(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validatePassword(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     const { password } = data;
 
     if (!password || password.length === 0) {
-      return err(new ZeroError('EMPTY_PASSWORD', 'Password is required', {
-        context: {
-          field: 'password'
-        }
-      }));
+      return err(
+        new ZeroError('EMPTY_PASSWORD', 'Password is required', {
+          context: {
+            field: 'password',
+          },
+        })
+      );
     }
 
     if (password.length < 8) {
-      return err(new ZeroError('PASSWORD_TOO_SHORT', 'Password must be at least 8 characters', {
-        context: {
-          field: 'password',
-          minLength: 8,
-          actualLength: password.length
-        }
-      }));
+      return err(
+        new ZeroError(
+          'PASSWORD_TOO_SHORT',
+          'Password must be at least 8 characters',
+          {
+            context: {
+              field: 'password',
+              minLength: 8,
+              actualLength: password.length,
+            },
+          }
+        )
+      );
     }
 
     const hasUpperCase = /[A-Z]/.test(password);
@@ -175,119 +217,151 @@ class UserValidators {
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-      return err(new ZeroError('WEAK_PASSWORD', 'Password must contain uppercase, lowercase, number, and special character', {
-        context: {
-          field: 'password',
-          requirements: {
-            hasUpperCase,
-            hasLowerCase,
-            hasNumber,
-            hasSpecialChar
+      return err(
+        new ZeroError(
+          'WEAK_PASSWORD',
+          'Password must contain uppercase, lowercase, number, and special character',
+          {
+            context: {
+              field: 'password',
+              requirements: {
+                hasUpperCase,
+                hasLowerCase,
+                hasNumber,
+                hasSpecialChar,
+              },
+            },
           }
-        }
-      }));
+        )
+      );
     }
 
     return ok(data);
   }
 
-  static async validateAge(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validateAge(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     const { age } = data;
 
     if (age === undefined || age === null) {
-      return err(new ZeroError('MISSING_AGE', 'Age is required', {
-        context: {
-          field: 'age'
-        }
-      }));
+      return err(
+        new ZeroError('MISSING_AGE', 'Age is required', {
+          context: {
+            field: 'age',
+          },
+        })
+      );
     }
 
     if (!Number.isInteger(age)) {
-      return err(new ZeroError('INVALID_AGE_TYPE', 'Age must be an integer', {
-        context: {
-          field: 'age',
-          value: age
-        }
-      }));
+      return err(
+        new ZeroError('INVALID_AGE_TYPE', 'Age must be an integer', {
+          context: {
+            field: 'age',
+            value: age,
+          },
+        })
+      );
     }
 
     if (age < 13) {
-      return err(new ZeroError('AGE_TOO_YOUNG', 'Must be at least 13 years old', {
-        context: {
-          field: 'age',
-          minAge: 13,
-          actualAge: age
-        }
-      }));
+      return err(
+        new ZeroError('AGE_TOO_YOUNG', 'Must be at least 13 years old', {
+          context: {
+            field: 'age',
+            minAge: 13,
+            actualAge: age,
+          },
+        })
+      );
     }
 
     if (age > 120) {
-      return err(new ZeroError('AGE_TOO_OLD', 'Invalid age value', {
-        context: {
-          field: 'age',
-          maxAge: 120,
-          actualAge: age
-        }
-      }));
+      return err(
+        new ZeroError('AGE_TOO_OLD', 'Invalid age value', {
+          context: {
+            field: 'age',
+            maxAge: 120,
+            actualAge: age,
+          },
+        })
+      );
     }
 
     return ok(data);
   }
 
-  static async validateTerms(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validateTerms(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     if (!data.termsAccepted) {
-      return err(new ZeroError('TERMS_NOT_ACCEPTED', 'Terms and conditions must be accepted', {
-        context: {
-          field: 'termsAccepted'
-        }
-      }));
+      return err(
+        new ZeroError(
+          'TERMS_NOT_ACCEPTED',
+          'Terms and conditions must be accepted',
+          {
+            context: {
+              field: 'termsAccepted',
+            },
+          }
+        )
+      );
     }
 
     return ok(data);
   }
 
-  static async checkEmailUniqueness(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async checkEmailUniqueness(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     // Simulate async database check
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Mock: pretend these emails are already taken
     const takenEmails = ['admin@example.com', 'test@example.com'];
-    
+
     if (takenEmails.includes(data.email.toLowerCase())) {
-      return err(new ZeroError('EMAIL_TAKEN', 'Email address is already registered', {
-        context: {
-          field: 'email',
-          value: data.email
-        }
-      }));
+      return err(
+        new ZeroError('EMAIL_TAKEN', 'Email address is already registered', {
+          context: {
+            field: 'email',
+            value: data.email,
+          },
+        })
+      );
     }
 
     return ok(data);
   }
 
-  static async validateReferralCode(data: UserRegistration): Promise<ValidationResult<UserRegistration>> {
+  static async validateReferralCode(
+    data: UserRegistration
+  ): Promise<ValidationResult<UserRegistration>> {
     if (!data.referralCode) {
       return ok(data); // Optional field
     }
 
     // Simulate async API call to validate referral code
-    await new Promise(resolve => setTimeout(resolve, 20));
+    await new Promise((resolve) => setTimeout(resolve, 20));
 
     const validCodes = ['FRIEND2023', 'WELCOME50', 'SPECIAL100'];
-    
+
     if (!validCodes.includes(data.referralCode)) {
-      return err(new ZeroError('INVALID_REFERRAL_CODE', 'Invalid referral code', {
-        context: {
-          field: 'referralCode',
-          value: data.referralCode
-        }
-      }));
+      return err(
+        new ZeroError('INVALID_REFERRAL_CODE', 'Invalid referral code', {
+          context: {
+            field: 'referralCode',
+            value: data.referralCode,
+          },
+        })
+      );
     }
 
     // Transform data - apply referral bonus
     return ok({
       ...data,
-      referralCode: data.referralCode.toUpperCase()
+      referralCode: data.referralCode.toUpperCase(),
     });
   }
 }
@@ -309,7 +383,7 @@ describe('Validation Pipeline Integration Tests', () => {
       password: 'SecurePass123!',
       age: 25,
       termsAccepted: true,
-      referralCode: 'FRIEND2023'
+      referralCode: 'FRIEND2023',
     };
 
     const result = await pipeline.validateWithShortCircuit(validData);
@@ -333,7 +407,7 @@ describe('Validation Pipeline Integration Tests', () => {
       email: 'invalid-email', // Invalid format
       password: 'weak', // Too weak
       age: 10, // Too young
-      termsAccepted: false // Not accepted
+      termsAccepted: false, // Not accepted
     };
 
     const result = await pipeline.validate(invalidData);
@@ -344,12 +418,12 @@ describe('Validation Pipeline Integration Tests', () => {
       expect(result.error.context?.errorCount).toBe(5);
       const errors = result.error.context?.errors as ValidationError[];
       expect(errors).toHaveLength(5);
-      expect(errors.map(e => e.field)).toEqual([
+      expect(errors.map((e) => e.field)).toEqual([
         'username',
         'email',
         'password',
         'age',
-        'termsAccepted'
+        'termsAccepted',
       ]);
     }
   });
@@ -365,7 +439,7 @@ describe('Validation Pipeline Integration Tests', () => {
       email: 'also-invalid',
       password: 'also-weak',
       age: 25,
-      termsAccepted: true
+      termsAccepted: true,
     };
 
     const result = await pipeline.validateWithShortCircuit(invalidData);
@@ -387,7 +461,7 @@ describe('Validation Pipeline Integration Tests', () => {
       email: 'admin@example.com', // This email is "taken"
       password: 'SecurePass123!',
       age: 25,
-      termsAccepted: true
+      termsAccepted: true,
     };
 
     const result = await pipeline.validateWithShortCircuit(data);
@@ -400,8 +474,9 @@ describe('Validation Pipeline Integration Tests', () => {
   });
 
   it('should transform data during validation', async () => {
-    const pipeline = new ValidationPipeline<UserRegistration>()
-      .add(UserValidators.validateReferralCode);
+    const pipeline = new ValidationPipeline<UserRegistration>().add(
+      UserValidators.validateReferralCode
+    );
 
     const data: UserRegistration = {
       username: 'john_doe',
@@ -409,7 +484,7 @@ describe('Validation Pipeline Integration Tests', () => {
       password: 'SecurePass123!',
       age: 25,
       termsAccepted: true,
-      referralCode: 'FRIEND2023' // Should be valid
+      referralCode: 'FRIEND2023', // Should be valid
     };
 
     const result = await pipeline.validateWithShortCircuit(data);
@@ -421,15 +496,16 @@ describe('Validation Pipeline Integration Tests', () => {
   });
 
   it('should handle optional fields correctly', async () => {
-    const pipeline = new ValidationPipeline<UserRegistration>()
-      .add(UserValidators.validateReferralCode);
+    const pipeline = new ValidationPipeline<UserRegistration>().add(
+      UserValidators.validateReferralCode
+    );
 
     const data: UserRegistration = {
       username: 'john_doe',
       email: 'john@example.com',
       password: 'SecurePass123!',
       age: 25,
-      termsAccepted: true
+      termsAccepted: true,
       // No referralCode provided
     };
 

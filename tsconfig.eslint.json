@@ -7,10 +7,5 @@
     "*.config.ts",
     "*.config.js"
   ],
-  "exclude": [
-    "dist",
-    "coverage",
-    "tests/fixtures",
-    "docker/**"
-  ]
+  "exclude": ["dist", "coverage", "tests/fixtures", "docker/**"]
 }

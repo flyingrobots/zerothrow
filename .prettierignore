@@ -1,0 +1,32 @@
+# Ignore directories
+.github/
+docs/
+benchmark/
+tests/examples/
+
+# Ignore all markdown files
+*.md
+
+# Ignore all JSON files except specific config files
+*.json
+!.prettierrc
+!.eslintrc
+!.lintstagedrc.json
+!tsconfig*.json
+
+# Ignore package-lock.json specifically
+package-lock.json
+
+# Ignore Docker files
+Dockerfile*
+docker-compose*.yml
+*.dockerfile
+
+# Ignore node_modules and build directories
+node_modules/
+dist/
+coverage/
+.turbo/
+.next/
+.cache/
+*.log

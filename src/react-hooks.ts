@@ -24,9 +24,9 @@ export function useResult<T, E extends Error = ZeroError>(
   const execute = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     const result = await fn();
-    
+
     if (result.ok) {
       setData(result.value);
       setError(null);
@@ -34,7 +34,7 @@ export function useResult<T, E extends Error = ZeroError>(
       setData(null);
       setError(result.error);
     }
-    
+
     setLoading(false);
   }, deps);
 
@@ -53,6 +53,6 @@ export function useResult<T, E extends Error = ZeroError>(
     error,
     loading,
     refetch: execute,
-    reset
+    reset,
   };
 }

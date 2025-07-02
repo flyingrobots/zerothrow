@@ -37,10 +37,11 @@
 - Prettier already runs after ESLint (correct order)
 - Final config: `["eslint --fix", "prettier --write"]`
 
-🔲 **MANDATE 7: Isolate Prettier formatting pass**
+✅ **MANDATE 7: Isolate Prettier formatting pass**
 - Run `npx prettier --write .`
 - Stage and commit only formatting changes
 - NOTE: Must be done AFTER all semantic changes
+- Commit: `style: apply Prettier formatting to src/, test/, and config files`
 
 🔲 **MANDATE 8: Patch Pino and Winston serializers to support Result types**
 - Update logger serializer functions to handle Result<T, E> objects

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { BaseRepository, SqlQueryBuilder } from './sql-database';
+import { BaseRepository, SqlQueryBuilder } from './sql-database.js';
 import { ok, err, ZeroError } from '@flyingrobots/zerothrow';
 
 // Mock database connection for testing

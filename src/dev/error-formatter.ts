@@ -1,5 +1,5 @@
-import { ZeroError } from '../error';
-import { Result } from '../result';
+import { ZeroError } from '../error.js';
+import { Result } from '../result.js';
 
 interface FormatOptions {
   colors?: boolean;

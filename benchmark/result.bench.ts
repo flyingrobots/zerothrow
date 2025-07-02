@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { ok, err, tryR, wrap, ZeroError } from '../src/index';
+import { ok, err, tryR, wrap, ZeroError } from '../src/index.js';
 
 // Baseline comparisons
 const nativeThrow = () => {

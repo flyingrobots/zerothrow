@@ -12,26 +12,26 @@ export default [
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: './tsconfig.eslint.json'
+        project: './tsconfig.eslint.json',
       },
       globals: {
         console: 'readonly',
         process: 'readonly',
-        React: 'readonly'
-      }
+        React: 'readonly',
+      },
     },
     plugins: {
-      '@typescript-eslint': tseslint
+      '@typescript-eslint': tseslint,
     },
     rules: {
       ...tsRecommended.rules,
       'no-console': 'error',
       'no-var': 'error',
-      'prefer-const': 'error'
-    }
+      'prefer-const': 'error',
+    },
   },
   {
-    files: ["*.config.{ts,js}", "eslint.config.js"],
-    rules: {}
-  }
+    files: ['*.config.{ts,js}', 'eslint.config.js'],
+    rules: {},
+  },
 ];

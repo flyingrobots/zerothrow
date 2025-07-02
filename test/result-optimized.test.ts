@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tryR, tryRSync, tryRBatch, ok, err, ZeroError } from '../src/index';
+import { tryR, tryRSync, tryRBatch, ok, err, ZeroError } from '../src/index.js';
 
 describe('tryRSync', () => {
   it('should handle sync success', () => {
@@ -24,7 +24,9 @@ describe('tryRSync', () => {
 
   it('should apply map function on error', () => {
     const result = tryRSync(
-      () => { throw new Error('original'); },
+      () => {
+        throw new Error('original');
+      },
       (e) => new ZeroError('MAPPED', 'Mapped: ' + e.message)
     );
     expect(result.ok).toBe(false);
@@ -48,13 +50,8 @@ describe('tryRSync', () => {
 
 describe('tryRBatch', () => {
   it('should handle all successful operations', async () => {
-    const fns = [
-      () => 1,
-      () => 2,
-      async () => 3,
-      () => 4
-    ];
-    
+    const fns = [() => 1, () => 2, async () => 3, () => 4];
+
     const result = await tryRBatch(fns);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -65,10 +62,12 @@ describe('tryRBatch', () => {
   it('should stop on first error', async () => {
     const fns = [
       () => 1,
-      () => { throw new Error('failed at 2'); },
-      () => 3 // This should not execute
+      () => {
+        throw new Error('failed at 2');
+      },
+      () => 3, // This should not execute
     ];
-    
+
     const result = await tryRBatch(fns);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -79,10 +78,12 @@ describe('tryRBatch', () => {
   it('should handle async errors', async () => {
     const fns = [
       () => 1,
-      async () => { throw new Error('async fail'); },
-      () => 3
+      async () => {
+        throw new Error('async fail');
+      },
+      () => 3,
     ];
-    
+
     const result = await tryRBatch(fns);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -93,14 +94,16 @@ describe('tryRBatch', () => {
   it('should apply map function to errors', async () => {
     const fns = [
       () => 1,
-      () => { throw new Error('original'); }
+      () => {
+        throw new Error('original');
+      },
     ];
-    
+
     const result = await tryRBatch(
       fns,
       (e) => new ZeroError('BATCH_ERR', 'Batch failed: ' + e.message)
     );
-    
+
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('BATCH_ERR');

@@ -1,7 +1,7 @@
 #!/usr/bin/env node --expose-gc
 
 import { ok, err, tryR, wrap, ZeroError } from '../dist/index.js';
-import { MemoryProfiler, MemoryLeakDetector } from './memory-profile';
+import { MemoryProfiler, MemoryLeakDetector } from './memory-profile.js';
 
 async function main() {
   console.log('Starting memory profiling for zerothrow Result types...\n');

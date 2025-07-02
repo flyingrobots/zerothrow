@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createServer } from './fastify-api';
+import { createServer } from './fastify-api.js';
 import type { FastifyInstance } from 'fastify';
 
 describe('Fastify API with ZeroThrow', () => {
