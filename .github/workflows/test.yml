@@ -29,7 +29,15 @@ jobs:
       run: npm ci
 
     - name: Run unit tests
-      run: npm test -- --reporter=verbose
+      run: |
+        echo "🧪 Running unit tests..."
+        npm test -- --reporter=verbose || {
+          echo ""
+          echo "❌ Unit tests failed!"
+          echo "Check the output above for failing tests."
+          exit 1
+        }
+        echo "✅ Unit tests passed!"
 
     - name: Upload coverage reports
       uses: actions/upload-artifact@v4
@@ -56,7 +64,15 @@ jobs:
       run: npm ci
 
     - name: Run integration tests
-      run: npx vitest run --config vitest.integration.config.ts --reporter=verbose
+      run: |
+        echo "🧪 Running integration tests..."
+        npx vitest run --config vitest.integration.config.ts --reporter=verbose || {
+          echo ""
+          echo "❌ Integration tests failed!"
+          echo "Check the output above for failing tests."
+          exit 1
+        }
+        echo "✅ Integration tests passed!"
 
     - name: Upload integration test results
       uses: actions/upload-artifact@v4
@@ -86,29 +102,62 @@ jobs:
 
     - name: Run all tests with coverage
       run: |
-        npm test -- --coverage
-        npx vitest run --config vitest.integration.config.ts --coverage
+        echo "📊 Running unit tests with coverage..."
+        npm test -- --coverage --reporter=verbose || {
+          echo "❌ Unit tests failed!"
+          exit 1
+        }
+        echo ""
+        echo "📊 Running integration tests with coverage..."
+        npx vitest run --config vitest.integration.config.ts --coverage --reporter=verbose || {
+          echo "❌ Integration tests failed!"
+          exit 1
+        }
 
     - name: Check coverage thresholds
       run: |
-        echo "Checking coverage meets >90% threshold..."
-        npx vitest run --coverage --reporter=json > coverage-summary.json
-        node -e "
-          const coverage = require('./coverage/coverage-summary.json');
-          const total = coverage.total;
-          const metrics = ['lines', 'statements', 'functions', 'branches'];
-          let passed = true;
-          metrics.forEach(metric => {
-            const pct = total[metric].pct;
-            console.log(\`\${metric}: \${pct}%\`);
-            if (pct < 90) {
-              console.error(\`❌ \${metric} coverage (\${pct}%) is below 90%\`);
-              passed = false;
+        echo "📊 Checking coverage meets >90% threshold..."
+        echo ""
+        
+        # First, show the coverage summary
+        npx vitest run --coverage --reporter=verbose || true
+        
+        # Now check the thresholds
+        if [ -f "coverage/coverage-summary.json" ]; then
+          node -e "
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+            const metrics = ['lines', 'statements', 'functions', 'branches'];
+            let passed = true;
+            
+            console.log('📊 Coverage Summary:');
+            console.log('==================');
+            metrics.forEach(metric => {
+              const pct = total[metric].pct;
+              const status = pct >= 90 ? '✅' : '❌';
+              console.log(\`\${status} \${metric}: \${pct}%\`);
+              if (pct < 90) {
+                passed = false;
+              }
+            });
+            
+            console.log('');
+            if (!passed) {
+              console.error('❌ Coverage is below the 90% threshold!');
+              console.error('');
+              console.error('To see which lines are not covered:');
+              console.error('1. Run: npm test -- --coverage');
+              console.error('2. Check the coverage/lcov-report/index.html file');
+              process.exit(1);
             }
-          });
-          if (!passed) process.exit(1);
-          console.log('✅ All coverage metrics meet the >90% threshold');
-        "
+            console.log('✅ All coverage metrics meet the >90% threshold');
+          "
+        else
+          echo "❌ Coverage summary file not found!"
+          echo "This usually means the tests failed to run properly."
+          exit 1
+        fi
 
     - name: Generate coverage badge
       uses: cicirello/jacoco-badge-generator@v2
