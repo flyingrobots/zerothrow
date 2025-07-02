@@ -5,7 +5,7 @@ const tsRecommended = tseslint.configs.recommended;
 
 export default [
   {
-    files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'test/**/*.{ts,tsx}'],
     ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
     languageOptions: {
       parser: tsParser,

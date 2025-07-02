@@ -49,8 +49,8 @@
 🔲 **MANDATE 9: Patch no-throw ESLint fixer**
 - Modify fixer to inject Result<*, *> return types when transforming throw to return err(...)
 
-🔲 **MANDATE 10: Un-ignore tests/** in eslint.config.js**
-- Remove or adjust `ignores: ['tests/**']` to allow linting tests
+🔲 **MANDATE 10: Un-ignore test/** in eslint.config.js**
+- Remove or adjust `ignores: ['test/**']` to allow linting test
 
 ## Important Notes
 - NO `git add -A` allowed

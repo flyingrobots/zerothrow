@@ -1,11 +1,17 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src')
+    }
+  },
   test: {
     environment: 'node',
     include: ['test/**/*.test.ts'],
     exclude: [
-      'tests/examples/**',
+      'test/examples/**',
       '**/node_modules/**',
       '**/dist/**',
       '**/build/**',
@@ -24,7 +30,7 @@ export default defineConfig({
         '**/*.config.ts',
         '**/node_modules/**',
         'src/platform/**',
-        'tests/**',
+        'test/**',
       ],
       reporter: ['text', 'json-summary', 'json'],
       thresholds: {

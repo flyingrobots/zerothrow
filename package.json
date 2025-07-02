@@ -18,10 +18,10 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts src/react-entry.ts --format esm,cjs --dts",
+    "build": "tsup src/index.ts src/react-entry.ts src/eslint.ts src/loggers/pino.ts src/loggers/winston.ts --format esm,cjs --dts",
     "test": "vitest run --coverage",
-    "test:examples": "tsx tests/examples/test-runner.ts",
-    "test:examples:validate": "tsx tests/examples/test-runner.ts validate",
+    "test:examples": "tsx test/examples/test-runner.ts",
+    "test:examples:validate": "tsx test/examples/test-runner.ts validate",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "npm run test && npm run test:integration",
     "test:watch": "vitest watch",
