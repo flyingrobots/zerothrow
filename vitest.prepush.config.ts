@@ -9,6 +9,7 @@ export default defineConfig({
       '**/dist/**',
       '**/build/**',
       '**/test/integration/**',
+      '**/test/examples/**',
     ],
     coverage: {
       provider: 'v8',
