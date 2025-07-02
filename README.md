@@ -85,6 +85,14 @@ class ZeroError extends Error {
 ```
 
 ---
+## Documentation
+
+- **[API Reference](docs/api/)** - Complete API documentation with TypeScript types
+- **[Tutorials](docs/tutorials/)** - Step-by-step guides from basics to advanced patterns
+- **[Examples](docs/examples/)** - Real-world code examples (Express, React, file processing)
+- **[Migration Guide](docs/guides/migration-guide.md)** - Migrate from try/catch or other libraries
+
+---
 ## React hook (alpha)
 
 ```typescript
