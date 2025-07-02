@@ -1,5 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterAll } from 'vitest';
 import { noThrowRule } from '../src/eslint/no-throw.js';
+import { RuleTester } from '@typescript-eslint/rule-tester';
+
+// Set up vitest globals for RuleTester
+RuleTester.afterAll = afterAll;
+RuleTester.describe = describe;
+RuleTester.it = it;
 
 describe('enhanced no-throw rule with auto-fix', () => {
   it('has correct metadata with fixable option', () => {
@@ -347,197 +353,57 @@ describe('enhanced no-throw rule with auto-fix', () => {
   });
 
   it('adds Result type annotation to function without return type', () => {
-    const mockFixer = {
-      replaceText: vi
-        .fn()
-        .mockImplementation((node, text) => ({ type: 'replace', node, text })),
-      insertTextAfter: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertAfter',
-          node,
-          text,
-        })),
-      insertTextBefore: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertBefore',
-          node,
-          text,
-        })),
-    };
+    const tester = new RuleTester({
+      parser: '@typescript-eslint/parser',
+    });
 
-    const mockCloseParenToken = { type: 'Punctuator', value: ')' };
-    const mockContext = {
-      report: vi.fn(),
-      options: [{}],
-      getFilename: vi.fn().mockReturnValue('test.ts'),
-      getSourceCode: vi.fn().mockReturnValue({
-        getText: vi.fn().mockReturnValue("new Error('test')"),
-        getTokenAfter: vi.fn().mockReturnValue(mockCloseParenToken),
-        ast: { body: [] },
-      }),
-    };
-
-    const rule = noThrowRule.create(mockContext as any);
-    const mockNode = {
-      type: 'ThrowStatement',
-      argument: {
-        type: 'NewExpression',
-        callee: { type: 'Identifier', name: 'Error' },
-        arguments: [{ type: 'Literal', value: 'User not found' }],
-      },
-      parent: {
-        type: 'FunctionDeclaration',
-        params: [],
-        returnType: null, // No return type
-        async: false,
-      },
-    } as any;
-
-    rule.ThrowStatement?.(mockNode);
-
-    const reportCall = mockContext.report.mock.calls[0][0];
-    const fixResult = reportCall.fix(mockFixer);
-
-    // Behavior: When fixing a throw in an untyped function, it should add a Result return type
-    expect(Array.isArray(fixResult)).toBe(true);
-    expect(fixResult.length).toBeGreaterThan(1); // Multiple fixes: replace throw + add type
-
-    // The fix should include adding a Result type annotation
-    const typeAnnotationAdded = mockFixer.insertTextAfter.mock.calls.some(
-      (call) => call[1].includes('Result') && call[1].includes('ZeroError')
-    );
-    expect(typeAnnotationAdded).toBe(true);
+    tester.run('no-throw', noThrowRule, {
+      valid: [],
+      invalid: [
+        {
+          code: `function test() { throw new Error('User not found'); }`,
+          errors: [{ messageId: 'noThrow' }],
+          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+function test(): Result<unknown, ZeroError> { return err(new ZeroError('NOT_FOUND', "User not found")); }`,
+        },
+      ],
+    });
   });
 
   it('adds Promise<Result> type annotation to async function', () => {
-    const mockFixer = {
-      replaceText: vi
-        .fn()
-        .mockImplementation((node, text) => ({ type: 'replace', node, text })),
-      insertTextAfter: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertAfter',
-          node,
-          text,
-        })),
-      insertTextBefore: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertBefore',
-          node,
-          text,
-        })),
-    };
+    const tester = new RuleTester({
+      parser: '@typescript-eslint/parser',
+    });
 
-    const mockCloseParenToken = { type: 'Punctuator', value: ')' };
-    const mockContext = {
-      report: vi.fn(),
-      options: [{}],
-      getFilename: vi.fn().mockReturnValue('test.ts'),
-      getSourceCode: vi.fn().mockReturnValue({
-        getText: vi.fn().mockReturnValue("new Error('test')"),
-        getTokenAfter: vi.fn().mockReturnValue(mockCloseParenToken),
-        ast: { body: [] },
-      }),
-    };
-
-    const rule = noThrowRule.create(mockContext as any);
-    const mockNode = {
-      type: 'ThrowStatement',
-      argument: {
-        type: 'NewExpression',
-        callee: { type: 'Identifier', name: 'Error' },
-        arguments: [{ type: 'Literal', value: 'Database error' }],
-      },
-      parent: {
-        type: 'FunctionExpression',
-        params: [],
-        returnType: null,
-        async: true, // Async function
-      },
-    } as any;
-
-    rule.ThrowStatement?.(mockNode);
-
-    const reportCall = mockContext.report.mock.calls[0][0];
-    const fixResult = reportCall.fix(mockFixer);
-
-    // Behavior: Async functions should get Promise<Result> return type
-    expect(Array.isArray(fixResult)).toBe(true);
-
-    // Verify that a Promise-wrapped Result type was added
-    const promiseTypeAdded = mockFixer.insertTextAfter.mock.calls.some(
-      (call) => call[1].includes('Promise') && call[1].includes('Result')
-    );
-    expect(promiseTypeAdded).toBe(true);
+    tester.run('no-throw', noThrowRule, {
+      valid: [],
+      invalid: [
+        {
+          code: `async function test() { throw new Error('Database error'); }`,
+          errors: [{ messageId: 'noThrow' }],
+          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+async function test(): Promise<Result<unknown, ZeroError>> { return err(new ZeroError('DATABASE_ERROR', "Database error")); }`,
+        },
+      ],
+    });
   });
 
   it('handles arrow functions differently than regular functions', () => {
-    const mockFixer = {
-      replaceText: vi
-        .fn()
-        .mockImplementation((node, text) => ({ type: 'replace', node, text })),
-      insertTextAfter: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertAfter',
-          node,
-          text,
-        })),
-      insertTextBefore: vi
-        .fn()
-        .mockImplementation((node, text) => ({
-          type: 'insertBefore',
-          node,
-          text,
-        })),
-    };
+    const tester = new RuleTester({
+      parser: '@typescript-eslint/parser',
+    });
 
-    const mockArrowToken = { type: 'Punctuator', value: '=>' };
-    const mockContext = {
-      report: vi.fn(),
-      options: [{}],
-      getFilename: vi.fn().mockReturnValue('test.ts'),
-      getSourceCode: vi.fn().mockReturnValue({
-        getText: vi.fn().mockReturnValue("new Error('test')"),
-        getTokenAfter: vi.fn().mockReturnValue(mockArrowToken),
-        ast: { body: [] },
-      }),
-    };
-
-    const rule = noThrowRule.create(mockContext as any);
-    const mockNode = {
-      type: 'ThrowStatement',
-      argument: {
-        type: 'NewExpression',
-        callee: { type: 'Identifier', name: 'Error' },
-        arguments: [{ type: 'Literal', value: 'Validation error' }],
-      },
-      parent: {
-        type: 'ArrowFunctionExpression',
-        params: [],
-        returnType: null,
-        async: false,
-      },
-    } as any;
-
-    rule.ThrowStatement?.(mockNode);
-
-    const reportCall = mockContext.report.mock.calls[0][0];
-    const fixResult = reportCall.fix(mockFixer);
-
-    // Behavior: Arrow functions should place type annotation before the arrow
-    expect(Array.isArray(fixResult)).toBe(true);
-
-    // For arrow functions, we use insertTextBefore (not insertTextAfter)
-    const hasInsertBefore = mockFixer.insertTextBefore.mock.calls.length > 0;
-    const hasTypeAnnotation = mockFixer.insertTextBefore.mock.calls.some(
-      (call) => call[1].includes('Result')
-    );
-    expect(hasInsertBefore && hasTypeAnnotation).toBe(true);
+    tester.run('no-throw', noThrowRule, {
+      valid: [],
+      invalid: [
+        {
+          code: `const test = () => { throw new Error('Validation error'); }`,
+          errors: [{ messageId: 'noThrow' }],
+          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+const test = (): Result<unknown, ZeroError> => { return err(new ZeroError('VALIDATION_ERROR', "Validation error")); }`,
+        },
+      ],
+    });
   });
 
   it('preserves existing return type annotations', () => {
