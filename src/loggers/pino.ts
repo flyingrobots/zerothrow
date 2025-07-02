@@ -14,8 +14,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         code: typeof error.code === 'symbol' ? String(error.code) : error.code,
         message: error.message,
         context: error.context,
-        stack: error.stack,
-        timestamp: new Date().toISOString()
+        stack: error.stack
       };
     }
     
@@ -23,8 +22,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
     return {
       type: error.constructor.name,
       message: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
+      stack: error.stack
     };
   },
   
@@ -34,15 +32,13 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         return {
           type: 'Result',
           status: 'ok',
-          value: result.value,
-          timestamp: new Date().toISOString()
+          value: result.value
         };
       } else {
         return {
           type: 'Result', 
           status: 'err',
-          error: zerothrowPinoSerializers.err!(result.error),
-          timestamp: new Date().toISOString()
+          error: zerothrowPinoSerializers.err!(result.error)
         };
       }
     }

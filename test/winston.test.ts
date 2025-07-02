@@ -25,7 +25,6 @@ describe("Winston formatter", () => {
         context: { host: "localhost", port: 5432 }
       });
       expect(transformed.message).toBe("[DATABASE_ERROR] Connection failed");
-      expect(transformed.timestamp).toBeDefined();
     });
 
     it("handles symbol error codes", () => {
@@ -108,18 +107,6 @@ describe("Winston formatter", () => {
       expect(transformed.message).toBe("[ERR] Something went wrong");
     });
 
-    it("adds timestamp if not present", () => {
-      const info = {
-        level: "info",
-        message: "Test message"
-      };
-      
-      const transformed = zerothrowWinstonFormat.transform(info);
-      
-      expect(transformed.timestamp).toBeDefined();
-      expect(new Date(transformed.timestamp)).toBeInstanceOf(Date);
-    });
-    
     it("does not mutate original info object", () => {
       const originalInfo = {
         level: "error",
@@ -135,26 +122,12 @@ describe("Winston formatter", () => {
       // Check that original wasn't mutated
       expect(originalInfo.message).toBe("Original message");
       expect(originalInfo.zerothrow).toBeUndefined();
-      expect(originalInfo.timestamp).toBeUndefined();
       
       // Check that transformed has the changes
       expect(transformed.message).toBe("[TEST_ERROR] Test error");
       expect(transformed.zerothrow).toBeDefined();
-      expect(transformed.timestamp).toBeDefined();
     });
 
-    it("preserves existing timestamp", () => {
-      const existingTimestamp = "2025-01-01T00:00:00.000Z";
-      const info = {
-        level: "info",
-        message: "Test message",
-        timestamp: existingTimestamp
-      };
-      
-      const transformed = zerothrowWinstonFormat.transform(info);
-      
-      expect(transformed.timestamp).toBe(existingTimestamp);
-    });
   });
 
   describe("createWinstonLogger", () => {

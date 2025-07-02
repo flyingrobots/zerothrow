@@ -22,8 +22,13 @@ export class ErrorFormatter {
   private options: FormatOptions;
 
   constructor(options: FormatOptions = {}) {
+    // Auto-detect color support if not explicitly set
+    const supportsColor = options.colors !== undefined 
+      ? options.colors 
+      : (typeof process !== 'undefined' && process.stdout && process.stdout.isTTY);
+      
     this.options = {
-      colors: true,
+      colors: supportsColor,
       stackTrace: true,
       details: true,
       timestamp: true,
@@ -82,7 +87,7 @@ export class ErrorFormatter {
         : 'Stack Trace:';
       lines.push(stackHeader);
       
-      const stackLines = error.stack.split('\n').slice(1).map(line =>
+      const stackLines = (error.stack || '').split('\n').slice(1).map(line =>
         colors ? `${COLORS.gray}${line}${COLORS.reset}` : line
       );
       lines.push(...stackLines);

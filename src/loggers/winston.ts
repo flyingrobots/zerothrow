@@ -52,11 +52,6 @@ export const zerothrowWinstonFormat = {
       }
     }
     
-    // Add timestamp if not present
-    if (!transformed.timestamp) {
-      transformed.timestamp = new Date().toISOString();
-    }
-    
     return transformed;
   }
 };

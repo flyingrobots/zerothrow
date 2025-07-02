@@ -13,8 +13,8 @@ describe("ErrorFormatter", () => {
   });
 
   describe("formatZeroError", () => {
-    it("formats error with colors by default", () => {
-      const formatter = new ErrorFormatter();
+    it("formats error with colors when enabled", () => {
+      const formatter = new ErrorFormatter({ colors: true });
       const error = new ZeroError("API_ERROR", "Request failed", {
         context: { endpoint: "/api/users", statusCode: 404 }
       });
@@ -103,7 +103,7 @@ describe("ErrorFormatter", () => {
     });
 
     it("formats Ok result with colors", () => {
-      const formatter = new ErrorFormatter();
+      const formatter = new ErrorFormatter({ colors: true });
       const result = ok({ id: 1 });
       
       const formatted = formatter.formatResult(result);

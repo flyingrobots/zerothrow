@@ -16,8 +16,7 @@ describe("Pino serializers", () => {
         type: "ZeroError",
         code: "USER_NOT_FOUND",
         message: "User does not exist",
-        context: { userId: 123 },
-        timestamp: expect.any(String)
+        context: { userId: 123 }
       });
       expect(serialized.stack).toBeDefined();
     });
@@ -38,8 +37,7 @@ describe("Pino serializers", () => {
       
       expect(serialized).toMatchObject({
         type: "Error",
-        message: "Standard error",
-        timestamp: expect.any(String)
+        message: "Standard error"
       });
       expect(serialized.stack).toBeDefined();
     });
@@ -54,8 +52,7 @@ describe("Pino serializers", () => {
       expect(serialized).toMatchObject({
         type: "Result",
         status: "ok",
-        value: { id: 1, name: "Test" },
-        timestamp: expect.any(String)
+        value: { id: 1, name: "Test" }
       });
     });
 
@@ -71,10 +68,8 @@ describe("Pino serializers", () => {
         error: {
           type: "ZeroError",
           code: "VALIDATION_FAILED",
-          message: "Invalid input",
-          timestamp: expect.any(String)
-        },
-        timestamp: expect.any(String)
+          message: "Invalid input"
+        }
       });
     });
 
