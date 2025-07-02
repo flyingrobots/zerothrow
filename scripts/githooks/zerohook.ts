@@ -221,7 +221,7 @@ async function main(): Promise<number> {
             return 1;
           case 'stage-all':
             stageAll = true;
-            const stageResult = execCmd(`git add "${file}"`);
+            const stageResult = await execCmd(`git add "${file}"`);
             if (!stageResult.ok) {
               console.error(chalk.red(`Failed to stage ${file}: ${stageResult.error.message}`));
               return 1;
@@ -238,7 +238,7 @@ async function main(): Promise<number> {
   }
   
   // Re-get staged files after potential changes
-  const finalStagedResult = getStagedFiles();
+  const finalStagedResult = await getStagedFiles();
   if (!finalStagedResult.ok) {
     console.error(chalk.red(`Failed to get final staged files: ${finalStagedResult.error.message}`));
     return 1;

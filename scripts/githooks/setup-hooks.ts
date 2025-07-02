@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { existsSync, mkdirSync, chmodSync } from 'fs';
+import { existsSync, mkdirSync, chmodSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
 import { Result, ok, err, ZeroError } from '../../src/index';
 import { execCmd, readJsonFile, writeJsonFile, fileExists, readFile, writeFile } from '../lib/shared';
@@ -128,8 +128,8 @@ async function setupVanillaHooks(): Promise<Result<void, ZeroError>> {
     console.log(chalk.green('✅ Created .githooks/pre-commit hook'));
     
     // Configure git to use .githooks
-    const gitConfigResult = execCmd('git config core.hooksPath .githooks');
-    if (!result.ok(gitConfigResult)) {
+    const gitConfigResult = await execCmd('git config core.hooksPath .githooks');
+    if (!gitConfigResult.ok) {
       return gitConfigResult;
     }
     console.log(chalk.green('✅ Configured Git to use .githooks directory'));
@@ -141,8 +141,8 @@ async function setupVanillaHooks(): Promise<Result<void, ZeroError>> {
 }
 
 async function ensureEslint(pkgManager: string): Promise<Result<void, ZeroError>> {
-  const eslintCheck = checkEslint();
-  if (!result.ok(eslintCheck)) return eslintCheck;
+  const eslintCheck = await checkEslint();
+  if (!eslintCheck.ok) return eslintCheck;
   
   if (!eslintCheck.value) {
     console.log(chalk.yellow('⚠️  ESLint not found'));
@@ -161,8 +161,8 @@ async function ensureEslint(pkgManager: string): Promise<Result<void, ZeroError>
       ? 'npm install --save-dev eslint'
       : `${pkgManager} add -D eslint`;
       
-    const installResult = execCmd(installCmd);
-    if (!result.ok(installResult)) return installResult;
+    const installResult = await execCmd(installCmd);
+    if (!installResult.ok) return installResult;
     
     console.log(chalk.green('✅ Installed ESLint'));
     
@@ -181,8 +181,8 @@ async function ensureEslint(pkgManager: string): Promise<Result<void, ZeroError>
           ? `npm install --save-dev ${tsPkgs}`
           : `${pkgManager} add -D ${tsPkgs}`;
           
-        const tsResult = execCmd(tsInstallCmd);
-        if (!result.ok(tsResult)) return tsResult;
+        const tsResult = await execCmd(tsInstallCmd);
+        if (!tsResult.ok) return tsResult;
         
         console.log(chalk.green('✅ Installed TypeScript ESLint plugins'));
       }
@@ -194,7 +194,7 @@ async function ensureEslint(pkgManager: string): Promise<Result<void, ZeroError>
 
 async function ensureLintScript(): Promise<Result<void, ZeroError>> {
   const pkgResult = readJsonFile<any>('package.json');
-  if (!result.ok(pkgResult)) return pkgResult;
+  if (!pkgResult.ok) return pkgResult;
   
   const pkg = pkgResult.value;
   if (!pkg.scripts?.lint) {
@@ -216,7 +216,7 @@ async function ensureLintScript(): Promise<Result<void, ZeroError>> {
       : 'eslint "src/**/*.{js,jsx}"';
       
     const writeResult = writeJsonFile('package.json', pkg);
-    if (!result.ok(writeResult)) return writeResult;
+    if (!writeResult.ok) return writeResult;
     
     console.log(chalk.green('✅ Added lint script to package.json'));
   }
@@ -230,7 +230,7 @@ async function main(): Promise<number> {
   
   // Find project root
   const rootResult = findProjectRoot();
-  if (!result.ok(rootResult)) {
+  if (!rootResult.ok) {
     console.error(chalk.red(rootResult.error.message));
     return 1;
   }
@@ -240,7 +240,7 @@ async function main(): Promise<number> {
   
   // Detect package manager
   const pkgMgrResult = detectPackageManager();
-  if (!result.ok(pkgMgrResult)) {
+  if (!pkgMgrResult.ok) {
     console.error(chalk.red(pkgMgrResult.error.message));
     return 1;
   }
@@ -250,13 +250,13 @@ async function main(): Promise<number> {
   
   // Ensure dependencies
   const eslintResult = await ensureEslint(pkgManager);
-  if (!result.ok(eslintResult)) {
+  if (!eslintResult.ok) {
     console.error(chalk.red(eslintResult.error.message));
     return 1;
   }
   
   const lintResult = await ensureLintScript();
-  if (!result.ok(lintResult)) {
+  if (!lintResult.ok) {
     console.error(chalk.red(lintResult.error.message));
     return 1;
   }
@@ -276,8 +276,8 @@ async function main(): Promise<number> {
         ? 'npm install --save-dev tsx'
         : `${pkgManager} add -D tsx`;
         
-      const result = execCmd(installCmd);
-      if (!result.ok(result)) {
+      const result = await execCmd(installCmd);
+      if (!result.ok) {
         console.error(chalk.red('Failed to install tsx'));
         return 1;
       }
@@ -289,14 +289,14 @@ async function main(): Promise<number> {
   if (checkHusky()) {
     console.log(chalk.green('✅ Detected Husky setup'));
     const huskyResult = await setupHuskyHooks(pkgManager);
-    if (!result.ok(huskyResult)) {
+    if (!huskyResult.ok) {
       console.error(chalk.red(huskyResult.error.message));
       return 1;
     }
   } else if (checkVanillaHooks()) {
     console.log(chalk.green('✅ Detected existing git hooks'));
     const vanillaResult = await setupVanillaHooks();
-    if (!result.ok(vanillaResult)) {
+    if (!vanillaResult.ok) {
       console.error(chalk.red(vanillaResult.error.message));
       return 1;
     }
@@ -321,15 +321,15 @@ async function main(): Promise<number> {
           : `${pkgManager} add -D husky`;
           
         console.log(chalk.blue('Installing husky...'));
-        const installResult = execCmd(installCmd);
+        const installResult = await execCmd(installCmd);
         if (!result.ok(installResult)) {
           console.error(chalk.red('Failed to install husky'));
           return 1;
         }
         
         // Initialize husky
-        const initResult = execCmd('npx husky init');
-        if (!result.ok(initResult)) {
+        const initResult = await execCmd('npx husky init');
+        if (!initResult.ok) {
           console.error(chalk.red('Failed to initialize husky'));
           return 1;
         }
@@ -338,13 +338,13 @@ async function main(): Promise<number> {
       }
       
       const huskyResult = await setupHuskyHooks(pkgManager);
-      if (!result.ok(huskyResult)) {
+      if (!huskyResult.ok) {
         console.error(chalk.red(huskyResult.error.message));
         return 1;
       }
     } else {
       const vanillaResult = await setupVanillaHooks();
-      if (!result.ok(vanillaResult)) {
+      if (!vanillaResult.ok) {
         console.error(chalk.red(vanillaResult.error.message));
         return 1;
       }

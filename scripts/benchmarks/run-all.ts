@@ -1,10 +1,14 @@
 #!/usr/bin/env tsx
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { Result, ok, err, tryR, wrap, ZeroError } from '../../src/index';
 import { execCmd } from '../lib/shared';
 import chalk from 'chalk';
 import ora from 'ora';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface Benchmark {
   name: string;
