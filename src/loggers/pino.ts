@@ -2,12 +2,12 @@ import { Result } from '../result';
 import { ZeroError } from '../error';
 
 interface PinoSerializers {
-  err?: (error: any) => any;
-  result?: (result: any) => any;
+  err?: (error: unknown) => unknown;
+  result?: (result: unknown) => unknown;
 }
 
 export const zerothrowPinoSerializers: PinoSerializers = {
-  err: (error: any) => {
+  err: (error: unknown) => {
     if (error instanceof ZeroError) {
       return {
         type: 'ZeroError',
@@ -19,26 +19,35 @@ export const zerothrowPinoSerializers: PinoSerializers = {
     }
     
     // Handle regular errors
+    if (error instanceof Error) {
+      return {
+        type: error.constructor.name,
+        message: error.message,
+        stack: error.stack
+      };
+    }
+    
+    // Handle non-Error types
     return {
-      type: error.constructor.name,
-      message: error.message,
-      stack: error.stack
+      type: 'Unknown',
+      message: String(error)
     };
   },
   
-  result: (result: any) => {
+  result: (result: unknown) => {
     if (result && typeof result === 'object' && 'ok' in result) {
-      if (result.ok) {
+      const typedResult = result as { ok: boolean; value?: unknown; error?: unknown };
+      if (typedResult.ok) {
         return {
           type: 'Result',
           status: 'ok',
-          value: result.value
+          value: typedResult.value
         };
       } else {
         return {
           type: 'Result', 
           status: 'err',
-          error: zerothrowPinoSerializers.err!(result.error)
+          error: zerothrowPinoSerializers.err!(typedResult.error)
         };
       }
     }
@@ -62,7 +71,13 @@ export const zerothrowPinoSerializers: PinoSerializers = {
  * }));
  * ```
  */
-export function createPinoConfig(options: any = {}) {
+interface PinoOptions {
+  level?: string;
+  serializers?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export function createPinoConfig(options: PinoOptions = {}) {
   return {
     ...options,
     serializers: {

@@ -84,8 +84,8 @@ export function makeCombinable<T, E extends Error = ZeroError>(
 /**
  * Pipe multiple operations together
  */
-export function pipe<T>(...operations: Array<(input: any) => any>) {
-  return (input: T) => operations.reduce((acc, op) => op(acc), input);
+export function pipe<T>(...operations: Array<(input: unknown) => unknown>) {
+  return (input: T) => operations.reduce((acc, op) => op(acc), input as unknown) as unknown;
 }
 
 /**

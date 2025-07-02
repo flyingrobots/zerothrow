@@ -56,7 +56,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
     },
   },
   defaultOptions: [{ allowInTests: false, allowedFiles: [] }],
-  create(context: any) {
+  create(context) {
     const options = context.options[0] || {};
     const filename = context.getFilename();
     
@@ -76,7 +76,7 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
           messageId: 'noThrow',
           fix(fixer: TSESLint.RuleFixer) {
             // Check if we're in a function that could use tryR
-            let parent = node.parent;
+            let parent: TSESTree.Node | undefined = node.parent;
             while (parent && parent.type !== 'FunctionDeclaration' && 
                    parent.type !== 'FunctionExpression' && 
                    parent.type !== 'ArrowFunctionExpression') {
@@ -85,6 +85,9 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
             
             // If we're throwing a simple error, suggest a more specific approach
             const argument = node.argument;
+            if (!argument) {
+              return null; // Can't fix if there's no argument
+            }
             const sourceCode = context.getSourceCode();
             const argumentText = sourceCode.getText(argument);
             

@@ -36,7 +36,7 @@ export function tryR<T>(
     const result = fn();
     
     // If it's a thenable (Promise or Promise-like), handle it
-    if (result && typeof (result as any).then === 'function') {
+    if (result && typeof (result as { then?: unknown }).then === 'function') {
       return Promise.resolve(result).then(
         value => ok(value),
         error => {

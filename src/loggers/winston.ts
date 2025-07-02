@@ -4,7 +4,11 @@ import { ZeroError } from '../error';
 interface WinstonFormatInfo {
   level: string;
   message: string;
-  [key: string]: any;
+  error?: unknown;
+  result?: unknown;
+  timestamp?: string;
+  zerothrow?: unknown;
+  [key: string]: unknown;
 }
 
 export const zerothrowWinstonFormat = {
@@ -27,7 +31,7 @@ export const zerothrowWinstonFormat = {
     
     // Format Result types
     if (info.result && typeof info.result === 'object' && 'ok' in info.result) {
-      const result = info.result as Result<any, any>;
+      const result = info.result as { ok: boolean; value?: unknown; error?: unknown };
       
       if (result.ok) {
         transformed.zerothrow = {
@@ -44,11 +48,16 @@ export const zerothrowWinstonFormat = {
             code: typeof result.error.code === 'symbol' ? String(result.error.code) : result.error.code,
             message: result.error.message,
             context: result.error.context
+          } : result.error instanceof Error ? {
+            message: result.error.message
           } : {
-            message: result.error.message || String(result.error)
+            message: String(result.error)
           }
         };
-        transformed.message = `[ERR] ${result.error instanceof ZeroError ? result.error.message : info.message || 'Operation failed'}`;
+        const errorMessage = result.error instanceof ZeroError 
+          ? result.error.message 
+          : info.message || 'Operation failed';
+        transformed.message = `[ERR] ${errorMessage}`;
       }
     }
     
@@ -79,7 +88,23 @@ export const zerothrowWinstonFormat = {
  * });
  * ```
  */
-export function createWinstonLogger(winston: any, options: any = {}) {
+interface WinstonModule {
+  format: {
+    combine: (...formats: unknown[]) => unknown;
+    timestamp: () => unknown;
+    json: () => unknown;
+    [key: string]: unknown;
+  };
+  createLogger: (options: unknown) => unknown;
+}
+
+interface WinstonOptions {
+  level?: string;
+  format?: unknown;
+  [key: string]: unknown;
+}
+
+export function createWinstonLogger(winston: WinstonModule, options: WinstonOptions = {}) {
   const format = winston.format;
   
   return winston.createLogger({
