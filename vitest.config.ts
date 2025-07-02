@@ -12,7 +12,7 @@ export default defineConfig({
       return false;
     },
     coverage: {
-      include: ['zerothrow/src/**/*.ts'],
+      include: ['src/**/*.ts'],
       exclude: ['**/*.config.ts', '**/node_modules/**']
     }
   }
