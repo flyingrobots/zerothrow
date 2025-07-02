@@ -1,6 +1,6 @@
 
 import { describe, it, expect } from "vitest";
-import { ok, err, tryR, wrap, ZeroError } from "../src";
+import { ok, err, tryR, wrap, ZeroError } from "../src/index.js";
 
 describe("Result helpers", () => {
   it("ok()", () => {
