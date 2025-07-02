@@ -4,6 +4,18 @@
 
 This document outlines the performance characteristics of the ZeroThrow library and the optimizations implemented to ensure minimal overhead while maintaining developer ergonomics.
 
+## Installation Requirements
+
+### Memory Profiling
+
+The memory profiling tools require Node.js to be run with the `--expose-gc` flag to enable manual garbage collection:
+
+```bash
+node --expose-gc benchmark/run-memory-profile.ts
+```
+
+This flag is automatically included in the shebang of the memory profiling scripts, but if you run them directly or in CI, ensure this flag is set.
+
 ## Performance Improvements
 
 ### 1. Synchronous Operations - `tryRSync`

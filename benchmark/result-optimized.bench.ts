@@ -1,177 +1,123 @@
 import { bench, describe } from 'vitest';
-import { ok as okOrig, err as errOrig, tryR as tryROrig, wrap as wrapOrig } from '../src/result';
-import { ok as okOpt, err as errOpt, tryR as tryROpt, tryRSync, wrap as wrapOpt, releaseError, tryRBatch } from '../src/result-optimized';
+import { ok, err, tryR, tryRSync, tryRBatch, wrap } from '../src/result';
 import { ZeroError } from '../src/error';
 
-describe('Optimized vs Original - ok/err', () => {
-  bench('Original ok()', () => {
-    okOrig(42);
+describe('Result performance - ok/err', () => {
+  bench('ok()', () => {
+    ok(42);
   });
 
-  bench('Optimized ok()', () => {
-    okOpt(42);
-  });
-
-  bench('Original err()', () => {
-    errOrig(new Error('test'));
-  });
-
-  bench('Optimized err()', () => {
-    errOpt(new Error('test'));
+  bench('err()', () => {
+    err(new Error('test'));
   });
 });
 
-describe('Optimized vs Original - tryR sync', () => {
-  bench('Original tryR - sync success', async () => {
-    await tryROrig(() => 42);
+describe('Result performance - tryR sync', () => {
+  bench('tryR - sync success', async () => {
+    await tryR(() => 42);
   });
 
-  bench('Optimized tryR - sync success', () => {
-    const result = tryROpt(() => 42);
-    // Handle both sync and async returns
-    if (result instanceof Promise) {
-      return result;
-    }
-    return result;
-  });
-
-  bench('Optimized tryRSync - sync success', () => {
+  bench('tryRSync - sync success', () => {
     tryRSync(() => 42);
   });
 
-  bench('Original tryR - sync failure', async () => {
-    await tryROrig(() => { throw new Error('test'); });
+  bench('tryR - sync failure', async () => {
+    await tryR(() => { throw new Error('test'); });
   });
 
-  bench('Optimized tryR - sync failure', () => {
-    const result = tryROpt(() => { throw new Error('test'); });
-    if (result instanceof Promise) {
-      return result;
-    }
-    return result;
-  });
-
-  bench('Optimized tryRSync - sync failure', () => {
+  bench('tryRSync - sync failure', () => {
     tryRSync(() => { throw new Error('test'); });
   });
 });
 
-describe('Optimized vs Original - tryR async', () => {
-  bench('Original tryR - async success', async () => {
-    await tryROrig(async () => 42);
+describe('Result performance - tryR async', () => {
+  bench('tryR - async success', async () => {
+    await tryR(async () => 42);
   });
 
-  bench('Optimized tryR - async success', async () => {
-    await tryROpt(async () => 42);
-  });
-
-  bench('Original tryR - async failure', async () => {
-    await tryROrig(async () => { throw new Error('test'); });
-  });
-
-  bench('Optimized tryR - async failure', async () => {
-    await tryROpt(async () => { throw new Error('test'); });
+  bench('tryR - async failure', async () => {
+    await tryR(async () => { throw new Error('test'); });
   });
 });
 
-describe('Optimized vs Original - wrap', () => {
+describe('Result performance - wrap', () => {
   const baseError = new Error('base error');
 
-  bench('Original wrap()', () => {
-    wrapOrig(baseError, 'WRAP_ERR', 'Wrapped error');
+  bench('wrap()', () => {
+    wrap(baseError, 'WRAP_ERR', 'Wrapped error');
   });
 
-  bench('Optimized wrap() with pooling', () => {
-    const err = wrapOpt(baseError, 'WRAP_ERR', 'Wrapped error');
-    // Simulate error being released back to pool
-    releaseError(err);
-  });
-
-  bench('Original wrap() with context', () => {
-    wrapOrig(baseError, 'WRAP_ERR', 'Wrapped error', {
+  bench('wrap() with context', () => {
+    wrap(baseError, 'WRAP_ERR', 'Wrapped error', {
       userId: '123',
       operation: 'test'
     });
-  });
-
-  bench('Optimized wrap() with context', () => {
-    const err = wrapOpt(baseError, 'WRAP_ERR', 'Wrapped error', {
-      userId: '123',
-      operation: 'test'
-    });
-    releaseError(err);
   });
 });
 
 describe('Batch operations', () => {
   const operations = Array(10).fill(0).map((_, i) => () => i * 2);
   
-  bench('Original tryR - 10 sequential operations', async () => {
+  bench('tryR - 10 sequential operations', async () => {
     const results = [];
     for (const op of operations) {
-      const result = await tryROrig(op);
+      const result = await tryR(op);
       if (result.ok) {
         results.push(result.value);
       }
     }
   });
 
-  bench('Optimized tryRBatch - 10 operations', async () => {
+  bench('tryRBatch - 10 operations', async () => {
     await tryRBatch(operations);
   });
 });
 
-describe('Memory allocation comparison', () => {
-  bench('Original - 1000 tryR sync calls', async () => {
+describe('Memory allocation patterns', () => {
+  bench('1000 tryR sync calls', async () => {
     for (let i = 0; i < 1000; i++) {
-      await tryROrig(() => i);
+      await tryR(() => i);
     }
   });
 
-  bench('Optimized - 1000 tryRSync calls', () => {
+  bench('1000 tryRSync calls', () => {
     for (let i = 0; i < 1000; i++) {
       tryRSync(() => i);
     }
   });
 
-  bench('Original - 1000 error wraps', () => {
+  bench('1000 error wraps', () => {
     const base = new Error('base');
     for (let i = 0; i < 1000; i++) {
-      wrapOrig(base, 'CODE', 'message');
-    }
-  });
-
-  bench('Optimized - 1000 pooled error wraps', () => {
-    const base = new Error('base');
-    for (let i = 0; i < 1000; i++) {
-      const err = wrapOpt(base, 'CODE', 'message');
-      releaseError(err);
+      wrap(base, 'CODE', 'message');
     }
   });
 });
 
-describe('Real-world scenario comparison', () => {
+describe('Real-world scenario', () => {
   // Simulate a function that might throw
   const riskyOperation = (shouldFail: boolean) => {
     if (shouldFail) throw new Error('Operation failed');
     return { success: true, data: 'result' };
   };
 
-  bench('Original - mixed success/failure pattern', async () => {
+  bench('Mixed success/failure pattern', async () => {
     for (let i = 0; i < 100; i++) {
-      const result = await tryROrig(() => riskyOperation(i % 3 === 0));
+      const shouldFail = i % 3 === 0; // ~33% failure rate
+      const result = await tryR(() => riskyOperation(shouldFail));
       if (!result.ok) {
-        wrapOrig(result.error, 'OP_FAILED', 'Operation failed', { iteration: i });
+        // Simulate error handling
+        const wrapped = wrap(result.error, 'OP_FAILED', 'Operation failed in batch');
       }
     }
   });
 
-  bench('Optimized - mixed success/failure pattern', () => {
+  bench('tryRSync with mixed pattern', () => {
     for (let i = 0; i < 100; i++) {
-      const result = tryRSync(() => riskyOperation(i % 3 === 0));
+      const shouldFail = i % 3 === 0;
+      const result = tryRSync(() => riskyOperation(shouldFail));
       if (!result.ok) {
-        const err = wrapOpt(result.error, 'OP_FAILED', 'Operation failed', { iteration: i });
-        releaseError(err);
+        const wrapped = wrap(result.error, 'OP_FAILED', 'Operation failed in batch');
       }
     }
   });

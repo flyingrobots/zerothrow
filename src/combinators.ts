@@ -68,6 +68,12 @@ export function makeCombinable<T, E extends Error = ZeroError>(
       return result.ok ? result.value : fallback;
     },
 
+    /**
+     * @warning This method violates the zero-throw discipline by throwing exceptions.
+     * Use only in tests or when absolutely necessary. Prefer unwrapOr() or proper
+     * error handling instead.
+     * @throws {Error} Throws the error if the Result is an Err
+     */
     unwrapOrThrow(): T {
       if (!result.ok) throw result.error;
       return result.value;

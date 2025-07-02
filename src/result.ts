@@ -35,9 +35,9 @@ export function tryR<T>(
   try {
     const result = fn();
     
-    // If it's already a promise, handle it
-    if (result instanceof Promise) {
-      return result.then(
+    // If it's a thenable (Promise or Promise-like), handle it
+    if (result && typeof (result as any).then === 'function') {
+      return Promise.resolve(result).then(
         value => ok(value),
         error => {
           const base = normalise(error);
