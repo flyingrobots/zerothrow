@@ -119,8 +119,8 @@ jobs:
         echo "📊 Checking coverage meets >90% threshold..."
         echo ""
         
-        # First, show the coverage summary
-        npx vitest run --coverage --reporter=verbose || true
+        # First, show the coverage summary (using base config which excludes performance tests)
+        npm test -- --reporter=verbose || true
         
         # Now check the thresholds
         if [ -f "coverage/coverage-summary.json" ]; then
