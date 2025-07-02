@@ -180,7 +180,7 @@ describe("enhanced no-throw rule with auto-fix", () => {
 
   it("adds imports to existing zerothrow import", () => {
     const mockFixer = {
-      replaceText: vi.fn().mockReturnValue("fix"),
+      replaceText: vi.fn().mockImplementation((node, text) => ({ type: 'replace', node, text })),
       insertTextAfter: vi.fn().mockReturnValue("fix"),
       insertTextBefore: vi.fn().mockReturnValue("fix"),
     };
@@ -218,13 +218,20 @@ describe("enhanced no-throw rule with auto-fix", () => {
     const reportCall = mockContext.report.mock.calls[0][0];
     const fixResult = reportCall.fix(mockFixer);
     
+    // Test behavior: should produce fixes that update the import
     expect(Array.isArray(fixResult)).toBe(true);
-    expect(mockFixer.insertTextAfter).toHaveBeenCalled();
+    expect(fixResult.length).toBeGreaterThan(0);
+    
+    // Verify it replaces the import with updated specifiers
+    const replaceCall = mockFixer.replaceText.mock.calls.find(call => 
+      call[1].includes('import { Result, err, ZeroError }')
+    );
+    expect(replaceCall).toBeDefined();
   });
 
   it("adds imports when only err is missing", () => {
     const mockFixer = {
-      replaceText: vi.fn().mockReturnValue("fix"),
+      replaceText: vi.fn().mockImplementation((node, text) => ({ type: 'replace', node, text })),
       insertTextAfter: vi.fn().mockReturnValue("fix"),
       insertTextBefore: vi.fn().mockReturnValue("fix"),
     };
@@ -261,11 +268,15 @@ describe("enhanced no-throw rule with auto-fix", () => {
     const reportCall = mockContext.report.mock.calls[0][0];
     const fixResult = reportCall.fix(mockFixer);
     
+    // Test behavior: should produce fixes
     expect(Array.isArray(fixResult)).toBe(true);
-    expect(mockFixer.insertTextAfter).toHaveBeenCalledWith(
-      expect.any(Object),
-      ", err"
+    expect(fixResult.length).toBeGreaterThan(0);
+    
+    // Verify it adds err to the existing imports
+    const replaceCall = mockFixer.replaceText.mock.calls.find(call => 
+      call[1].includes('import { ZeroError, err }')
     );
+    expect(replaceCall).toBeDefined();
   });
 
   it("detects TODO_ERROR_CODE literal values", () => {

@@ -101,8 +101,11 @@ export function pipe<A, B, C, D, E, F, G, H>(f1: (a: A) => B, f2: (b: B) => C, f
 export function pipe<A, B, C, D, E, F, G, H, I>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I): (a: A) => I;
 export function pipe<A, B, C, D, E, F, G, H, I, J>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I, f9: (i: I) => J): (a: A) => J;
 export function pipe<A, B, C, D, E, F, G, H, I, J, K>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I, f9: (i: I) => J, f10: (j: J) => K): (a: A) => K;
-export function pipe(...operations: Array<(input: any) => any>) {
-  return (input: any) => operations.reduce((acc, op) => op(acc), input);
+export function pipe<T extends readonly [(arg: unknown) => unknown, ...Array<(arg: unknown) => unknown>]>(
+  ...fns: T
+): (input: Parameters<T[0]>[0]) => ReturnType<T[number]> {
+  return (input: Parameters<T[0]>[0]): ReturnType<T[number]> =>
+    fns.reduce((acc, fn) => fn(acc), input) as ReturnType<T[number]>;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { ZeroError, ErrorCode } from '../error';
+import { ZeroError } from '../error';
 import { Result } from '../result';
 
 interface FormatOptions {

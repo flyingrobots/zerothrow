@@ -28,8 +28,7 @@ export const zerothrowWinstonFormat = {
         ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: info.error.stack } : {})
       };
       transformed.message = `[${codeStr}] ${info.error.message}`;
-      // Don't mutate the original error
-      transformed.error = transformed.zerothrow;
+      // Leave original error untouched for downstream formats
     }
     
     // Format Result types
@@ -62,8 +61,7 @@ export const zerothrowWinstonFormat = {
           : info.message || 'Operation failed';
         transformed.message = `[ERR] ${errorMessage}`;
       }
-      // Don't mutate the original result
-      transformed.result = transformed.zerothrow;
+      // Leave original result untouched for downstream formats
     }
     
     return transformed;

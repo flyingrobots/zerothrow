@@ -1,9 +1,6 @@
 import { Result } from '../result';
 import { ZeroError } from '../error';
 
-// Cache environment check to avoid repeated syscalls
-const SHOW_STACK = process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true';
-
 interface PinoSerializers {
   err?: (error: unknown) => unknown;
   result?: (result: unknown) => unknown;
@@ -18,7 +15,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         message: error.message,
         context: error.context,
         // Only include stack in debug mode or if explicitly enabled
-        ...(SHOW_STACK ? { stack: error.stack } : {})
+        ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: error.stack } : {})
       };
     }
     
@@ -28,7 +25,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         type: error.constructor.name,
         message: error.message,
         // Only include stack in debug mode or if explicitly enabled
-        ...(SHOW_STACK ? { stack: error.stack } : {})
+        ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: error.stack } : {})
       };
     }
     

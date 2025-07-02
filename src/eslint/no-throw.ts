@@ -136,7 +136,13 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                   // Reconstruct the entire import statement to avoid syntax errors
                   const existingImports = zerothrowImport.specifiers
                     .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
-                    .map(spec => spec.imported.name);
+                    .map(spec => {
+                      // Preserve aliases: use local name if different from imported
+                      if (spec.local && spec.local.name !== spec.imported.name) {
+                        return `${spec.imported.name} as ${spec.local.name}`;
+                      }
+                      return spec.imported.name;
+                    });
                   
                   const allImports = [...existingImports, ...missingImports];
                   const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
@@ -174,7 +180,13 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                 // Reconstruct the entire import statement to avoid syntax errors
                 const existingImports = zerothrowImport.specifiers
                   .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
-                  .map(spec => spec.imported.name);
+                  .map(spec => {
+                    // Preserve aliases: use local name if different from imported
+                    if (spec.local && spec.local.name !== spec.imported.name) {
+                      return `${spec.imported.name} as ${spec.local.name}`;
+                    }
+                    return spec.imported.name;
+                  });
                 
                 const allImports = [...existingImports, 'err'];
                 const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
