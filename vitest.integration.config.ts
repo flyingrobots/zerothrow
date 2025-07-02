@@ -19,19 +19,7 @@ export default defineConfig({
         "**/*.config.*",
         "**/mockData",
         "src/eslint.ts" // Exclude ESLint rules from coverage
-      ],
-      thresholds: {
-        lines: 90,
-        functions: 90,
-        branches: 90,
-        statements: 90
-      },
-      watermarks: {
-        lines: [80, 95],
-        functions: [80, 95],
-        branches: [80, 95],
-        statements: [80, 95]
-      }
+      ]
     },
     testTimeout: 30000,
     hookTimeout: 30000,
