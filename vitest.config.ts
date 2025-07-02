@@ -10,6 +10,10 @@ export default defineConfig({
       // Always show console logs in CI for debugging
       if (process.env.CI) return;
       return false;
+    },
+    coverage: {
+      include: ['zerothrow/src/**/*.ts'],
+      exclude: ['**/*.config.ts', '**/node_modules/**']
     }
   }
 });
