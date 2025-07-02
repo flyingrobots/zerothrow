@@ -38,9 +38,93 @@ describe("wrap function", () => {
     
     expect(wrapped.context).toEqual(context);
   });
+
+  it("uses cause's message when msg not provided", () => {
+    const cause = new Error("original error message");
+    const wrapped = wrap(cause, "DB_ERR");
+    
+    expect(wrapped.message).toBe("original error message");
+    expect(wrapped.code).toBe("DB_ERR");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("extracts code and message from ZeroError cause", () => {
+    const cause = new ZeroError("ORIGINAL_CODE", "original message");
+    const wrapped = wrap(cause);
+    
+    expect(wrapped.code).toBe("ORIGINAL_CODE");
+    expect(wrapped.message).toBe("original message");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("uses WRAPPED_ERROR code for regular errors when code not provided", () => {
+    const cause = new Error("some error");
+    const wrapped = wrap(cause);
+    
+    expect(wrapped.code).toBe("WRAPPED_ERROR");
+    expect(wrapped.message).toBe("some error");
+    expect(wrapped.cause).toBe(cause);
+  });
+
+  it("preserves stack trace through cause chain", () => {
+    const cause = new Error("original error");
+    const wrapped = wrap(cause, "WRAP_CODE", "wrapped message");
+    
+    expect(wrapped.cause).toBe(cause);
+    expect(wrapped.stack).toContain("wrap");
+    // The original error's stack is preserved via the cause chain
+    expect(cause.stack).toBeDefined();
+  });
+
+  it("displays full error chain with toString()", () => {
+    const originalError = new Error("database connection timeout");
+    const dbError = wrap(originalError, "DB_ERROR", "Failed to fetch user", { userId: 123 });
+    const apiError = wrap(dbError, "API_ERROR", "User endpoint failed", { endpoint: "/api/user/123" });
+    
+    const str = apiError.toString();
+    
+    // Check top-level error
+    expect(str).toContain("ZeroError [API_ERROR]: User endpoint failed");
+    expect(str).toContain('"endpoint": "/api/user/123"');
+    
+    // Check middle error
+    expect(str).toContain("Caused by: ZeroError: Failed to fetch user");
+    expect(str).toContain('"userId": 123');
+    
+    // Check original error
+    expect(str).toContain("Caused by: Error: database connection timeout");
+  });
+
+  it("getFullStack includes all stack traces", () => {
+    const originalError = new Error("original");
+    const wrapped = wrap(originalError, "WRAPPED", "wrapped error");
+    
+    const fullStack = wrapped.getFullStack();
+    
+    expect(fullStack).toContain("wrapped error");
+    expect(fullStack).toContain("Caused by:");
+    expect(fullStack).toContain("original");
+  });
 });
 
 describe("tryR advanced cases", () => {
+  it("handles errors with ZeroError-like properties", async () => {
+    const errorLike = Object.assign(new Error("Error with code"), {
+      code: "CUSTOM_CODE",
+      context: { data: "test" }
+    });
+    
+    const result = await tryR(() => {
+      throw errorLike;
+    });
+    
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe(errorLike); // Should return the same object
+      expect(result.error.code).toBe("CUSTOM_CODE");
+    }
+  });
+
   it("handles sync functions", async () => {
     const r = await tryR(() => "sync result");
     expect(r).toEqual({ ok: true, value: "sync result" });
@@ -60,6 +144,7 @@ describe("tryR advanced cases", () => {
   });
 
   it("normalizes non-Error throws to ZeroError", async () => {
+    // eslint-disable-next-line no-throw-literal
     const r = await tryR(() => { throw "string error"; });
     
     expect(r.ok).toBe(false);
@@ -81,12 +166,46 @@ describe("tryR advanced cases", () => {
   });
 
   it("handles null and undefined throws", async () => {
+    // eslint-disable-next-line no-throw-literal
     const r1 = await tryR(() => { throw null; });
+    // eslint-disable-next-line no-throw-literal
     const r2 = await tryR(() => { throw undefined; });
     
     expect(r1.ok).toBe(false);
     expect(r2.ok).toBe(false);
     if (!r1.ok) expect(r1.error.message).toBe("null");
     if (!r2.ok) expect(r2.error.message).toBe("undefined");
+  });
+});
+
+describe("Additional branch coverage tests", () => {
+  it("handles errors without stack property", () => {
+    const errorWithoutStack = new Error("No stack");
+    Object.defineProperty(errorWithoutStack, 'stack', { value: undefined });
+    
+    const zeroError = new ZeroError("TEST_ERROR", "Test error", { cause: errorWithoutStack });
+    Object.defineProperty(zeroError, 'stack', { value: undefined });
+    
+    const fullStack = zeroError.getFullStack();
+    expect(fullStack).toBe("\n\nCaused by:\nError: No stack");
+  });
+
+  it("handles errors without name property", () => {
+    const errorWithoutName = new Error("No name");
+    Object.defineProperty(errorWithoutName, 'name', { value: undefined });
+    
+    const zeroError = new ZeroError("TEST_ERROR", "Test error", { cause: errorWithoutName });
+    
+    const str = zeroError.toString();
+    expect(str).toContain("Caused by: Error: No name");
+  });
+
+  it("extracts code from error with code property", () => {
+    // Create an error with a code property
+    const errorWithCode = new Error("Error with code") as Error & { code: string };
+    errorWithCode.code = "CUSTOM_CODE";
+    
+    const wrapped = wrap(errorWithCode);
+    expect(wrapped.code).toBe("CUSTOM_CODE");
   });
 });

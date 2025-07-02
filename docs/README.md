@@ -6,35 +6,68 @@ Welcome to the ZeroThrow documentation directory. Here you'll find detailed guid
 
 ### 📚 Available Documents
 
-1. **[Git Hooks Setup Guide](./githooks.md)**  
-   Complete guide for setting up git hooks to enforce no-throw discipline in your commits. Includes both automated setup via `npm run githooks` and manual configuration options.
+#### API Reference
+Complete API documentation with TypeScript types and examples.
 
-2. **[Technical Specification](./zerothrow-spec.md)**  
-   Full technical specification (v0.1-draft) detailing the mission, architecture, API design, and implementation details of ZeroThrow.
+- **[API Overview](./api/README.md)** - Quick reference and installation
+- **[Core Types](./api/core-types.md)** - Result, Ok, Err, and ZeroError types
+- **[Core Functions](./api/core-functions.md)** - ok, err, tryR, and wrap functions
+- **[Combinators](./api/combinators.md)** - Functional programming patterns
+- **[React Integration](./api/react.md)** - useResult hook and patterns
+- **[ESLint Plugin](./api/eslint.md)** - no-throw rule configuration
+- **[Type Utilities](./api/type-utilities.md)** - Advanced TypeScript utilities
+
+#### Tutorials
+Step-by-step learning path from beginner to advanced.
+
+- **[Tutorial Overview](./tutorials/README.md)** - Learning path guide
+- **[Getting Started](./tutorials/01-getting-started.md)** - Basics of Result types
+- **[Advanced Patterns](./tutorials/02-advanced-patterns.md)** - Railway-oriented programming
+- **[Error Handling](./tutorials/03-error-handling.md)** - Error design strategies
+- **[Functional Programming](./tutorials/04-functional-programming.md)** - Monadic patterns
+
+#### Examples
+Real-world code examples demonstrating practical usage.
+
+- **[Examples Overview](./examples/README.md)** - Available examples
+- **[Express API](./examples/express-api.ts)** - REST API with error handling
+- **[File Processor](./examples/file-processor.ts)** - File I/O operations
+- **[React Form](./examples/react-form.tsx)** - Form validation and submission
+
+#### Guides and Specifications
+- **[Git Hooks Setup](./githooks.md)** - Enforce no-throw discipline in commits
+- **[Technical Specification](./zerothrow-spec.md)** - Architecture and design details
 
 ### 🚀 Quick Links
 
 - **Get Started**: See the main [README](../README.md) for installation and basic usage
-- **API Reference**: Check the [spec document](./zerothrow-spec.md#4-public-api-v01) for detailed API documentation
+- **API Reference**: Browse the comprehensive [API documentation](./api/README.md)
 - **Contributing**: Review our [contributing guidelines](../README.md#contributing)
 
 ### 📖 Document Overview
 
-#### Git Hooks (`githooks.md`)
-- Automated setup script usage
-- Manual Husky configuration
-- Vanilla git hooks setup
-- Pre-commit and pre-push hooks
-- Windows compatibility notes
+#### API Reference (`api/`)
+- **Core Types**: Result<T,E>, Ok<T>, Err<E>, ZeroError, ErrorCode, ErrorContext
+- **Core Functions**: ok(), err(), tryR(), wrap()
+- **Combinators**: andThen, map, mapErr, orElse, unwrapOr, pipe, collect
+- **React Hook**: useResult with loading states and error handling
+- **ESLint Rule**: no-throw rule configuration and patterns
+- **Type Utilities**: Advanced TypeScript patterns and type inference
 
-#### Technical Specification (`zerothrow-spec.md`)
-- Mission statement and principles
-- Complete API reference
-- Internal architecture
-- Testing strategy
-- Performance considerations
-- Security guidelines
-- Roadmap and future plans
+#### Tutorials (`tutorials/`)
+- **Getting Started**: Basic concepts, first Result, async operations
+- **Advanced Patterns**: Railway programming, error recovery, validation
+- **Error Handling**: Error hierarchies, context, boundaries, monitoring
+- **Functional Programming**: Monads, functors, composition, lazy evaluation
+
+#### Examples (`examples/`)
+- **Express API**: REST endpoints, validation, error responses
+- **File Processor**: I/O operations, parsing, batch processing
+- **React Form**: Validation, async checks, error feedback
+
+#### Specifications
+- **Git Hooks**: Automated setup, Husky configuration, pre-commit/push hooks
+- **Technical Spec**: Architecture, API design, testing, performance, security
 
 ### 💡 Need Help?
 

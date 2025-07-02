@@ -13,6 +13,11 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         project: './tsconfig.json'
+      },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        React: 'readonly'
       }
     },
     plugins: {
@@ -21,7 +26,12 @@ export default [
     rules: {
       ...typescript.configs.recommended.rules,
       'no-throw-literal': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn'
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
     }
+  },
+  {
+    files: ["*.config.{ts,js}", "eslint.config.js"],
+    rules: {}
   }
 ];
