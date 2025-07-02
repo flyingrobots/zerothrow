@@ -47,7 +47,7 @@ export function tryR<T>(
     }
     
     // For sync results, return a resolved promise for backward compatibility
-    return Promise.resolve(ok(result));
+    return Promise.resolve(ok(result as T));
   } catch (e) {
     const base = normalise(e);
     return Promise.resolve(err(map ? map(base) : base));
