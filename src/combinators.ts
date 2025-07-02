@@ -1,5 +1,5 @@
-import { Result, ok, err } from './result';
-import { ZeroError } from './error';
+import { Result, ok, err } from './result.js';
+import { ZeroError } from './error.js';
 
 /**
  * Fluent combinators for Result types - chainable operations

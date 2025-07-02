@@ -1,5 +1,5 @@
 
-import { ZeroError, ErrorContext, ErrorCode } from "./error";
+import { ZeroError, ErrorContext, ErrorCode } from "./error.js";
 
 export type Ok<T>                 = { ok: true;  value: T };
 export type Err<E extends Error = ZeroError> = { ok: false; error: E };

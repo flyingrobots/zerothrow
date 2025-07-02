@@ -8,4 +8,4 @@
  *   import { useResult } from '@flyingrobots/zerothrow/react';
  */
 
-export { type UseResultState, useResult } from './react-hooks';
+export { type UseResultState, useResult } from './react-hooks.js';
