@@ -1,4 +1,4 @@
-import { Result, ok, err } from '../result';
+import { Result } from '../result';
 import { ZeroError } from '../error';
 
 interface PinoSerializers {
@@ -52,7 +52,21 @@ export const zerothrowPinoSerializers: PinoSerializers = {
   }
 };
 
-export function createPinoLogger(options: any = {}) {
+/**
+ * Creates a Pino configuration with ZeroThrow serializers.
+ * 
+ * Usage:
+ * ```typescript
+ * import pino from 'pino';
+ * import { createPinoConfig } from '@flyingrobots/zerothrow/loggers';
+ * 
+ * const logger = pino(createPinoConfig({
+ *   level: 'info',
+ *   // other pino options
+ * }));
+ * ```
+ */
+export function createPinoConfig(options: any = {}) {
   return {
     ...options,
     serializers: {
@@ -61,3 +75,6 @@ export function createPinoLogger(options: any = {}) {
     }
   };
 }
+
+// For backward compatibility
+export const createPinoLogger = createPinoConfig;

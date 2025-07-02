@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { zerothrowPinoSerializers, createPinoLogger } from "../src/loggers/pino";
+import { zerothrowPinoSerializers, createPinoConfig, createPinoLogger } from "../src/loggers/pino";
 import { ZeroError } from "../src/error";
 import { ok, err } from "../src/result";
 
@@ -87,7 +87,7 @@ describe("Pino serializers", () => {
     });
   });
 
-  describe("createPinoLogger", () => {
+  describe("createPinoConfig", () => {
     it("merges serializers with existing options", () => {
       const options = {
         level: "info",
@@ -96,9 +96,9 @@ describe("Pino serializers", () => {
         }
       };
       
-      const loggerConfig = createPinoLogger(options);
+      const config = createPinoConfig(options);
       
-      expect(loggerConfig).toMatchObject({
+      expect(config).toMatchObject({
         level: "info",
         serializers: {
           custom: expect.any(Function),
@@ -109,11 +109,15 @@ describe("Pino serializers", () => {
     });
 
     it("works with no options", () => {
-      const loggerConfig = createPinoLogger();
+      const config = createPinoConfig();
       
-      expect(loggerConfig.serializers).toBeDefined();
-      expect(loggerConfig.serializers.err).toBe(zerothrowPinoSerializers.err);
-      expect(loggerConfig.serializers.result).toBe(zerothrowPinoSerializers.result);
+      expect(config.serializers).toBeDefined();
+      expect(config.serializers.err).toBe(zerothrowPinoSerializers.err);
+      expect(config.serializers.result).toBe(zerothrowPinoSerializers.result);
+    });
+    
+    it("createPinoLogger is alias for backward compatibility", () => {
+      expect(createPinoLogger).toBe(createPinoConfig);
     });
   });
 });
