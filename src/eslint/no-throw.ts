@@ -1,6 +1,8 @@
 import { ESLintUtils, TSESTree, TSESLint } from '@typescript-eslint/utils';
 
 // Helper to derive error code from error message
+// Note: This returns string error codes only. While ZeroError supports
+// string | number | symbol, the ESLint autofix generates string codes.
 function deriveErrorCode(message: string): string {
   // Common patterns to derive error codes
   const patterns = [
