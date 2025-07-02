@@ -31,10 +31,15 @@ jobs:
     - name: Run unit tests
       run: |
         echo "🧪 Running unit tests..."
-        npm test -- --reporter=verbose || {
+        npm test -- --reporter=verbose 2>&1 | tee test.log || {
           echo ""
-          echo "❌ Unit tests failed!"
-          echo "Check the output above for failing tests."
+          echo "❌ Unit tests failed! Summary:"
+          echo "=============================="
+          grep -E "(✓|×|FAIL|Error:|at .*:\d+:\d+)" test.log | tail -50
+          echo "=============================="
+          echo ""
+          echo "💡 To debug locally:"
+          echo "  npm test -- --reporter=verbose"
           exit 1
         }
         echo "✅ Unit tests passed!"
@@ -66,10 +71,15 @@ jobs:
     - name: Run integration tests
       run: |
         echo "🧪 Running integration tests..."
-        npx vitest run --config vitest.integration.config.ts --reporter=verbose || {
+        npx vitest run --config vitest.integration.config.ts --reporter=verbose 2>&1 | tee integration-test.log || {
           echo ""
-          echo "❌ Integration tests failed!"
-          echo "Check the output above for failing tests."
+          echo "❌ Integration tests failed! Summary:"
+          echo "=====================================" 
+          grep -E "(✓|×|FAIL|Error:|at .*:\d+:\d+)" integration-test.log | tail -50
+          echo "====================================="
+          echo ""
+          echo "💡 To debug locally:"
+          echo "  npx vitest run --config vitest.integration.config.ts --reporter=verbose"
           exit 1
         }
         echo "✅ Integration tests passed!"
@@ -202,7 +212,23 @@ jobs:
       run: npm ci
 
     - name: Run ESLint
-      run: npm run lint
+      run: |
+        echo "🔍 Running ESLint..."
+        npm run lint 2>&1 | tee lint.log || {
+          echo ""
+          echo "❌ Lint check failed! Issues found:"
+          echo "===================================="
+          cat lint.log
+          echo "===================================="
+          echo ""
+          echo "💡 To fix automatically:"
+          echo "  npm run lint -- --fix"
+          echo ""
+          echo "💡 To debug specific files:"
+          echo "  npx eslint path/to/file.ts"
+          exit 1
+        }
+        echo "✅ Lint check passed!"
 
   build-check:
     name: Build Check
@@ -222,15 +248,30 @@ jobs:
       run: npm ci
 
     - name: Build project
-      run: npm run build
+      run: |
+        echo "🔨 Building project..."
+        npm run build 2>&1 | tee build.log || {
+          echo ""
+          echo "❌ Build failed! Here's the error output:"
+          echo "==========================================="
+          cat build.log
+          echo "==========================================="
+          echo ""
+          echo "💡 Common build issues:"
+          echo "  - Missing dependencies: Run 'npm install'"
+          echo "  - TypeScript errors: Check the errors above"
+          echo "  - Module resolution: Check tsconfig.json paths"
+          exit 1
+        }
 
     - name: Check build output
       run: |
         if [ ! -d "dist" ]; then
-          echo "Build failed: dist directory not found"
+          echo "❌ Build failed: dist directory not found"
+          echo "This indicates the build process didn't complete successfully."
           exit 1
         fi
-        echo "Build successful: dist directory created"
+        echo "✅ Build successful: dist directory created"
 
   all-tests-pass:
     name: All Tests Pass
@@ -242,27 +283,40 @@ jobs:
     - name: Check all test results
       run: |
         echo "📊 Test Results Summary:"
-        echo "  Unit Tests:        ${{ needs.unit-tests.result }}"
-        echo "  Integration Tests: ${{ needs.integration-tests.result }}"
-        echo "  Coverage Check:    ${{ needs.coverage-check.result }}"
-        echo "  Lint Check:        ${{ needs.lint-check.result }}"
-        echo "  Build Check:       ${{ needs.build-check.result }}"
+        echo "============================"
+        
+        # Display results with emojis
+        [ "${{ needs.unit-tests.result }}" == "success" ] && echo "✅ Unit Tests:        PASSED" || echo "❌ Unit Tests:        FAILED"
+        [ "${{ needs.integration-tests.result }}" == "success" ] && echo "✅ Integration Tests: PASSED" || echo "❌ Integration Tests: FAILED"
+        [ "${{ needs.coverage-check.result }}" == "success" ] && echo "✅ Coverage Check:    PASSED" || echo "❌ Coverage Check:    FAILED"
+        [ "${{ needs.lint-check.result }}" == "success" ] && echo "✅ Lint Check:        PASSED" || echo "❌ Lint Check:        FAILED"
+        [ "${{ needs.build-check.result }}" == "success" ] && echo "✅ Build Check:       PASSED" || echo "❌ Build Check:       FAILED"
+        
+        echo "============================"
         echo ""
         
         FAILED_JOBS=()
-        [ "${{ needs.unit-tests.result }}" != "success" ] && FAILED_JOBS+=("unit-tests")
-        [ "${{ needs.integration-tests.result }}" != "success" ] && FAILED_JOBS+=("integration-tests")
-        [ "${{ needs.coverage-check.result }}" != "success" ] && FAILED_JOBS+=("coverage-check")
-        [ "${{ needs.lint-check.result }}" != "success" ] && FAILED_JOBS+=("lint-check")
-        [ "${{ needs.build-check.result }}" != "success" ] && FAILED_JOBS+=("build-check")
+        [ "${{ needs.unit-tests.result }}" != "success" ] && [ "${{ needs.unit-tests.result }}" != "skipped" ] && FAILED_JOBS+=("unit-tests")
+        [ "${{ needs.integration-tests.result }}" != "success" ] && [ "${{ needs.integration-tests.result }}" != "skipped" ] && FAILED_JOBS+=("integration-tests")
+        [ "${{ needs.coverage-check.result }}" != "success" ] && [ "${{ needs.coverage-check.result }}" != "skipped" ] && FAILED_JOBS+=("coverage-check")
+        [ "${{ needs.lint-check.result }}" != "success" ] && [ "${{ needs.lint-check.result }}" != "skipped" ] && FAILED_JOBS+=("lint-check")
+        [ "${{ needs.build-check.result }}" != "success" ] && [ "${{ needs.build-check.result }}" != "skipped" ] && FAILED_JOBS+=("build-check")
         
         if [ ${#FAILED_JOBS[@]} -ne 0 ]; then
-          echo "❌ The following jobs failed:"
+          echo "❌ FAILED JOBS:"
+          echo "==============="
           for job in "${FAILED_JOBS[@]}"; do
-            echo "   - $job"
+            echo "  🔴 $job"
+            echo "     👉 Click on '$job' job above to see detailed error output"
+            echo ""
           done
           echo ""
-          echo "Please check the logs for each failed job above for details."
+          echo "💡 Quick debugging tips:"
+          echo "  - Unit Tests: Check for broken imports or syntax errors"
+          echo "  - Integration Tests: Verify external dependencies are mocked"
+          echo "  - Coverage: Run 'npm test -- --coverage' to see uncovered lines"
+          echo "  - Lint: Run 'npm run lint -- --fix' to auto-fix issues"
+          echo "  - Build: Check for TypeScript errors or missing dependencies"
           exit 1
         fi
-        echo "✅ All tests passed successfully!"
+        echo "✅ All tests passed successfully! 🎉"
