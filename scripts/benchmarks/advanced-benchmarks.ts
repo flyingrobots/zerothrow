@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, wrap, Result, ZeroError } from '../src'
+import { ok, err, wrap, Result, ZeroError } from '../../src'
 
 const ITERATIONS = 100_000
 
@@ -63,10 +63,10 @@ function nestedThrow(i: number) {
       try {
         if (i % 10 === 0) throw new Error('deep error')
         return i * 2
-      } catch {
+      } catch (e) {
         throw new Error('wrapped: ' + (e as Error).message)
       }
-    } catch {
+    } catch (e) {
       throw new Error('double wrapped: ' + (e as Error).message)
     }
   } catch (e) {

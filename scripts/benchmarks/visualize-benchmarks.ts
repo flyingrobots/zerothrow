@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, wrap, Result, ZeroError } from '../src'
+import { ok, err, wrap, Result, ZeroError } from '../../src'
 
 // Terminal colors
 const colors = {

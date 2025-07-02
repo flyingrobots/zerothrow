@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, Result, ZeroError } from '../src'
+import { ok, err, Result, ZeroError } from '../../src'
 
 const ITERATIONS = 1_000_000
 const CONCURRENT_OPS = 100
