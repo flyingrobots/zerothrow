@@ -32,9 +32,10 @@
 - No direct @eslint/js dependency found
 - @typescript-eslint/eslint-plugin and parser already in use
 
-🔲 **MANDATE 6: Update .lintstagedrc.json**
-- Ensure Prettier runs after ESLint
-- Update to: `["eslint --fix", "prettier --write"]`
+✅ **MANDATE 6: Update .lintstagedrc.json**
+- Updated to use `eslint --fix` instead of `eslint --max-warnings 0`
+- Prettier already runs after ESLint (correct order)
+- Final config: `["eslint --fix", "prettier --write"]`
 
 🔲 **MANDATE 7: Isolate Prettier formatting pass**
 - Run `npx prettier --write .`
