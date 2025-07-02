@@ -103,7 +103,7 @@ jobs:
     - name: Run all tests with coverage
       run: |
         echo "📊 Running unit tests with coverage..."
-        npm test -- --coverage --reporter=verbose || {
+        npm test -- --reporter=verbose || {
           echo "❌ Unit tests failed!"
           exit 1
         }
