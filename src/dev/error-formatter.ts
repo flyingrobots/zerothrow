@@ -23,9 +23,9 @@ export class ErrorFormatter {
 
   constructor(options: FormatOptions = {}) {
     // Auto-detect color support if not explicitly set
-    const supportsColor = options.colors !== undefined 
-      ? options.colors 
-      : (typeof process !== 'undefined' && process?.stdout?.isTTY);
+    const supportsColor = options.colors ?? (
+      typeof process === 'object' && typeof process.stdout === 'object' && process.stdout.isTTY
+    );
       
     this.options = {
       colors: supportsColor,

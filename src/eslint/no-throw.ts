@@ -133,9 +133,15 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
                 if (!hasZeroErrorImport) missingImports.push('ZeroError');
                 
                 if (zerothrowImport) {
-                  // Add to existing import
-                  const lastSpecifier = zerothrowImport.specifiers[zerothrowImport.specifiers.length - 1];
-                  fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${missingImports.join(', ')}`));
+                  // Reconstruct the entire import statement to avoid syntax errors
+                  const existingImports = zerothrowImport.specifiers
+                    .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
+                    .map(spec => spec.imported.name);
+                  
+                  const allImports = [...existingImports, ...missingImports];
+                  const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
+                  
+                  fixes.push(fixer.replaceText(zerothrowImport, newImportText));
                 } else {
                   // Add new import at the top
                   const firstNode = sourceCode.ast.body[0];
@@ -165,9 +171,15 @@ export const noThrowRule = ESLintUtils.RuleCreator.withoutDocs({
             // or returning err() with the thrown value
             if (!hasErrImport) {
               if (zerothrowImport) {
-                // Add to existing import
-                const lastSpecifier = zerothrowImport.specifiers[zerothrowImport.specifiers.length - 1];
-                fixes.push(fixer.insertTextAfter(lastSpecifier, ', err'));
+                // Reconstruct the entire import statement to avoid syntax errors
+                const existingImports = zerothrowImport.specifiers
+                  .filter((spec): spec is TSESTree.ImportSpecifier => spec.type === 'ImportSpecifier')
+                  .map(spec => spec.imported.name);
+                
+                const allImports = [...existingImports, 'err'];
+                const newImportText = `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
+                
+                fixes.push(fixer.replaceText(zerothrowImport, newImportText));
               } else {
                 // Add new import at the top
                 const firstNode = sourceCode.ast.body[0];

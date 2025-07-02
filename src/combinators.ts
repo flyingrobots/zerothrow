@@ -82,21 +82,27 @@ export function makeCombinable<T, E extends Error = ZeroError>(
 }
 
 /**
- * Pipe multiple operations together
- * 
- * @warning This is an untyped escape hatch. TypeScript cannot infer types through
- * the pipeline, so the output type is `unknown`. Use explicit type assertions
- * or consider using typed combinators (andThen, map, etc.) instead.
+ * Pipe multiple operations together with full type inference
  * 
  * @example
  * const result = pipe(
  *   parseNumber,
  *   validateRange,
  *   formatOutput
- * )(input) as Result<string, ZeroError>;
+ * )(input);
  */
-export function pipe<T>(...operations: Array<(input: unknown) => unknown>) {
-  return (input: T) => operations.reduce((acc, op) => op(acc), input as unknown) as unknown;
+export function pipe<A, B>(f1: (a: A) => B): (a: A) => B;
+export function pipe<A, B, C>(f1: (a: A) => B, f2: (b: B) => C): (a: A) => C;
+export function pipe<A, B, C, D>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D): (a: A) => D;
+export function pipe<A, B, C, D, E>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E): (a: A) => E;
+export function pipe<A, B, C, D, E, F>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F): (a: A) => F;
+export function pipe<A, B, C, D, E, F, G>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G): (a: A) => G;
+export function pipe<A, B, C, D, E, F, G, H>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H): (a: A) => H;
+export function pipe<A, B, C, D, E, F, G, H, I>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I): (a: A) => I;
+export function pipe<A, B, C, D, E, F, G, H, I, J>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I, f9: (i: I) => J): (a: A) => J;
+export function pipe<A, B, C, D, E, F, G, H, I, J, K>(f1: (a: A) => B, f2: (b: B) => C, f3: (c: C) => D, f4: (d: D) => E, f5: (e: E) => F, f6: (f: F) => G, f7: (g: G) => H, f8: (h: H) => I, f9: (i: I) => J, f10: (j: J) => K): (a: A) => K;
+export function pipe(...operations: Array<(input: any) => any>) {
+  return (input: any) => operations.reduce((acc, op) => op(acc), input);
 }
 
 /**

@@ -13,8 +13,8 @@ interface WinstonFormatInfo {
 
 export const zerothrowWinstonFormat = {
   transform(info: WinstonFormatInfo): WinstonFormatInfo {
-    // Deep clone to avoid any mutation
-    const transformed = JSON.parse(JSON.stringify(info));
+    // Shallow clone to avoid mutation - only copy fields we'll modify
+    const transformed: WinstonFormatInfo = { ...info };
     
     // Format ZeroError instances
     if (info.error instanceof ZeroError) {
