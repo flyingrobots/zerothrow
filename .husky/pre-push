@@ -11,8 +11,43 @@ NC='\033[0m' # No Color
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "${RED}❌ Docker is not running. Please start Docker to run the full test matrix.${NC}"
-    echo "${YELLOW}⚠️  Skipping pre-push tests. Push at your own risk!${NC}"
+    echo "${YELLOW}⚠️  Docker is not running. Falling back to local test execution...${NC}"
+    echo ""
+    
+    # Run tests locally as fallback
+    echo "${BLUE}🏃 Running tests locally...${NC}"
+    
+    # Run all test suites
+    echo "1️⃣  Running unit tests..."
+    if ! npm test; then
+        echo "${RED}❌ Unit tests failed!${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "2️⃣  Running integration tests..."
+    if ! npm run test:integration; then
+        echo "${RED}❌ Integration tests failed!${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "3️⃣  Running lint checks..."
+    if ! npm run lint; then
+        echo "${RED}❌ Lint checks failed!${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "4️⃣  Running build check..."
+    if ! npm run build; then
+        echo "${RED}❌ Build failed!${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "${GREEN}✅ All local tests passed! Safe to push.${NC}"
+    echo "${YELLOW}Note: Full CI matrix with multiple Node versions requires Docker.${NC}"
     exit 0
 fi
 
