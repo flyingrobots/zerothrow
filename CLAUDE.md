@@ -56,8 +56,10 @@
 - Adds Result<unknown, unknown> for other throws
 - Handles async functions with Promise<Result<*, *>>
 
-🔲 **MANDATE 10: Un-ignore test/** in eslint.config.js**
+✅ **MANDATE 10: Un-ignore test/** in eslint.config.js**
 - Remove or adjust `ignores: ['test/**']` to allow linting test
+- Already completed: test files are included in eslint.config.js line 8
+- ESLint is actively linting test files (verified by running eslint on test/)
 
 ## Important Notes
 - NO `git add -A` allowed
