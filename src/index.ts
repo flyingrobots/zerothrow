@@ -1,10 +1,9 @@
-export { ZeroError } from "./error";
-export type { ErrorCode, ErrorContext } from "./error";
+export { ZeroError, type ErrorCode, type ErrorContext } from "./error";
 export {
   ok, err,
-  tryR, tryRSync, tryRBatch, wrap
+  tryR, tryRSync, tryRBatch, wrap,
+  type Ok, type Err, type Result
 } from "./result";
-export type { Ok, Err, Result } from "./result";
 export {
   ResultCombinable,
   makeCombinable,
