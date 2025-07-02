@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { Result, ok, err, tryR, wrap, ZeroError } from '../../src/index';
+import { Result, ok, err, tryR, wrap, ZeroError, makeCombinable } from '../../src/index';
 
 const execAsync = promisify(exec);
 
@@ -78,3 +78,11 @@ export async function writeFile(path: string, content: string): Promise<Result<v
     e => wrap(e, 'FILE_WRITE_FAILED', `Failed to write file: ${path}`)
   );
 }
+
+// Combinable versions for fluent chaining
+export const execCmdC = (cmd: string) => execCmd(cmd).then(makeCombinable);
+export const execCmdInteractiveC = (cmd: string) => execCmdInteractive(cmd).then(makeCombinable);
+export const readJsonFileC = <T = any>(filePath: string) => readJsonFile<T>(filePath).then(makeCombinable);
+export const writeJsonFileC = (filePath: string, data: any) => writeJsonFile(filePath, data).then(makeCombinable);
+export const readFileC = (path: string) => readFile(path).then(makeCombinable);
+export const writeFileC = (path: string, content: string) => writeFile(path, content).then(makeCombinable);

@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
-import { Result, ok, err, ZeroError } from '../../src/index';
-import { readFile } from '../lib/shared';
+import { Result, ok, err, ZeroError, makeCombinable, tryR } from '../../src/index';
+import { readFile, readFileC } from '../lib/shared';
 import chalk from 'chalk';
 
 interface CoverageMetric {
@@ -62,23 +62,20 @@ function parseArgs(): CoverageCheckConfig {
 
 // Read and parse coverage summary
 async function readCoverageSummary(path: string): Promise<Result<CoverageSummary, ZeroError>> {
-  const fileResult = await readFile(path);
-  if (!fileResult.ok) {
-    return err(new ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
+  return (await readFileC(path))
+    .mapErr(() => new ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
       path,
       hint: 'Run tests with coverage first: npm test -- --coverage'
-    }));
-  }
-  
-  try {
-    const summary = JSON.parse(fileResult.value) as CoverageSummary;
-    return ok(summary);
-  } catch (e) {
-    return err(new ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
-      path,
-      error: (e as Error).message
-    }));
-  }
+    }))
+    .andThen(content =>
+      tryR(
+        () => JSON.parse(content) as CoverageSummary,
+        e => new ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
+          path,
+          error: (e as Error).message
+        })
+      )
+    );
 }
 
 // Check coverage against threshold
@@ -130,12 +127,8 @@ export async function checkCoverageThreshold(
 ): Promise<Result<void, ZeroError>> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
-  const summaryResult = await readCoverageSummary(finalConfig.summaryPath);
-  if (!summaryResult.ok) {
-    return summaryResult;
-  }
-  
-  return checkCoverage(summaryResult.value, finalConfig.threshold);
+  return makeCombinable(await readCoverageSummary(finalConfig.summaryPath))
+    .andThen(summary => checkCoverage(summary, finalConfig.threshold));
 }
 
 // Main function for CLI usage
