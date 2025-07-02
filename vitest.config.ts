@@ -13,7 +13,14 @@ export default defineConfig({
     },
     coverage: {
       include: ['src/**/*.ts'],
-      exclude: ['**/*.config.ts', '**/node_modules/**']
+      exclude: ['**/*.config.ts', '**/node_modules/**'],
+      reporter: ['text', 'json-summary', 'json'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        branches: 90,
+        statements: 90
+      }
     }
   }
 });
