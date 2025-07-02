@@ -1,12 +1,14 @@
+import { ZeroError, type ErrorContext, type ErrorCode } from './error.js';
 
-import { ZeroError, ErrorContext, ErrorCode } from "./error";
-
-export type Ok<T>                 = { ok: true;  value: T };
+export type Ok<T> = { ok: true; value: T };
 export type Err<E extends Error = ZeroError> = { ok: false; error: E };
 export type Result<T, E extends Error = ZeroError> = Ok<T> | Err<E>;
 
 export const ok = <T>(value: T): Ok<T> => ({ ok: true, value });
-export const err = <E extends Error>(error: E): Err<E> => ({ ok: false, error });
+export const err = <E extends Error>(error: E): Err<E> => ({
+  ok: false,
+  error,
+});
 
 /**
  * Normalise an unknown thrown value into ZeroError
@@ -19,9 +21,9 @@ const normalise = (e: unknown): ZeroError => {
     if ('code' in e && typeof e.code === 'string' && 'context' in e) {
       return e as ZeroError;
     }
-    return new ZeroError("UNKNOWN_ERR", e.message, { cause: e });
+    return new ZeroError('UNKNOWN_ERR', e.message, { cause: e });
   }
-  return new ZeroError("UNKNOWN_ERR", String(e));
+  return new ZeroError('UNKNOWN_ERR', String(e));
 };
 
 /**
@@ -34,18 +36,18 @@ export function tryR<T>(
 ): Promise<Result<T, ZeroError>> {
   try {
     const result = fn();
-    
+
     // If it's a thenable (Promise or Promise-like), handle it
     if (result && typeof (result as { then?: unknown }).then === 'function') {
       return Promise.resolve(result).then(
-        value => ok(value),
-        error => {
+        (value) => ok(value),
+        (error) => {
           const base = normalise(error);
           return err(map ? map(base) : base);
         }
       );
     }
-    
+
     // For sync results, return a resolved promise for backward compatibility
     return Promise.resolve(ok(result as T));
   } catch (e) {
@@ -80,15 +82,17 @@ export function wrap<C extends ErrorContext = ErrorContext>(
   ctx?: C
 ): ZeroError<C> {
   // Extract code from cause if not provided
-  const errorCode = code ?? (
-    cause instanceof ZeroError ? cause.code : 
-    'code' in cause && cause.code ? cause.code as ErrorCode :
-    'WRAPPED_ERROR'
-  );
-  
+  const errorCode =
+    code ??
+    (cause instanceof ZeroError
+      ? cause.code
+      : 'code' in cause && cause.code
+        ? (cause.code as ErrorCode)
+        : 'WRAPPED_ERROR');
+
   // Use cause's message if msg not provided
   const message = msg ?? cause.message;
-  
+
   return new ZeroError(errorCode, message, { cause, context: ctx });
 }
 
@@ -100,7 +104,7 @@ export async function tryRBatch<T>(
   map?: (e: ZeroError) => ZeroError
 ): Promise<Result<T[], ZeroError>> {
   const results: T[] = [];
-  
+
   for (const fn of fns) {
     const result = await tryR(fn, map);
     if (!result.ok) {
@@ -108,6 +112,6 @@ export async function tryRBatch<T>(
     }
     results.push(result.value);
   }
-  
+
   return ok(results);
 }

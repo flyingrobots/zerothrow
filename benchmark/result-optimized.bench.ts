@@ -1,6 +1,6 @@
 import { bench, describe } from 'vitest';
-import { ok, err, tryR, tryRSync, tryRBatch, wrap } from '../src/result';
-import { ZeroError } from '../src/error';
+import { ok, err, tryR, tryRSync, tryRBatch, wrap } from '../src/result.js';
+import { ZeroError } from '../src/error.js';
 
 describe('Result performance - ok/err', () => {
   bench('ok()', () => {

@@ -168,7 +168,7 @@ module.exports = {
 };
 ```
 
-- Configurable glob allow-list (`tests/**`, `migrations/**`).
+- Configurable glob allow-list (`test/**`, `migrations/**`).
 - Companion rule require-result (optional) ensures every exported `async` function returns `Result`.
 
 ### 6.2 TS-aware `codemod` (v0.2)

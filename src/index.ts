@@ -1,15 +1,20 @@
-
-export { ZeroError, ErrorCode, ErrorContext } from "./error";
+export { ZeroError, type ErrorCode, type ErrorContext } from './error.js';
 export {
-  ok, err,
-  tryR, tryRSync, tryRBatch, wrap,
-  Ok, Err, Result
-} from "./result";
+  ok,
+  err,
+  tryR,
+  tryRSync,
+  tryRBatch,
+  wrap,
+  type Ok,
+  type Err,
+  type Result,
+} from './result.js';
 export {
-  ResultCombinable,
+  type ResultCombinable,
   makeCombinable,
   pipe,
   collect,
   collectAsync,
-  firstSuccess
-} from "./combinators";
+  firstSuccess,
+} from './combinators.js';

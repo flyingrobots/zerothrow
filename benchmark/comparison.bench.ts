@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { ok, err, tryR, tryRSync, ZeroError } from '../src/index';
+import { ok, err, tryR, tryRSync, ZeroError } from '../src/index.js';
 
 /**
  * Performance comparison with other error handling patterns

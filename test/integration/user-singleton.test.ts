@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index';
+import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
 
 // Real-world User Singleton Integration Test
 interface User {
@@ -27,14 +27,16 @@ interface DatabaseConfig {
 // Singleton pattern with Result-based initialization
 class UserManager {
   private static instance: UserManager | null = null;
-  private static initializationPromise: Promise<Result<UserManager, ZeroError>> | null = null;
+  private static initializationPromise: Promise<
+    Result<UserManager, ZeroError>
+  > | null = null;
   private static initializationError: ZeroError | null = null;
-  
+
   private currentUser: User | null = null;
   private dbConfig: DatabaseConfig;
   private initialized: boolean = false;
   private initTime: Date;
-  
+
   // Test control: set to true to simulate connection failure
   static simulateConnectionFailure: boolean = false;
   static simulateUserLoadFailure: boolean = false;
@@ -45,7 +47,9 @@ class UserManager {
     this.initTime = new Date();
   }
 
-  static async getInstance(config?: DatabaseConfig): Promise<Result<UserManager, ZeroError>> {
+  static async getInstance(
+    config?: DatabaseConfig
+  ): Promise<Result<UserManager, ZeroError>> {
     // If already successfully initialized, return the instance
     if (UserManager.instance && UserManager.instance.initialized) {
       return ok(UserManager.instance);
@@ -72,9 +76,16 @@ class UserManager {
     return result;
   }
 
-  private static async initialize(config?: DatabaseConfig): Promise<Result<UserManager, ZeroError>> {
+  private static async initialize(
+    config?: DatabaseConfig
+  ): Promise<Result<UserManager, ZeroError>> {
     if (!config) {
-      return err(new ZeroError('CONFIG_MISSING', 'Database configuration is required for initialization'));
+      return err(
+        new ZeroError(
+          'CONFIG_MISSING',
+          'Database configuration is required for initialization'
+        )
+      );
     }
 
     // Validate configuration
@@ -89,13 +100,17 @@ class UserManager {
     // Initialize database connection
     const dbResult = await instance.initializeDatabase();
     if (!dbResult.ok) {
-      return err(wrap(dbResult.error, 'INIT_FAILED', 'Failed to initialize UserManager'));
+      return err(
+        wrap(dbResult.error, 'INIT_FAILED', 'Failed to initialize UserManager')
+      );
     }
 
     // Load current user (if any)
     const userResult = await instance.loadCurrentUser();
     if (!userResult.ok && userResult.error.code !== 'NO_CURRENT_USER') {
-      return err(wrap(userResult.error, 'INIT_FAILED', 'Failed to load current user'));
+      return err(
+        wrap(userResult.error, 'INIT_FAILED', 'Failed to load current user')
+      );
     }
 
     instance.initialized = true;
@@ -104,15 +119,19 @@ class UserManager {
     return ok(instance);
   }
 
-  private static validateConfig(config: DatabaseConfig): Result<void, ZeroError> {
+  private static validateConfig(
+    config: DatabaseConfig
+  ): Result<void, ZeroError> {
     if (!config.host || config.host.trim().length === 0) {
       return err(new ZeroError('INVALID_CONFIG', 'Database host is required'));
     }
 
     if (!config.port || config.port < 1 || config.port > 65535) {
-      return err(new ZeroError('INVALID_CONFIG', 'Invalid database port', {
-        port: config.port
-      }));
+      return err(
+        new ZeroError('INVALID_CONFIG', 'Invalid database port', {
+          port: config.port,
+        })
+      );
     }
 
     if (!config.database || config.database.trim().length === 0) {
@@ -120,9 +139,11 @@ class UserManager {
     }
 
     if (config.timeout < 0) {
-      return err(new ZeroError('INVALID_CONFIG', 'Timeout must be non-negative', {
-        timeout: config.timeout
-      }));
+      return err(
+        new ZeroError('INVALID_CONFIG', 'Timeout must be non-negative', {
+          timeout: config.timeout,
+        })
+      );
     }
 
     return ok(undefined);
@@ -132,19 +153,22 @@ class UserManager {
     return tryR(
       async () => {
         // Simulate database connection
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         // Controlled failure for testing
         if (UserManager.simulateConnectionFailure) {
           throw new Error('Connection timeout');
         }
 
         // Simulate successful connection
-        console.log(`Connected to ${this.dbConfig.host}:${this.dbConfig.port}/${this.dbConfig.database}`);
+        console.log(
+          `Connected to ${this.dbConfig.host}:${this.dbConfig.port}/${this.dbConfig.database}`
+        );
       },
-      (e) => wrap(e, 'DB_CONNECTION_ERROR', 'Failed to connect to database', {
-        config: this.dbConfig
-      })
+      (e) =>
+        wrap(e, 'DB_CONNECTION_ERROR', 'Failed to connect to database', {
+          config: this.dbConfig,
+        })
     );
   }
 
@@ -152,8 +176,8 @@ class UserManager {
     return tryR(
       async () => {
         // Simulate loading user from session/cache
-        await new Promise(resolve => setTimeout(resolve, 20));
-        
+        await new Promise((resolve) => setTimeout(resolve, 20));
+
         // Controlled user load for testing
         if (UserManager.simulateUserLoadFailure) {
           throw new Error('No current user');
@@ -166,10 +190,10 @@ class UserManager {
           preferences: {
             theme: 'dark',
             language: 'en',
-            notifications: true
+            notifications: true,
           },
           createdAt: new Date('2024-01-01'),
-          lastSeen: new Date()
+          lastSeen: new Date(),
         };
 
         this.currentUser = user;
@@ -177,23 +201,31 @@ class UserManager {
       },
       (e) => {
         if (e.message === 'No current user') {
-          return new ZeroError('NO_CURRENT_USER', 'No user currently logged in');
+          return new ZeroError(
+            'NO_CURRENT_USER',
+            'No user currently logged in'
+          );
         }
         return wrap(e, 'USER_LOAD_ERROR', 'Failed to load current user');
       }
     );
   }
 
-  async login(username: string, password: string): Promise<Result<User, ZeroError>> {
+  async login(
+    username: string,
+    password: string
+  ): Promise<Result<User, ZeroError>> {
     if (!this.initialized) {
-      return err(new ZeroError('NOT_INITIALIZED', 'UserManager not initialized'));
+      return err(
+        new ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
+      );
     }
 
     return tryR(
       async () => {
         // Simulate authentication
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         if (username === 'error' || password === 'error') {
           throw new Error('Invalid credentials');
         }
@@ -205,10 +237,10 @@ class UserManager {
           preferences: {
             theme: 'light',
             language: 'en',
-            notifications: false
+            notifications: false,
           },
           createdAt: new Date(),
-          lastSeen: new Date()
+          lastSeen: new Date(),
         };
 
         this.currentUser = user;
@@ -218,9 +250,13 @@ class UserManager {
     );
   }
 
-  async updatePreferences(preferences: Partial<UserPreferences>): Promise<Result<User, ZeroError>> {
+  async updatePreferences(
+    preferences: Partial<UserPreferences>
+  ): Promise<Result<User, ZeroError>> {
     if (!this.initialized) {
-      return err(new ZeroError('NOT_INITIALIZED', 'UserManager not initialized'));
+      return err(
+        new ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
+      );
     }
 
     if (!this.currentUser) {
@@ -230,26 +266,29 @@ class UserManager {
     return tryR(
       async () => {
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 50));
-        
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
         if (UserManager.simulateUpdateFailure) {
           throw new Error('Update failed');
         }
 
         this.currentUser.preferences = {
           ...this.currentUser.preferences,
-          ...preferences
+          ...preferences,
         };
 
         return this.currentUser;
       },
-      (e) => wrap(e, 'UPDATE_ERROR', 'Failed to update preferences', { preferences })
+      (e) =>
+        wrap(e, 'UPDATE_ERROR', 'Failed to update preferences', { preferences })
     );
   }
 
   getCurrentUser(): Result<User, ZeroError> {
     if (!this.initialized) {
-      return err(new ZeroError('NOT_INITIALIZED', 'UserManager not initialized'));
+      return err(
+        new ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
+      );
     }
 
     if (!this.currentUser) {
@@ -287,7 +326,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const result = await UserManager.getInstance(config);
@@ -303,7 +342,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const result1 = await UserManager.getInstance(config);
@@ -326,7 +365,7 @@ describe('User Singleton Integration Tests', () => {
       host: '',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const result = await UserManager.getInstance(invalidConfig);
@@ -343,7 +382,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 99999,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const result1 = await UserManager.getInstance(invalidConfig);
@@ -365,28 +404,26 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     // Launch multiple concurrent initialization attempts
-    const promises = Array.from({ length: 10 }, () => 
+    const promises = Array.from({ length: 10 }, () =>
       UserManager.getInstance(config)
     );
 
     const results = await Promise.all(promises);
 
     // All should succeed
-    results.forEach(result => {
+    results.forEach((result) => {
       expect(result.ok).toBe(true);
     });
 
     // All should return the same instance
-    const instances = results
-      .filter(r => r.ok)
-      .map(r => (r as any).value);
+    const instances = results.filter((r) => r.ok).map((r) => (r as any).value);
 
     const firstInstance = instances[0];
-    instances.forEach(instance => {
+    instances.forEach((instance) => {
       expect(instance).toBe(firstInstance);
     });
   });
@@ -396,7 +433,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const managerResult = await UserManager.getInstance(config);
@@ -419,7 +456,7 @@ describe('User Singleton Integration Tests', () => {
     // Update preferences
     const updateResult = await manager.updatePreferences({
       theme: 'dark',
-      notifications: true
+      notifications: true,
     });
 
     expect(updateResult.ok).toBe(true);
@@ -442,7 +479,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     });
 
     const loginResult = await manager.login('user', 'pass');
@@ -463,14 +500,14 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     // Simulate connection failure
     UserManager.simulateConnectionFailure = true;
 
     const result = await UserManager.getInstance(config);
-    
+
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('INIT_FAILED');
@@ -483,7 +520,7 @@ describe('User Singleton Integration Tests', () => {
       host: 'localhost',
       port: 5432,
       database: 'test_db',
-      timeout: 5000
+      timeout: 5000,
     };
 
     const managerResult = await UserManager.getInstance(config);
@@ -500,13 +537,15 @@ describe('User Singleton Integration Tests', () => {
     UserManager.simulateUpdateFailure = true;
 
     const updateResult = await manager.updatePreferences({
-      theme: 'dark'
+      theme: 'dark',
     });
 
     expect(updateResult.ok).toBe(false);
     if (!updateResult.ok) {
       expect(updateResult.error.code).toBe('UPDATE_ERROR');
-      expect(updateResult.error.message).toContain('Failed to update preferences');
+      expect(updateResult.error.message).toContain(
+        'Failed to update preferences'
+      );
     }
   });
 });

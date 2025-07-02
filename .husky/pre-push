@@ -11,8 +11,74 @@ NC='\033[0m' # No Color
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo "${RED}❌ Docker is not running. Please start Docker to run the full test matrix.${NC}"
-    echo "${YELLOW}⚠️  Skipping pre-push tests. Push at your own risk!${NC}"
+    echo "${YELLOW}⚠️  Docker is not running. Falling back to local test execution...${NC}"
+    echo ""
+    
+    # Run tests locally as fallback
+    echo "${BLUE}🏃 Running tests locally...${NC}"
+    
+    # Run all test suites with better error reporting
+    echo "1️⃣  Running unit tests..."
+    if ! npm test 2>&1 | tee /tmp/unit-test.log; then
+        echo ""
+        echo "${RED}❌ Unit tests failed!${NC}"
+        echo "${RED}====================================${NC}"
+        grep -E "(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)" /tmp/unit-test.log | tail -30
+        echo "${RED}====================================${NC}"
+        echo ""
+        echo "${YELLOW}💡 To see full output: cat /tmp/unit-test.log${NC}"
+        echo "${YELLOW}💡 To debug: npm test -- --reporter=verbose${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "2️⃣  Running integration tests..."
+    if ! npm run test:integration 2>&1 | tee /tmp/integration-test.log; then
+        echo ""
+        echo "${RED}❌ Integration tests failed!${NC}"
+        echo "${RED}====================================${NC}"
+        grep -E "(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)" /tmp/integration-test.log | tail -30
+        echo "${RED}====================================${NC}"
+        echo ""
+        echo "${YELLOW}💡 To see full output: cat /tmp/integration-test.log${NC}"
+        echo "${YELLOW}💡 To debug: npm run test:integration -- --reporter=verbose${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "3️⃣  Running lint checks..."
+    if ! npm run lint 2>&1 | tee /tmp/lint.log; then
+        echo ""
+        echo "${RED}❌ Lint checks failed!${NC}"
+        echo "${RED}====================================${NC}"
+        cat /tmp/lint.log
+        echo "${RED}====================================${NC}"
+        echo ""
+        echo "${YELLOW}💡 To auto-fix: npm run lint -- --fix${NC}"
+        echo "${YELLOW}💡 To check specific file: npx eslint path/to/file.ts${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "4️⃣  Running build check..."
+    if ! npm run build 2>&1 | tee /tmp/build.log; then
+        echo ""
+        echo "${RED}❌ Build failed!${NC}"
+        echo "${RED}====================================${NC}"
+        tail -50 /tmp/build.log
+        echo "${RED}====================================${NC}"
+        echo ""
+        echo "${YELLOW}💡 Common issues:${NC}"
+        echo "${YELLOW}  - Missing dependency: Check if 'jiti' or other packages need installing${NC}"
+        echo "${YELLOW}  - TypeScript errors: Review the errors above${NC}"
+        echo "${YELLOW}  - Module resolution: Check tsconfig.json paths${NC}"
+        echo "${YELLOW}💡 To see full output: cat /tmp/build.log${NC}"
+        exit 1
+    fi
+    
+    echo ""
+    echo "${GREEN}✅ All local tests passed! Safe to push.${NC}"
+    echo "${YELLOW}Note: Full CI matrix with multiple Node versions requires Docker.${NC}"
     exit 0
 fi
 

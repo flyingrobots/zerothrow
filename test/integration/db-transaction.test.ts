@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index';
+import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
 
 // Real-world Database Transaction Integration Test
 interface DbUser {
@@ -30,12 +30,14 @@ class DatabaseClient {
 
   async getConnection(): Promise<Result<DbConnection, ZeroError>> {
     if (this.activeConnections >= this.maxConnections) {
-      return err(new ZeroError('POOL_EXHAUSTED', 'No available database connections', {
-        context: {
-          maxConnections: this.maxConnections,
-          activeConnections: this.activeConnections
-        }
-      }));
+      return err(
+        new ZeroError('POOL_EXHAUSTED', 'No available database connections', {
+          context: {
+            maxConnections: this.maxConnections,
+            activeConnections: this.activeConnections,
+          },
+        })
+      );
     }
 
     return tryR(
@@ -45,17 +47,18 @@ class DatabaseClient {
           beginTransaction: vi.fn(async () => ({
             id: `txn-${Date.now()}`,
             commit: vi.fn(async () => {}),
-            rollback: vi.fn(async () => {})
+            rollback: vi.fn(async () => {}),
           })),
           query: vi.fn(),
           release: vi.fn(() => {
             this.activeConnections--;
-          })
+          }),
         };
         this.pool.push(mockConnection);
         return mockConnection;
       },
-      (e) => wrap(e, 'CONNECTION_ERROR', 'Failed to acquire database connection')
+      (e) =>
+        wrap(e, 'CONNECTION_ERROR', 'Failed to acquire database connection')
     );
   }
 
@@ -88,8 +91,14 @@ class DatabaseClient {
 
       // Get sender's current balance
       const senderResult = await tryR(
-        () => conn.query<DbUser>('SELECT * FROM users WHERE id = ? FOR UPDATE', [fromUserId]),
-        (e) => wrap(e, 'QUERY_ERROR', 'Failed to fetch sender', { userId: fromUserId })
+        () =>
+          conn.query<DbUser>('SELECT * FROM users WHERE id = ? FOR UPDATE', [
+            fromUserId,
+          ]),
+        (e) =>
+          wrap(e, 'QUERY_ERROR', 'Failed to fetch sender', {
+            userId: fromUserId,
+          })
       );
 
       if (!senderResult.ok) {
@@ -104,22 +113,32 @@ class DatabaseClient {
       if (sender.balance < amount) {
         await transaction.rollback();
         conn.release();
-        return err(new ZeroError('INSUFFICIENT_BALANCE', 'Sender has insufficient balance', {
-          context: {
-            userId: fromUserId,
-            currentBalance: sender.balance,
-            requestedAmount: amount
-          }
-        }));
+        return err(
+          new ZeroError(
+            'INSUFFICIENT_BALANCE',
+            'Sender has insufficient balance',
+            {
+              context: {
+                userId: fromUserId,
+                currentBalance: sender.balance,
+                requestedAmount: amount,
+              },
+            }
+          )
+        );
       }
 
       // Update sender balance
       const updateSenderResult = await tryR(
-        () => conn.query(
-          'UPDATE users SET balance = balance - ?, updatedAt = NOW() WHERE id = ?',
-          [amount, fromUserId]
-        ),
-        (e) => wrap(e, 'UPDATE_ERROR', 'Failed to update sender balance', { userId: fromUserId })
+        () =>
+          conn.query(
+            'UPDATE users SET balance = balance - ?, updatedAt = NOW() WHERE id = ?',
+            [amount, fromUserId]
+          ),
+        (e) =>
+          wrap(e, 'UPDATE_ERROR', 'Failed to update sender balance', {
+            userId: fromUserId,
+          })
       );
 
       if (!updateSenderResult.ok) {
@@ -130,11 +149,15 @@ class DatabaseClient {
 
       // Update receiver balance
       const updateReceiverResult = await tryR(
-        () => conn.query(
-          'UPDATE users SET balance = balance + ?, updatedAt = NOW() WHERE id = ?',
-          [amount, toUserId]
-        ),
-        (e) => wrap(e, 'UPDATE_ERROR', 'Failed to update receiver balance', { userId: toUserId })
+        () =>
+          conn.query(
+            'UPDATE users SET balance = balance + ?, updatedAt = NOW() WHERE id = ?',
+            [amount, toUserId]
+          ),
+        (e) =>
+          wrap(e, 'UPDATE_ERROR', 'Failed to update receiver balance', {
+            userId: toUserId,
+          })
       );
 
       if (!updateReceiverResult.ok) {
@@ -145,10 +168,11 @@ class DatabaseClient {
 
       // Insert transaction record
       const recordResult = await tryR(
-        () => conn.query(
-          'INSERT INTO transactions (fromUserId, toUserId, amount, status, createdAt) VALUES (?, ?, ?, ?, NOW())',
-          [fromUserId, toUserId, amount, 'completed']
-        ),
+        () =>
+          conn.query(
+            'INSERT INTO transactions (fromUserId, toUserId, amount, status, createdAt) VALUES (?, ?, ?, ?, NOW())',
+            [fromUserId, toUserId, amount, 'completed']
+          ),
         (e) => wrap(e, 'INSERT_ERROR', 'Failed to record transaction')
       );
 
@@ -165,7 +189,7 @@ class DatabaseClient {
       );
 
       conn.release();
-      
+
       if (!commitResult.ok) {
         return commitResult;
       }
@@ -177,11 +201,16 @@ class DatabaseClient {
         await transaction.rollback();
       }
       conn.release();
-      return err(wrap(error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer'));
+      return err(
+        wrap(error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
+      );
     }
   }
 
-  async getUserWithRetry(userId: string, maxRetries: number = 3): Promise<Result<DbUser, ZeroError>> {
+  async getUserWithRetry(
+    userId: string,
+    maxRetries: number = 3
+  ): Promise<Result<DbUser, ZeroError>> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const connResult = await this.getConnection();
       if (!connResult.ok) {
@@ -195,7 +224,11 @@ class DatabaseClient {
       const conn = connResult.value;
       const queryResult = await tryR(
         () => conn.query<DbUser>('SELECT * FROM users WHERE id = ?', [userId]),
-        (e) => wrap(e, 'QUERY_ERROR', `Query failed on attempt ${attempt}`, { userId, attempt })
+        (e) =>
+          wrap(e, 'QUERY_ERROR', `Query failed on attempt ${attempt}`, {
+            userId,
+            attempt,
+          })
       );
 
       conn.release();
@@ -209,14 +242,16 @@ class DatabaseClient {
       }
     }
 
-    return err(new ZeroError('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
-      userId,
-      maxRetries
-    }));
+    return err(
+      new ZeroError('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
+        userId,
+        maxRetries,
+      })
+    );
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -232,14 +267,15 @@ describe('Database Transaction Integration Tests', () => {
       beginTransaction: vi.fn(async () => ({
         id: 'txn-123',
         commit: vi.fn(async () => {}),
-        rollback: vi.fn(async () => {})
+        rollback: vi.fn(async () => {}),
       })),
-      query: vi.fn()
+      query: vi
+        .fn()
         .mockResolvedValueOnce({ id: 'user1', balance: 1000 }) // Sender query
         .mockResolvedValueOnce({ affectedRows: 1 }) // Update sender
         .mockResolvedValueOnce({ affectedRows: 1 }) // Update receiver
         .mockResolvedValueOnce({ insertId: 'txn-record-1' }), // Insert transaction
-      release: vi.fn()
+      release: vi.fn(),
     };
 
     // Mock getConnection to return our mock connection
@@ -257,13 +293,13 @@ describe('Database Transaction Integration Tests', () => {
     const mockTxn = {
       id: 'txn-123',
       commit: vi.fn(async () => {}),
-      rollback: vi.fn(async () => {})
+      rollback: vi.fn(async () => {}),
     };
 
     const mockConn = {
       beginTransaction: vi.fn(async () => mockTxn),
       query: vi.fn().mockResolvedValueOnce({ id: 'user1', balance: 100 }), // Insufficient balance
-      release: vi.fn()
+      release: vi.fn(),
     };
 
     vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ok(mockConn));
@@ -276,7 +312,7 @@ describe('Database Transaction Integration Tests', () => {
       expect(result.error.context).toMatchObject({
         userId: 'user1',
         currentBalance: 100,
-        requestedAmount: 500
+        requestedAmount: 500,
       });
     }
     expect(mockTxn.rollback).toHaveBeenCalled();
@@ -295,7 +331,7 @@ describe('Database Transaction Integration Tests', () => {
       expect(result.error.code).toBe('POOL_EXHAUSTED');
       expect(result.error.context).toMatchObject({
         maxConnections: 5,
-        activeConnections: 5
+        activeConnections: 5,
       });
     }
   });
@@ -304,15 +340,16 @@ describe('Database Transaction Integration Tests', () => {
     const mockTxn = {
       id: 'txn-123',
       commit: vi.fn(async () => {}),
-      rollback: vi.fn(async () => {})
+      rollback: vi.fn(async () => {}),
     };
 
     const mockConn = {
       beginTransaction: vi.fn(async () => mockTxn),
-      query: vi.fn()
+      query: vi
+        .fn()
         .mockResolvedValueOnce({ id: 'user1', balance: 1000 })
         .mockRejectedValueOnce(new Error('Database error')), // Fail on update
-      release: vi.fn()
+      release: vi.fn(),
     };
 
     vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ok(mockConn));
@@ -329,13 +366,19 @@ describe('Database Transaction Integration Tests', () => {
 
   it('should retry on connection failures', async () => {
     const mockConn = {
-      query: vi.fn().mockResolvedValueOnce({ id: 'user1', name: 'John', balance: 1000 }),
-      release: vi.fn()
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({ id: 'user1', name: 'John', balance: 1000 }),
+      release: vi.fn(),
     };
 
     vi.spyOn(db as any, 'getConnection')
-      .mockResolvedValueOnce(err(new ZeroError('CONNECTION_ERROR', 'Connection failed')))
-      .mockResolvedValueOnce(err(new ZeroError('CONNECTION_ERROR', 'Connection failed')))
+      .mockResolvedValueOnce(
+        err(new ZeroError('CONNECTION_ERROR', 'Connection failed'))
+      )
+      .mockResolvedValueOnce(
+        err(new ZeroError('CONNECTION_ERROR', 'Connection failed'))
+      )
       .mockResolvedValueOnce(ok(mockConn));
 
     const result = await db.getUserWithRetry('user1', 3);

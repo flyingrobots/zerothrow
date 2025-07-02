@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { UseResultState } from '../src/react-hooks';
-import { ok, err, ZeroError, Result } from '../src/index';
+import type { UseResultState } from '../src/react-hooks.js';
+import { ok, err, ZeroError, Result } from '../src/index.js';
 
 describe('useResult types', () => {
   it('should have correct type definitions', () => {
@@ -16,7 +16,7 @@ describe('useResult types', () => {
       error: null,
       loading: false,
       refetch: () => {},
-      reset: () => {}
+      reset: () => {},
     };
 
     expect(mockState.data).toBe('test');
@@ -32,7 +32,7 @@ describe('useResult types', () => {
       error: new ZeroError('TEST_ERR', 'Test error'),
       loading: false,
       refetch: () => {},
-      reset: () => {}
+      reset: () => {},
     };
 
     expect(mockErrorState.data).toBe(null);
@@ -46,7 +46,7 @@ describe('useResult types', () => {
       error: null,
       loading: true,
       refetch: () => {},
-      reset: () => {}
+      reset: () => {},
     };
 
     expect(mockLoadingState.loading).toBe(true);
@@ -59,7 +59,9 @@ describe('useResult types', () => {
 describe('useResult usage examples', () => {
   it('demonstrates typical usage pattern', async () => {
     // Mock async function that returns a Result
-    const fetchUser = async (id: number): Promise<Result<{ name: string; id: number }>> => {
+    const fetchUser = async (
+      id: number
+    ): Promise<Result<{ name: string; id: number }>> => {
       if (id > 0) {
         return ok({ name: 'John Doe', id });
       }
@@ -68,7 +70,7 @@ describe('useResult usage examples', () => {
 
     // This is how you would use it in a component:
     // const userResult = useResult(() => fetchUser(123), [123]);
-    
+
     // Test the mock function directly
     const successResult = await fetchUser(123);
     expect(successResult.ok).toBe(true);
@@ -83,24 +85,38 @@ describe('useResult usage examples', () => {
     }
   });
 
-  it('demonstrates error handling pattern', async () => {
-    const riskyOperation = async (): Promise<Result<string>> => {
-      try {
-        // Simulate operation that might fail
-        if (Math.random() > 0.5) {
-          throw new Error('Random failure');
-        }
-        return ok('Success!');
-      } catch (e) {
-        return err(new ZeroError('OPERATION_FAILED', 'Operation failed', { cause: e as Error }));
-      }
+  it('demonstrates error handling pattern - success case', async () => {
+    const successfulOperation = async (): Promise<Result<string>> => {
+      return ok('Success!');
     };
 
-    // In a component:
-    // const { data, error, loading, refetch } = useResult(riskyOperation);
-    
-    // Test the operation
-    const result = await riskyOperation();
-    expect(result.ok === true || result.ok === false).toBe(true);
+    // Test success case
+    const successResult = await successfulOperation();
+    expect(successResult.ok).toBe(true);
+    if (successResult.ok) {
+      expect(successResult.value).toBe('Success!');
+    }
+  });
+
+  it('demonstrates error handling pattern - failure case', async () => {
+    const failingOperation = async (): Promise<Result<string>> => {
+      return err(
+        new ZeroError('OPERATION_FAILED', 'Operation failed', {
+          cause: new Error('Controlled failure'),
+        })
+      );
+    };
+
+    // Test failure case
+    const failureResult = await failingOperation();
+    expect(failureResult.ok).toBe(false);
+    if (!failureResult.ok) {
+      expect(failureResult.error.code).toBe('OPERATION_FAILED');
+      expect(failureResult.error.message).toBe('Operation failed');
+      expect(failureResult.error.cause).toBeInstanceOf(Error);
+      expect((failureResult.error.cause as Error).message).toBe(
+        'Controlled failure'
+      );
+    }
   });
 });
