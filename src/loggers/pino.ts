@@ -1,4 +1,3 @@
-import type { Result } from '../result';
 import { ZeroError } from '../error';
 
 interface PinoSerializers {
