@@ -467,6 +467,75 @@ function validateFields(data: FormData): Result<ValidatedData, ValidationError> 
 }
 ```
 
+## collectAsync
+
+Async version of collect for Promise<Result> arrays.
+
+### Signature
+
+```typescript
+function collectAsync<T, E>(
+  promises: Promise<Result<T, E>>[]
+): Promise<Result<T[], E>>
+```
+
+### Description
+
+Waits for all Promise<Result> to resolve, then collects them. If all Results are successful, returns Ok with an array of values. If any Result is an error, returns the first error.
+
+### Examples
+
+```typescript
+import { collectAsync, tryR } from '@flyingrobots/zerothrow';
+
+// Parallel API calls
+async function fetchMultipleUsers(ids: string[]): Promise<Result<User[], ZeroError>> {
+  const promises = ids.map(id => 
+    tryR(() => api.getUser(id))
+  );
+  
+  return collectAsync(promises);
+}
+
+// Batch processing with error handling
+async function processFiles(files: File[]): Promise<Result<ProcessedFile[], Error>> {
+  const processPromises = files.map(file =>
+    tryR(async () => {
+      const compressed = await compressFile(file);
+      const uploaded = await uploadFile(compressed);
+      return { original: file.name, url: uploaded.url };
+    })
+  );
+  
+  const result = await collectAsync(processPromises);
+  
+  if (!result.ok) {
+    console.error('Failed to process file:', result.error);
+  }
+  
+  return result;
+}
+
+// Concurrent validations
+async function validateUserData(data: UserInput): Promise<Result<ValidatedUser, ValidationError>> {
+  const validations = [
+    tryR(() => validateEmail(data.email)),
+    tryR(() => checkEmailUniqueness(data.email)),
+    tryR(() => validatePassword(data.password)),
+    tryR(() => validateAge(data.age))
+  ];
+  
+  const results = await collectAsync(validations);
+  
+  return results.map(([email, unique, password, age]) => ({
+    email,
+    password,
+    age,
+    verified: true
+  }));
+}
+```
+
 ## firstSuccess
 
 Returns the first successful Result from an array.

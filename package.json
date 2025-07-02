@@ -3,9 +3,11 @@
   "version": "0.0.1-alpha",
   "description": "Rust‑style Result<T,E> & zero‑throw discipline for TypeScript",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./dist/index.js",
-    "./eslint": "./dist/eslint.js"
+    "./eslint": "./dist/eslint.js",
+    "./react": "./dist/react-entry.js"
   },
   "bin": {
     "zerothrow-setup-hooks": "./scripts/setup-hooks.sh"
@@ -14,17 +16,27 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "build": "tsup src/index.ts src/react-entry.ts --format esm,cjs --dts",
     "test": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:all": "npm run test && npm run test:integration",
     "test:watch": "vitest watch",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "bench": "vitest bench --run",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --ignore-pattern \"benchmark/**\"",
     "githooks": "bash scripts/setup-hooks.sh",
     "prepare": "husky",
     "lint:staged": "lint-staged"
   },
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@types/react": "^18.3.23",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/utils": "^8.0.0",
@@ -32,6 +44,7 @@
     "eslint": "^9.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
+    "react": "^18.3.1",
     "tsup": "^8.0.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.0",
