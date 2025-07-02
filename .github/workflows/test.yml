@@ -29,7 +29,7 @@ jobs:
       run: npm ci
 
     - name: Run unit tests
-      run: npm test
+      run: npm test -- --reporter=verbose
 
     - name: Upload coverage reports
       uses: actions/upload-artifact@v4
@@ -56,7 +56,7 @@ jobs:
       run: npm ci
 
     - name: Run integration tests
-      run: npx vitest run --config vitest.integration.config.ts
+      run: npx vitest run --config vitest.integration.config.ts --reporter=verbose
 
     - name: Upload integration test results
       uses: actions/upload-artifact@v4
@@ -137,7 +137,12 @@ jobs:
     - name: Run performance benchmarks
       run: |
         echo "Running performance benchmarks..."
-        npx vitest run test/integration/performance.test.ts --reporter=json > benchmark-results.json
+        npx vitest run test/integration/performance.test.ts --reporter=verbose || {
+          echo "❌ Performance tests failed!"
+          echo "Running again with more details..."
+          npx vitest run test/integration/performance.test.ts --reporter=verbose --no-coverage
+          exit 1
+        }
 
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
@@ -206,13 +211,30 @@ jobs:
     steps:
     - name: Check all test results
       run: |
-        if [ "${{ needs.unit-tests.result }}" != "success" ] || \
-           [ "${{ needs.integration-tests.result }}" != "success" ] || \
-           [ "${{ needs.coverage-check.result }}" != "success" ] || \
-           [ "${{ needs.performance-tests.result }}" != "success" ] || \
-           [ "${{ needs.lint-check.result }}" != "success" ] || \
-           [ "${{ needs.build-check.result }}" != "success" ]; then
-          echo "❌ Some tests failed"
+        echo "📊 Test Results Summary:"
+        echo "  Unit Tests:        ${{ needs.unit-tests.result }}"
+        echo "  Integration Tests: ${{ needs.integration-tests.result }}"
+        echo "  Coverage Check:    ${{ needs.coverage-check.result }}"
+        echo "  Performance Tests: ${{ needs.performance-tests.result }}"
+        echo "  Lint Check:        ${{ needs.lint-check.result }}"
+        echo "  Build Check:       ${{ needs.build-check.result }}"
+        echo ""
+        
+        FAILED_JOBS=()
+        [ "${{ needs.unit-tests.result }}" != "success" ] && FAILED_JOBS+=("unit-tests")
+        [ "${{ needs.integration-tests.result }}" != "success" ] && FAILED_JOBS+=("integration-tests")
+        [ "${{ needs.coverage-check.result }}" != "success" ] && FAILED_JOBS+=("coverage-check")
+        [ "${{ needs.performance-tests.result }}" != "success" ] && FAILED_JOBS+=("performance-tests")
+        [ "${{ needs.lint-check.result }}" != "success" ] && FAILED_JOBS+=("lint-check")
+        [ "${{ needs.build-check.result }}" != "success" ] && FAILED_JOBS+=("build-check")
+        
+        if [ ${#FAILED_JOBS[@]} -ne 0 ]; then
+          echo "❌ The following jobs failed:"
+          for job in "${FAILED_JOBS[@]}"; do
+            echo "   - $job"
+          done
+          echo ""
+          echo "Please check the logs for each failed job above for details."
           exit 1
         fi
         echo "✅ All tests passed successfully!"
