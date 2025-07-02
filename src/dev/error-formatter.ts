@@ -15,7 +15,7 @@ const COLORS = {
   blue: '\x1b[34m',
   gray: '\x1b[90m',
   reset: '\x1b[0m',
-  bold: '\x1b[1m'
+  bold: '\x1b[1m',
 };
 
 export class ErrorFormatter {
@@ -23,30 +23,33 @@ export class ErrorFormatter {
 
   constructor(options: FormatOptions = {}) {
     // Auto-detect color support if not explicitly set
-    const supportsColor = options.colors ?? (
-      typeof process === 'object' && typeof process.stdout === 'object' && process.stdout.isTTY
-    );
-      
+    const supportsColor =
+      options.colors ??
+      (typeof process === 'object' &&
+        typeof process.stdout === 'object' &&
+        process.stdout.isTTY);
+
     this.options = {
       colors: supportsColor,
       stackTrace: true,
       details: true,
       timestamp: true,
-      ...options
+      ...options,
     };
   }
 
   formatZeroError(error: ZeroError): string {
     const lines: string[] = [];
     const { colors } = this.options;
-    
+
     // Header with error code
-    const codeStr = typeof error.code === 'symbol' ? String(error.code) : String(error.code);
-    const header = colors 
+    const codeStr =
+      typeof error.code === 'symbol' ? String(error.code) : String(error.code);
+    const header = colors
       ? `${COLORS.red}${COLORS.bold}[${codeStr}]${COLORS.reset} ${COLORS.red}${error.message}${COLORS.reset}`
       : `[${codeStr}] ${error.message}`;
     lines.push(header);
-    
+
     // Context
     if (error.context && 'statusCode' in error.context) {
       const statusLine = colors
@@ -54,7 +57,7 @@ export class ErrorFormatter {
         : `Status Code: ${error.context.statusCode}`;
       lines.push(statusLine);
     }
-    
+
     // Timestamp
     if (this.options.timestamp) {
       const timestamp = new Date().toISOString();
@@ -63,7 +66,7 @@ export class ErrorFormatter {
         : `Timestamp: ${timestamp}`;
       lines.push(timestampLine);
     }
-    
+
     // Context details
     if (this.options.details && error.context) {
       lines.push('');
@@ -71,14 +74,16 @@ export class ErrorFormatter {
         ? `${COLORS.blue}Context:${COLORS.reset}`
         : 'Context:';
       lines.push(detailsHeader);
-      
+
       const detailsStr = JSON.stringify(error.context, null, 2);
-      const detailsLines = detailsStr.split('\n').map(line => 
-        colors ? `${COLORS.gray}  ${line}${COLORS.reset}` : `  ${line}`
-      );
+      const detailsLines = detailsStr
+        .split('\n')
+        .map((line) =>
+          colors ? `${COLORS.gray}  ${line}${COLORS.reset}` : `  ${line}`
+        );
       lines.push(...detailsLines);
     }
-    
+
     // Stack trace
     if (this.options.stackTrace && error.stack) {
       lines.push('');
@@ -86,13 +91,13 @@ export class ErrorFormatter {
         ? `${COLORS.blue}Stack Trace:${COLORS.reset}`
         : 'Stack Trace:';
       lines.push(stackHeader);
-      
-      const stackLines = (error.stack ? error.stack.split('\n').slice(1) : []).map(line =>
-        colors ? `${COLORS.gray}${line}${COLORS.reset}` : line
-      );
+
+      const stackLines = (
+        error.stack ? error.stack.split('\n').slice(1) : []
+      ).map((line) => (colors ? `${COLORS.gray}${line}${COLORS.reset}` : line));
       lines.push(...stackLines);
     }
-    
+
     return lines.join('\n');
   }
 
@@ -119,10 +124,12 @@ export class ErrorFormatter {
 
   // Console helper methods
   logError(error: ZeroError): void {
+    // eslint-disable-next-line no-console
     console.error(this.formatZeroError(error));
   }
 
   logResult<T, E extends Error>(result: Result<T, E>): void {
+    // eslint-disable-next-line no-console
     console.log(this.formatResult(result));
   }
 }
