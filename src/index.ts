@@ -5,3 +5,11 @@ export {
   tryR, tryRSync, tryRBatch, wrap,
   Ok, Err, Result
 } from "./result";
+export {
+  ResultCombinable,
+  makeCombinable,
+  pipe,
+  collect,
+  collectAsync,
+  firstSuccess
+} from "./combinators";
