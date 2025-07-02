@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({ 
   test: { 
     environment: "node",
-    exclude: ["**/node_modules/**", "**/dist/**", "**/build/**", "test/**/*performance*.test.ts", "test/integration/performance.test.ts"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/build/**", "test/**/*performance*.test.ts"],
     reporters: process.env.CI ? ['verbose', 'github-actions'] : ['verbose'],
     logHeapUsage: true,
     onConsoleLog(log) {

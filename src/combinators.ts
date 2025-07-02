@@ -43,29 +43,29 @@ export interface ResultCombinable<T, E extends Error = ZeroError> {
 export function makeCombinable<T, E extends Error = ZeroError>(
   result: Result<T, E>
 ): Result<T, E> & ResultCombinable<T, E> {
-  return Object.assign(result, {
-    andThen<U>(fn: (value: T) => Result<U, E>): Result<U, E> & ResultCombinable<U, E> {
-      if (!result.ok) return makeCombinable(result as Result<U, E>);
-      return makeCombinable(fn(result.value));
+  return Object.assign({}, result, {
+    andThen: function<U>(this: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> & ResultCombinable<U, E> {
+      if (!this.ok) return makeCombinable(this as Result<U, E>);
+      return makeCombinable(fn(this.value));
     },
 
-    mapErr<F extends Error>(fn: (error: E) => F): Result<T, F> & ResultCombinable<T, F> {
-      if (result.ok) return makeCombinable(result as Result<T, F>);
-      return makeCombinable(err(fn(result.error)));
+    mapErr: function<F extends Error>(this: Result<T, E>, fn: (error: E) => F): Result<T, F> & ResultCombinable<T, F> {
+      if (this.ok) return makeCombinable(this as Result<T, F>);
+      return makeCombinable(err(fn(this.error)));
     },
 
-    map<U>(fn: (value: T) => U): Result<U, E> & ResultCombinable<U, E> {
-      if (!result.ok) return makeCombinable(result as Result<U, E>);
-      return makeCombinable(ok(fn(result.value)));
+    map: function<U>(this: Result<T, E>, fn: (value: T) => U): Result<U, E> & ResultCombinable<U, E> {
+      if (!this.ok) return makeCombinable(this as Result<U, E>);
+      return makeCombinable(ok(fn(this.value)));
     },
 
-    orElse(fallback: () => Result<T, E>): Result<T, E> & ResultCombinable<T, E> {
-      if (result.ok) return makeCombinable(result);
+    orElse: function(this: Result<T, E>, fallback: () => Result<T, E>): Result<T, E> & ResultCombinable<T, E> {
+      if (this.ok) return makeCombinable(this);
       return makeCombinable(fallback());
     },
 
-    unwrapOr(fallback: T): T {
-      return result.ok ? result.value : fallback;
+    unwrapOr: function(this: Result<T, E>, fallback: T): T {
+      return this.ok ? this.value : fallback;
     },
 
     /**
@@ -74,18 +74,28 @@ export function makeCombinable<T, E extends Error = ZeroError>(
      * error handling instead.
      * @throws {Error} Throws the error if the Result is an Err
      */
-    unwrapOrThrow(): T {
-      if (!result.ok) throw result.error;
-      return result.value;
+    unwrapOrThrow: function(this: Result<T, E>): T {
+      if (!this.ok) throw this.error;
+      return this.value;
     }
   });
 }
 
 /**
- * Pipe multiple operations together
+ * Pipe multiple operations together with full type inference
+ * 
+ * @example
+ * const result = pipe(
+ *   parseNumber,
+ *   validateRange,
+ *   formatOutput
+ * )(input);
  */
-export function pipe<T>(...operations: Array<(input: any) => any>) {
-  return (input: T) => operations.reduce((acc, op) => op(acc), input);
+export function pipe<T extends readonly [(arg: unknown) => unknown, ...Array<(arg: unknown) => unknown>]>(
+  ...fns: T
+): (input: Parameters<T[0]>[0]) => ReturnType<T[number]> {
+  return (input: Parameters<T[0]>[0]): ReturnType<T[number]> =>
+    fns.reduce((acc, fn) => fn(acc), input) as ReturnType<T[number]>;
 }
 
 /**
