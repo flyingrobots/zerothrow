@@ -28,8 +28,9 @@ describe("enhanced no-throw rule with auto-fix", () => {
       argument: {
         type: "NewExpression",
         callee: { type: "Identifier", name: "Error" },
-        arguments: [{ type: "Literal", value: "Something went wrong" }]
-      }
+        arguments: [{ type: "Literal", value: "User not found" }]
+      },
+      parent: { type: "BlockStatement" }
     } as any;
     
     rule.ThrowStatement?.(mockNode);
@@ -38,11 +39,11 @@ describe("enhanced no-throw rule with auto-fix", () => {
     const reportCall = mockContext.report.mock.calls[0][0];
     expect(reportCall.messageId).toBe("noThrow");
     
-    // Test the fix function
+    // Test the fix function - should derive NOT_FOUND from message
     const fixResult = reportCall.fix(mockFixer);
     expect(mockFixer.replaceText).toHaveBeenCalledWith(
       mockNode,
-      'return err(new ZeroError(\'OPERATION_FAILED\', "Something went wrong"))'
+      'return err(new ZeroError(\'NOT_FOUND\', "User not found"))'
     );
   });
 
@@ -66,7 +67,8 @@ describe("enhanced no-throw rule with auto-fix", () => {
       argument: {
         type: "Identifier",
         name: "someError"
-      }
+      },
+      parent: { type: "BlockStatement" }
     } as any;
     
     rule.ThrowStatement?.(mockNode);
@@ -75,7 +77,42 @@ describe("enhanced no-throw rule with auto-fix", () => {
     const fixResult = reportCall.fix(mockFixer);
     expect(mockFixer.replaceText).toHaveBeenCalledWith(
       mockNode,
-      "return err(new ZeroError('OPERATION_FAILED', 'Operation failed', { cause: someError }))"
+      "return err(someError)"
+    );
+  });
+
+  it("uses TODO_ERROR_CODE for unknown error patterns", () => {
+    const mockFixer = {
+      replaceText: vi.fn().mockReturnValue("fix"),
+    };
+    
+    const mockContext = {
+      report: vi.fn(),
+      options: [{}],
+      getFilename: vi.fn().mockReturnValue("test.ts"),
+      getSourceCode: vi.fn().mockReturnValue({
+        getText: vi.fn().mockReturnValue("new Error('Something unexpected happened')")
+      }),
+    };
+    
+    const rule = noThrowRule.create(mockContext as any);
+    const mockNode = { 
+      type: "ThrowStatement",
+      argument: {
+        type: "NewExpression",
+        callee: { type: "Identifier", name: "Error" },
+        arguments: [{ type: "Literal", value: "Something unexpected happened" }]
+      },
+      parent: { type: "BlockStatement" }
+    } as any;
+    
+    rule.ThrowStatement?.(mockNode);
+    
+    const reportCall = mockContext.report.mock.calls[0][0];
+    const fixResult = reportCall.fix(mockFixer);
+    expect(mockFixer.replaceText).toHaveBeenCalledWith(
+      mockNode,
+      'return err(new ZeroError(\'TODO_ERROR_CODE\', "Something unexpected happened"))'
     );
   });
 
