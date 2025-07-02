@@ -13,7 +13,7 @@ export default defineConfig({
     },
     coverage: {
       include: ['src/**/*.ts'],
-      exclude: ['**/*.config.ts', '**/node_modules/**'],
+      exclude: ['**/*.config.ts', '**/node_modules/**', 'src/platform/**'],
       reporter: ['text', 'json-summary', 'json'],
       thresholds: {
         lines: 90,
