@@ -6,8 +6,8 @@ import { RegistrationForm } from './FormWithValidation';
 describe('RegistrationForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock Math.random for consistent test results
-    vi.spyOn(Math, 'random').mockReturnValue(0.8); // Success case
+    // Reset registration attempts counter for consistent test results
+    // Note: In real app, you'd reset this through a proper API or module reset
   });
 
   it('should render form fields', () => {
@@ -79,8 +79,8 @@ describe('RegistrationForm', () => {
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: 'Register' });
 
-    // Fill valid data
-    await userEvent.type(usernameInput, 'testuser');
+    // Fill valid data with username that will succeed
+    await userEvent.type(usernameInput, 'newuser');
     await userEvent.type(emailInput, 'test@example.com');
     await userEvent.type(passwordInput, 'Password123');
 
@@ -97,10 +97,7 @@ describe('RegistrationForm', () => {
     expect(screen.getByText(/Registration successful/)).toBeInTheDocument();
   });
 
-  it('should handle submission failure', async () => {
-    // Mock random to return failure
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
-
+  it('should handle submission failure for existing username', async () => {
     render(<RegistrationForm />);
 
     const usernameInput = screen.getByLabelText('Username');
@@ -108,8 +105,8 @@ describe('RegistrationForm', () => {
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: 'Register' });
 
-    // Fill valid data
-    await userEvent.type(usernameInput, 'testuser');
+    // Fill data with username that will fail
+    await userEvent.type(usernameInput, 'existinguser');
     await userEvent.type(emailInput, 'test@example.com');
     await userEvent.type(passwordInput, 'Password123');
 
@@ -119,7 +116,7 @@ describe('RegistrationForm', () => {
       expect(screen.getByText(/Error:/)).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/Registration failed/)).toBeInTheDocument();
+    expect(screen.getByText(/Registration failed: Username already exists/)).toBeInTheDocument();
   });
 
   it('should clear error when user starts typing', async () => {

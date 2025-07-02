@@ -174,8 +174,8 @@ export async function fetchWithRetry<T>(
     // Wait before retry
     await new Promise(resolve => setTimeout(resolve, delay));
     
-    // Exponential backoff with jitter
-    delay = Math.min(delay * 2 + Math.random() * 1000, maxDelay);
+    // Exponential backoff
+    delay = Math.min(delay * 2, maxDelay);
   }
 
   return err(lastError || new ZeroError('RETRY_EXHAUSTED', 'All retry attempts failed'));
@@ -424,9 +424,12 @@ async function fetchNotifications(userId: string): Promise<Result<any[], ZeroErr
 
 async function fetchRecommendations(userId: string): Promise<Result<any[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
-  return Math.random() > 0.5 
-    ? ok([{ id: 1, title: 'Recommended' }])
-    : err(new ZeroError('RECOMMENDATIONS_ERROR', 'Failed to fetch recommendations'));
+  // In real app, this would fetch from an API
+  // For testing, use specific user IDs to control behavior
+  if (userId === 'fail_user') {
+    return err(new ZeroError('RECOMMENDATIONS_ERROR', 'Failed to fetch recommendations'));
+  }
+  return ok([{ id: 1, title: 'Recommended' }]);
 }
 
 // Example usage
@@ -447,19 +450,21 @@ export async function examples() {
     console.log('Profile loaded:', profileResult.value);
   }
 
-  // Example 3: Retry with backoff
-  console.log('\n=== Retry Pattern ===');
-  const retryResult = await fetchWithRetry(
-    async () => {
-      const random = Math.random();
-      if (random < 0.7) {
-        return err(new ZeroError('TEMP_ERROR', 'Temporary failure'));
-      }
-      return ok('Success!');
-    },
+  // Example 3: Retry with backoff - success case
+  console.log('\n=== Retry Pattern - Success Case ===');
+  const retrySuccessResult = await fetchWithRetry(
+    async () => ok('Success on first try!'),
     { maxRetries: 3, initialDelay: 500 }
   );
-  console.log('Retry result:', retryResult);
+  console.log('Retry success result:', retrySuccessResult);
+
+  // Example 3b: Retry with backoff - failure case
+  console.log('\n=== Retry Pattern - Failure Case ===');
+  const retryFailResult = await fetchWithRetry(
+    async () => err(new ZeroError('PERSISTENT_ERROR', 'Always fails')),
+    { maxRetries: 2, initialDelay: 100 }
+  );
+  console.log('Retry fail result:', retryFailResult);
 
   // Example 4: Timeout
   console.log('\n=== Timeout Pattern ===');

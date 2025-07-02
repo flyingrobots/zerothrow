@@ -25,7 +25,10 @@ const validateInventory = async (items: OrderData['items']): Promise<Result<Orde
   // Simulate inventory check
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  const outOfStock = items.filter(item => Math.random() > 0.9);
+  // For testing, specific item IDs trigger out of stock
+  const outOfStock = items.filter(item => 
+    item.id === 'out-of-stock-item' || item.id === 'unavailable'
+  );
   
   if (outOfStock.length > 0) {
     return err(new ZeroError(
@@ -58,8 +61,8 @@ const calculateShipping = async (data: Pick<OrderData, 'items' | 'shipping'>): P
 const processPayment = async (amount: number, payment: OrderData['payment']): Promise<Result<string, ZeroError>> => {
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Simulate payment processing
-  if (Math.random() > 0.85) {
+  // For testing, specific payment tokens trigger failures
+  if (payment.token === 'declined' || payment.token === 'invalid-payment') {
     return err(new ZeroError(
       'PAYMENT_ERROR',
       'Payment declined',

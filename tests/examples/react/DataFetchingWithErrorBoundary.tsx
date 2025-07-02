@@ -201,7 +201,8 @@ interface Product {
 async function addProductToCart(productId: string): Promise<Result<string, string>> {
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  if (Math.random() > 0.8) {
+  // For testing, specific product IDs trigger failures
+  if (productId === 'fail-product' || productId === 'unavailable-product') {
     return err('Cart service temporarily unavailable');
   }
   

@@ -171,12 +171,13 @@ export function RegistrationForm() {
 }
 
 // Simulated API function
+// For testing, use specific usernames to control behavior
 async function submitRegistration(data: FormData): Promise<Result<string, string>> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
   
-  // Simulate random success/failure
-  if (Math.random() > 0.7) {
+  // Deterministic behavior based on username
+  if (data.username === 'existinguser' || data.username === 'testfail') {
     return err('Registration failed: Username already exists');
   }
   

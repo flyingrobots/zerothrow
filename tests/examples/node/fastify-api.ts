@@ -351,8 +351,8 @@ export function createRateLimiter(maxRequests: number, windowMs: number) {
     recentRequests.push(now);
     requests.set(ip, recentRequests);
 
-    // Cleanup old entries periodically
-    if (Math.random() < 0.01) {
+    // Cleanup old entries every 100 requests
+    if (requests.size > 100) {
       for (const [key, times] of requests.entries()) {
         const recent = times.filter(t => t > windowStart);
         if (recent.length === 0) {
