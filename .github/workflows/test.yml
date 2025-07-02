@@ -1,0 +1,250 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop, 'team-*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run unit tests
+      run: |
+        echo "🧪 Running unit tests..."
+        npm test -- --reporter=verbose || {
+          echo ""
+          echo "❌ Unit tests failed!"
+          echo "Check the output above for failing tests."
+          exit 1
+        }
+        echo "✅ Unit tests passed!"
+
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      if: matrix.node-version == '20.x'
+      with:
+        name: coverage-report
+        path: coverage/
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run integration tests
+      run: |
+        echo "🧪 Running integration tests..."
+        npx vitest run --config vitest.integration.config.ts --reporter=verbose || {
+          echo ""
+          echo "❌ Integration tests failed!"
+          echo "Check the output above for failing tests."
+          exit 1
+        }
+        echo "✅ Integration tests passed!"
+
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          test-results/
+          coverage/
+
+  coverage-check:
+    name: Coverage Check
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run all tests with coverage
+      run: |
+        echo "📊 Running unit tests with coverage..."
+        npm test -- --reporter=verbose || {
+          echo "❌ Unit tests failed!"
+          exit 1
+        }
+        echo ""
+        echo "📊 Running integration tests with coverage..."
+        npx vitest run --config vitest.integration.config.ts --coverage --reporter=verbose || {
+          echo "❌ Integration tests failed!"
+          exit 1
+        }
+
+    - name: Check coverage thresholds
+      run: |
+        echo "📊 Checking coverage meets >90% threshold..."
+        echo ""
+        
+        # First, show the coverage summary (using base config which excludes performance tests)
+        npm test -- --reporter=verbose || true
+        
+        # Now check the thresholds
+        if [ -f "coverage/coverage-summary.json" ]; then
+          node -e "
+            const fs = require('fs');
+            const coverage = JSON.parse(fs.readFileSync('./coverage/coverage-summary.json', 'utf8'));
+            const total = coverage.total;
+            const metrics = ['lines', 'statements', 'functions', 'branches'];
+            let passed = true;
+            
+            console.log('📊 Coverage Summary:');
+            console.log('==================');
+            metrics.forEach(metric => {
+              const pct = total[metric].pct;
+              const status = pct >= 90 ? '✅' : '❌';
+              console.log(\`\${status} \${metric}: \${pct}%\`);
+              if (pct < 90) {
+                passed = false;
+              }
+            });
+            
+            console.log('');
+            if (!passed) {
+              console.error('❌ Coverage is below the 90% threshold!');
+              console.error('');
+              console.error('To see which lines are not covered:');
+              console.error('1. Run: npm test -- --coverage');
+              console.error('2. Check the coverage/lcov-report/index.html file');
+              process.exit(1);
+            }
+            console.log('✅ All coverage metrics meet the >90% threshold');
+          "
+        else
+          echo "❌ Coverage summary file not found!"
+          echo "This usually means the tests failed to run properly."
+          exit 1
+        fi
+
+    - name: Generate coverage badge
+      uses: cicirello/jacoco-badge-generator@v2
+      if: github.ref == 'refs/heads/main'
+      with:
+        coverage-badge-filename: coverage.svg
+        generate-coverage-badge: true
+
+
+  lint-check:
+    name: Lint Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [lint-check, unit-tests]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Check build output
+      run: |
+        if [ ! -d "dist" ]; then
+          echo "Build failed: dist directory not found"
+          exit 1
+        fi
+        echo "Build successful: dist directory created"
+
+  all-tests-pass:
+    name: All Tests Pass
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, coverage-check, lint-check, build-check]
+    if: always()
+
+    steps:
+    - name: Check all test results
+      run: |
+        echo "📊 Test Results Summary:"
+        echo "  Unit Tests:        ${{ needs.unit-tests.result }}"
+        echo "  Integration Tests: ${{ needs.integration-tests.result }}"
+        echo "  Coverage Check:    ${{ needs.coverage-check.result }}"
+        echo "  Lint Check:        ${{ needs.lint-check.result }}"
+        echo "  Build Check:       ${{ needs.build-check.result }}"
+        echo ""
+        
+        FAILED_JOBS=()
+        [ "${{ needs.unit-tests.result }}" != "success" ] && FAILED_JOBS+=("unit-tests")
+        [ "${{ needs.integration-tests.result }}" != "success" ] && FAILED_JOBS+=("integration-tests")
+        [ "${{ needs.coverage-check.result }}" != "success" ] && FAILED_JOBS+=("coverage-check")
+        [ "${{ needs.lint-check.result }}" != "success" ] && FAILED_JOBS+=("lint-check")
+        [ "${{ needs.build-check.result }}" != "success" ] && FAILED_JOBS+=("build-check")
+        
+        if [ ${#FAILED_JOBS[@]} -ne 0 ]; then
+          echo "❌ The following jobs failed:"
+          for job in "${FAILED_JOBS[@]}"; do
+            echo "   - $job"
+          done
+          echo ""
+          echo "Please check the logs for each failed job above for details."
+          exit 1
+        fi
+        echo "✅ All tests passed successfully!"
