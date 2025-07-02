@@ -14,7 +14,8 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         code: typeof error.code === 'symbol' ? String(error.code) : error.code,
         message: error.message,
         context: error.context,
-        stack: error.stack
+        // Only include stack in debug mode or if explicitly enabled
+        ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: error.stack } : {})
       };
     }
     
@@ -23,7 +24,8 @@ export const zerothrowPinoSerializers: PinoSerializers = {
       return {
         type: error.constructor.name,
         message: error.message,
-        stack: error.stack
+        // Only include stack in debug mode or if explicitly enabled
+        ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: error.stack } : {})
       };
     }
     
@@ -87,5 +89,8 @@ export function createPinoConfig(options: PinoOptions = {}) {
   };
 }
 
-// For backward compatibility
+// Deprecated: Use createPinoConfig instead
+/**
+ * @deprecated Use createPinoConfig instead. This returns a config object, not a logger instance.
+ */
 export const createPinoLogger = createPinoConfig;

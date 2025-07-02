@@ -7,7 +7,9 @@
   "exports": {
     ".": "./dist/index.js",
     "./eslint": "./dist/eslint.js",
-    "./react": "./dist/react-entry.js"
+    "./react": "./dist/react-entry.js",
+    "./loggers/pino": "./dist/loggers/pino.js",
+    "./loggers/winston": "./dist/loggers/winston.js"
   },
   "bin": {
     "zerothrow-setup-hooks": "./scripts/setup-hooks.sh"

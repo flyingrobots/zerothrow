@@ -25,7 +25,7 @@ export class ErrorFormatter {
     // Auto-detect color support if not explicitly set
     const supportsColor = options.colors !== undefined 
       ? options.colors 
-      : (typeof process !== 'undefined' && process.stdout && process.stdout.isTTY);
+      : (typeof process !== 'undefined' && process?.stdout?.isTTY);
       
     this.options = {
       colors: supportsColor,
@@ -87,7 +87,7 @@ export class ErrorFormatter {
         : 'Stack Trace:';
       lines.push(stackHeader);
       
-      const stackLines = (error.stack || '').split('\n').slice(1).map(line =>
+      const stackLines = (error.stack ? error.stack.split('\n').slice(1) : []).map(line =>
         colors ? `${COLORS.gray}${line}${COLORS.reset}` : line
       );
       lines.push(...stackLines);
@@ -99,9 +99,10 @@ export class ErrorFormatter {
   formatResult<T, E extends Error>(result: Result<T, E>): string {
     if (result.ok) {
       const { colors } = this.options;
+      const valueStr = JSON.stringify(result.value);
       return colors
-        ? `${COLORS.green}✓ Success${COLORS.reset}`
-        : '✓ Success';
+        ? `${COLORS.green}✓ Success: ${valueStr}${COLORS.reset}`
+        : `✓ Success: ${valueStr}`;
     } else {
       const error = result.error;
       if (error instanceof ZeroError) {

@@ -2,7 +2,7 @@
   "ZeroThrow: Import essentials": {
     "prefix": "ztimport",
     "body": [
-      "import { Result, ok, err, tryR, tryRSync, wrap, ZeroError } from '@flyingrobots/zerothrow';"
+      "import { Result, ok, err, tryR, wrap, ZeroError } from '@flyingrobots/zerothrow';"
     ],
     "description": "Import ZeroThrow essentials"
   },
@@ -54,7 +54,7 @@
       "  return tryR(async () => {",
       "    ${4:// implementation}",
       "    return ${5:result};",
-      "  });",
+      "  }, e => wrap(e, '${6:ERROR_CODE}', '${7:Error message}'));",
       "}"
     ],
     "description": "Async function using tryR"
@@ -118,13 +118,18 @@
     "description": "Wrap potentially throwing code with tryR"
   },
   
-  "ZeroThrow: tryRSync wrapper": {
-    "prefix": "zttrysync",
+  "ZeroThrow: Synchronous Function with Result": {
+    "prefix": "ztsync",
     "body": [
-      "const result = tryRSync(() => {",
-      "  ${1:// synchronous code that might throw}",
-      "});"
+      "function ${1:functionName}(${2:params}): Result<${3:ReturnType}, ZeroError> {",
+      "  try {",
+      "    ${4:// implementation}",
+      "    return ok(${5:result});",
+      "  } catch (e) {",
+      "    return err(wrap(e, '${6:ERROR_CODE}', '${7:Error message}'));",
+      "  }",
+      "}"
     ],
-    "description": "Wrap synchronous throwing code with tryRSync"
+    "description": "Synchronous function returning Result"
   }
 }

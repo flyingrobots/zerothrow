@@ -27,6 +27,30 @@ describe("Winston formatter", () => {
       expect(transformed.message).toBe("[DATABASE_ERROR] Connection failed");
     });
 
+    it("includes stack trace when debug mode is enabled", () => {
+      const originalLogLevel = process.env.LOG_LEVEL;
+      process.env.LOG_LEVEL = 'debug';
+      
+      try {
+        const error = new ZeroError("DEBUG_ERROR", "Debug test");
+        const info = {
+          level: "error",
+          message: "Error in debug mode",
+          error
+        };
+        
+        const transformed = zerothrowWinstonFormat.transform(info);
+        
+        expect(transformed.zerothrow.stack).toBeDefined();
+      } finally {
+        if (originalLogLevel === undefined) {
+          delete process.env.LOG_LEVEL;
+        } else {
+          process.env.LOG_LEVEL = originalLogLevel;
+        }
+      }
+    });
+
     it("handles symbol error codes", () => {
       const symbolCode = Symbol("CUSTOM_ERROR");
       const error = new ZeroError(symbolCode, "Custom error");
@@ -60,6 +84,20 @@ describe("Winston formatter", () => {
         value: { success: true }
       });
       expect(transformed.message).toBe("[OK] Operation completed");
+    });
+
+    it("formats Ok results with default message when none provided", () => {
+      const result = ok({ data: "test" });
+      
+      const info = {
+        level: "info",
+        message: "", // Empty message
+        result
+      };
+      
+      const transformed = zerothrowWinstonFormat.transform(info);
+      
+      expect(transformed.message).toBe("[OK] Operation succeeded");
     });
 
     it("formats Err results with ZeroError", () => {
@@ -128,6 +166,57 @@ describe("Winston formatter", () => {
       expect(transformed.zerothrow).toBeDefined();
     });
 
+    it("formats Err results with non-Error values", () => {
+      const result = err("string error");
+      
+      const info = {
+        level: "error",
+        message: "",
+        result
+      };
+      
+      const transformed = zerothrowWinstonFormat.transform(info);
+      
+      expect(transformed.zerothrow).toMatchObject({
+        type: "Result",
+        status: "err",
+        error: {
+          message: "string error"
+        }
+      });
+      expect(transformed.message).toBe("[ERR] Operation failed");
+    });
+
+    it("uses info.message for non-ZeroError errors", () => {
+      const error = new Error("Generic error");
+      const result = err(error);
+      
+      const info = {
+        level: "error",
+        message: "Custom error message",
+        result
+      };
+      
+      const transformed = zerothrowWinstonFormat.transform(info);
+      
+      expect(transformed.message).toBe("[ERR] Custom error message");
+    });
+
+    it("formats Err results with ZeroError having symbol code", () => {
+      const symbolCode = Symbol("SYMBOL_ERROR");
+      const error = new ZeroError(symbolCode, "Symbol error test");
+      const result = err(error);
+      
+      const info = {
+        level: "error",
+        message: "",
+        result
+      };
+      
+      const transformed = zerothrowWinstonFormat.transform(info);
+      
+      expect(transformed.zerothrow.error.code).toBe("Symbol(SYMBOL_ERROR)");
+    });
   });
 
   describe("createWinstonLogger", () => {

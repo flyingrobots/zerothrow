@@ -108,6 +108,23 @@ describe("wrap function", () => {
 });
 
 describe("tryR advanced cases", () => {
+  it("handles errors with ZeroError-like properties", async () => {
+    const errorLike = Object.assign(new Error("Error with code"), {
+      code: "CUSTOM_CODE",
+      context: { data: "test" }
+    });
+    
+    const result = await tryR(() => {
+      throw errorLike;
+    });
+    
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe(errorLike); // Should return the same object
+      expect(result.error.code).toBe("CUSTOM_CODE");
+    }
+  });
+
   it("handles sync functions", async () => {
     const r = await tryR(() => "sync result");
     expect(r).toEqual({ ok: true, value: "sync result" });

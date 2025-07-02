@@ -13,8 +13,8 @@ interface WinstonFormatInfo {
 
 export const zerothrowWinstonFormat = {
   transform(info: WinstonFormatInfo): WinstonFormatInfo {
-    // Create a shallow copy to avoid mutation
-    const transformed = { ...info };
+    // Deep clone to avoid any mutation
+    const transformed = JSON.parse(JSON.stringify(info));
     
     // Format ZeroError instances
     if (info.error instanceof ZeroError) {
@@ -24,9 +24,12 @@ export const zerothrowWinstonFormat = {
         code: codeStr,
         message: info.error.message,
         context: info.error.context,
-        stack: info.error.stack
+        // Only include stack in debug mode
+        ...(process?.env?.LOG_LEVEL === 'debug' || process?.env?.LOG_STACK === 'true' ? { stack: info.error.stack } : {})
       };
       transformed.message = `[${codeStr}] ${info.error.message}`;
+      // Don't mutate the original error
+      transformed.error = transformed.zerothrow;
     }
     
     // Format Result types
@@ -59,6 +62,8 @@ export const zerothrowWinstonFormat = {
           : info.message || 'Operation failed';
         transformed.message = `[ERR] ${errorMessage}`;
       }
+      // Don't mutate the original result
+      transformed.result = transformed.zerothrow;
     }
     
     return transformed;

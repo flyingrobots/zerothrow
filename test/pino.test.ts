@@ -18,7 +18,10 @@ describe("Pino serializers", () => {
         message: "User does not exist",
         context: { userId: 123 }
       });
-      expect(serialized.stack).toBeDefined();
+      // Stack is only included in debug mode
+      if (process.env.LOG_LEVEL === 'debug' || process.env.LOG_STACK === 'true') {
+        expect(serialized.stack).toBeDefined();
+      }
     });
 
     it("handles symbol error codes", () => {
@@ -39,7 +42,30 @@ describe("Pino serializers", () => {
         type: "Error",
         message: "Standard error"
       });
-      expect(serialized.stack).toBeDefined();
+      // Stack is only included in debug mode
+      if (process.env.LOG_LEVEL === 'debug' || process.env.LOG_STACK === 'true') {
+        expect(serialized.stack).toBeDefined();
+      }
+    });
+
+    it("handles non-Error types", () => {
+      const serialized1 = zerothrowPinoSerializers.err!("string error");
+      expect(serialized1).toEqual({
+        type: "Unknown",
+        message: "string error"
+      });
+
+      const serialized2 = zerothrowPinoSerializers.err!(123);
+      expect(serialized2).toEqual({
+        type: "Unknown",
+        message: "123"
+      });
+
+      const serialized3 = zerothrowPinoSerializers.err!(null);
+      expect(serialized3).toEqual({
+        type: "Unknown",
+        message: "null"
+      });
     });
   });
 
@@ -79,6 +105,46 @@ describe("Pino serializers", () => {
       const serialized = zerothrowPinoSerializers.result!(nonResult);
       
       expect(serialized).toEqual(nonResult);
+    });
+  });
+
+  describe("err serializer with debug mode", () => {
+    it("includes stack trace when LOG_LEVEL is debug", () => {
+      const originalLogLevel = process.env.LOG_LEVEL;
+      process.env.LOG_LEVEL = 'debug';
+      
+      try {
+        const error = new ZeroError("DEBUG_ERROR", "Debug test");
+        const serialized = zerothrowPinoSerializers.err!(error);
+        
+        expect(serialized.stack).toBeDefined();
+        expect(serialized.stack).toContain("Debug test");
+      } finally {
+        if (originalLogLevel === undefined) {
+          delete process.env.LOG_LEVEL;
+        } else {
+          process.env.LOG_LEVEL = originalLogLevel;
+        }
+      }
+    });
+
+    it("includes stack trace when LOG_STACK is true", () => {
+      const originalLogStack = process.env.LOG_STACK;
+      process.env.LOG_STACK = 'true';
+      
+      try {
+        const error = new Error("Stack test");
+        const serialized = zerothrowPinoSerializers.err!(error);
+        
+        expect(serialized.stack).toBeDefined();
+        expect(serialized.stack).toContain("Stack test");
+      } finally {
+        if (originalLogStack === undefined) {
+          delete process.env.LOG_STACK;
+        } else {
+          process.env.LOG_STACK = originalLogStack;
+        }
+      }
     });
   });
 

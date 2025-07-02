@@ -43,28 +43,28 @@ export interface ResultCombinable<T, E extends Error = ZeroError> {
 export function makeCombinable<T, E extends Error = ZeroError>(
   result: Result<T, E>
 ): Result<T, E> & ResultCombinable<T, E> {
-  return Object.assign(result, {
-    andThen<U>(this: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> & ResultCombinable<U, E> {
+  return Object.assign({}, result, {
+    andThen: function<U>(this: Result<T, E>, fn: (value: T) => Result<U, E>): Result<U, E> & ResultCombinable<U, E> {
       if (!this.ok) return makeCombinable(this as Result<U, E>);
       return makeCombinable(fn(this.value));
     },
 
-    mapErr<F extends Error>(this: Result<T, E>, fn: (error: E) => F): Result<T, F> & ResultCombinable<T, F> {
+    mapErr: function<F extends Error>(this: Result<T, E>, fn: (error: E) => F): Result<T, F> & ResultCombinable<T, F> {
       if (this.ok) return makeCombinable(this as Result<T, F>);
       return makeCombinable(err(fn(this.error)));
     },
 
-    map<U>(this: Result<T, E>, fn: (value: T) => U): Result<U, E> & ResultCombinable<U, E> {
+    map: function<U>(this: Result<T, E>, fn: (value: T) => U): Result<U, E> & ResultCombinable<U, E> {
       if (!this.ok) return makeCombinable(this as Result<U, E>);
       return makeCombinable(ok(fn(this.value)));
     },
 
-    orElse(this: Result<T, E>, fallback: () => Result<T, E>): Result<T, E> & ResultCombinable<T, E> {
+    orElse: function(this: Result<T, E>, fallback: () => Result<T, E>): Result<T, E> & ResultCombinable<T, E> {
       if (this.ok) return makeCombinable(this);
       return makeCombinable(fallback());
     },
 
-    unwrapOr(this: Result<T, E>, fallback: T): T {
+    unwrapOr: function(this: Result<T, E>, fallback: T): T {
       return this.ok ? this.value : fallback;
     },
 
@@ -74,7 +74,7 @@ export function makeCombinable<T, E extends Error = ZeroError>(
      * error handling instead.
      * @throws {Error} Throws the error if the Result is an Err
      */
-    unwrapOrThrow(this: Result<T, E>): T {
+    unwrapOrThrow: function(this: Result<T, E>): T {
       if (!this.ok) throw this.error;
       return this.value;
     }
@@ -83,6 +83,17 @@ export function makeCombinable<T, E extends Error = ZeroError>(
 
 /**
  * Pipe multiple operations together
+ * 
+ * @warning This is an untyped escape hatch. TypeScript cannot infer types through
+ * the pipeline, so the output type is `unknown`. Use explicit type assertions
+ * or consider using typed combinators (andThen, map, etc.) instead.
+ * 
+ * @example
+ * const result = pipe(
+ *   parseNumber,
+ *   validateRange,
+ *   formatOutput
+ * )(input) as Result<string, ZeroError>;
  */
 export function pipe<T>(...operations: Array<(input: unknown) => unknown>) {
   return (input: T) => operations.reduce((acc, op) => op(acc), input as unknown) as unknown;
