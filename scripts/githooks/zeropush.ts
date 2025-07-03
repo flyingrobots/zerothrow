@@ -110,6 +110,18 @@ function runLocalTests(): ZeroThrow.Async<void> {
   
   const tests: TestConfig[] = [
     {
+      name: 'TypeScript check',
+      command: 'npx tsc --noEmit',
+      logFile: 'typescript.log',
+      displayErrors: true,
+      helpText: [
+        '💡 Common issues:',
+        '  - Type errors: Review the errors above',
+        '  - Missing types: npm install -D @types/package-name',
+        '  - Incorrect type assertions: Fix the types, don\'t cast'
+      ]
+    },
+    {
       name: 'unit tests',
       command: 'npm test',
       logFile: 'unit-test.log',
@@ -168,7 +180,7 @@ function runLocalTests(): ZeroThrow.Async<void> {
 function runDockerTests(dockerComposeCmd: string): ZeroThrow.Async<void> {
   return ZeroThrow.enhance((async () => {
     console.log(chalk.blue('🐳 Starting all tests in parallel using Docker Compose...'));
-  console.log('   Running 6 containers simultaneously for maximum speed!');
+  console.log('   Running 7 containers simultaneously for maximum speed!');
   console.log('');
   
   // Run docker-compose up

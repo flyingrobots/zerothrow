@@ -22,13 +22,10 @@ export function findParentFunction(node: TSESTree.Node): FunctionNode | null {
 
     if (parent.type === AST_NODE_TYPES.MethodDefinition && parent.value) {
       const func = parent.value;
-      if (
-        func.type === AST_NODE_TYPES.FunctionExpression ||
-        func.type === AST_NODE_TYPES.ArrowFunctionExpression
-      ) {
+      if (func.type === AST_NODE_TYPES.FunctionExpression) {
         return func;
       }
-      // TSEmptyBodyFunctionExpression doesn't have a body, so no throw statements
+      // ArrowFunctionExpression and TSEmptyBodyFunctionExpression are not valid for method definitions
     }
 
     parent = parent.parent;
