@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { readFile, writeFile, execCmd } from '../lib/shared';
 import chalk from 'chalk';
 import { join } from 'path';
@@ -57,14 +57,17 @@ function generateBadgeUrl(config: BadgeConfig): string {
 }
 
 // Download badge from shields.io
-async function downloadBadge(url: string, outputPath: string): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function downloadBadge(url: string, outputPath: string): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const result = await execCmd(`curl -s "${url}" -o "${outputPath}"`);
   
   if (!result.ok) {
-    return ZT.err(new ZT.ZeroError('BADGE_DOWNLOAD_FAILED', 'Failed to download badge', {
-      url,
-      outputPath,
-      error: result.error.message
+    const errorResult = result as ZeroThrow.Err<ZeroThrow.ZeroError>;
+    return ZT.err(new ZeroThrow.ZeroError('BADGE_DOWNLOAD_FAILED', 'Failed to download badge', {
+      context: {
+        url,
+        outputPath,
+        error: errorResult.error.message
+      }
     }));
   }
   
@@ -93,23 +96,27 @@ function getCoverageColor(coverage: number, thresholds: { good: number; medium: 
 // Generate coverage badge
 export async function generateCoverageBadge(
   config: Partial<CoverageBadgeConfig> = {}
-): Promise<ZT.Result<void, ZT.ZeroError>> {
+): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const cfg = { ...DEFAULT_COVERAGE_CONFIG, ...config };
   
   // Read coverage summary
   const summaryResult = await readFile(cfg.summaryPath);
   if (!summaryResult.ok) {
-    return ZT.err(new ZT.ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary not found', {
-      path: cfg.summaryPath,
-      hint: 'Run tests with coverage first: npm test -- --coverage'
+    return ZT.err(new ZeroThrow.ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary not found', {
+      context: {
+        path: cfg.summaryPath,
+        hint: 'Run tests with coverage first: npm test -- --coverage'
+      }
     }));
   }
   
   // Parse summary
-  const parseResult = await ZT.tryR(
+  const parseResult = await ZT.try(
     () => JSON.parse(summaryResult.value),
-    e => new ZT.ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
-      error: (e as Error).message
+    e => new ZeroThrow.ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
+      context: {
+        error: (e as Error).message
+      }
     })
   );
   
@@ -144,7 +151,7 @@ export async function generateCoverageBadge(
 }
 
 // Generate custom badge
-export async function generateCustomBadge(config: BadgeConfig): Promise<ZT.Result<void, ZT.ZeroError>> {
+export async function generateCustomBadge(config: BadgeConfig): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const url = generateBadgeUrl(config);
   console.log(chalk.blue(`🎯 Generating badge: ${config.label} - ${config.value}`));
   console.log(chalk.gray(`🔗 Badge URL: ${url}`));
@@ -213,7 +220,7 @@ function parseArgs(): { type: 'coverage' | 'custom'; config: any } {
 async function main(): Promise<number> {
   const { type, config } = parseArgs();
   
-  let result: ZT.Result<void, ZT.ZeroError>;
+  let result: ZeroThrow.Result<void, ZeroThrow.ZeroError>;
   
   if (type === 'coverage') {
     result = await generateCoverageBadge(config);
@@ -232,6 +239,6 @@ async function main(): Promise<number> {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().then(exitCode => process.exit(exitCode));
 }

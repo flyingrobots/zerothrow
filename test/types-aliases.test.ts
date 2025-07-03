@@ -7,11 +7,11 @@ import {
   ztPromise, 
   isZTResult 
 } from '../src/types.js';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('Type Aliases', () => {
   describe('ZTResult type', () => {
-    it('should work as alias for ZT.Result', () => {
+    it('should work as alias for ZeroThrow.Result', () => {
       const result: ZTResult<number> = ztOk(42);
       expect(result.ok).toBe(true);
       if (result.ok) expect(result.value).toBe(42);
@@ -42,7 +42,7 @@ describe('Type Aliases', () => {
       const result = ztErr('Operation failed');
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error).toBeInstanceOf(ZT.Error);
+        expect(result.error).toBeInstanceOf(ZeroThrow.ZeroError);
         expect(result.error.code).toBe('ERROR');
         expect(result.error.message).toBe('Operation failed');
       }
@@ -52,15 +52,15 @@ describe('Type Aliases', () => {
       const result = ztErr({ code: 'FAIL', message: 'Operation failed' });
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error).toBeInstanceOf(ZT.Error);
+        expect(result.error).toBeInstanceOf(ZeroThrow.ZeroError);
         expect(result.error.code).toBe('FAIL');
         expect(result.error.message).toBe('Operation failed');
       }
     });
 
-    it('ztErr creates error results from ZT.Error with context', () => {
+    it('ztErr creates error results from ZeroThrow.ZeroError with context', () => {
       const context = { userId: 123 };
-      const error = new ZT.Error('FAIL', 'Operation failed', { context });
+      const error = new ZeroThrow.ZeroError('FAIL', 'Operation failed', { context });
       const result = ztErr(error);
       expect(result.ok).toBe(false);
       if (!result.ok) {
@@ -94,11 +94,11 @@ describe('Type Aliases', () => {
 
     it('should handle error mapping', async () => {
       const promise: ZTPromise<string> = ztPromise(
-        Promise.resolve(ZT.err(new ZT.Error('ORIGINAL', 'fail')))
+        Promise.resolve(ZT.err(new ZeroThrow.ZeroError('ORIGINAL', 'fail')))
       );
       
       const result = await promise
-        .mapErr(e => new ZT.Error('MAPPED', e.message));
+        .mapErr(e => new ZeroThrow.ZeroError('MAPPED', e.message));
       
       expect(result.ok).toBe(false);
       if (!result.ok) {

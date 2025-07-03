@@ -1,31 +1,31 @@
 import { describe, it, expect } from 'vitest';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('ZT Namespace', () => {
   describe('Core types', () => {
     it('should export Result type', () => {
-      const result: ZT.Result<number> = ZT.ok(42);
+      const result: ZeroThrow.Result<number> = ZT.ok(42);
       expect(result.ok).toBe(true);
     });
 
     it('should export OK and ERR type aliases', () => {
       const ok: ZT.OK<string> = ZT.ok('test');
-      const err: ZT.ERR<ZT.Error> = ZT.err(new ZT.Error('TEST', 'error'));
+      const err: ZT.ERR<ZeroThrow.ZeroError> = ZT.err(new ZeroThrow.ZeroError('TEST', 'error'));
       expect(ok.ok).toBe(true);
       expect(err.ok).toBe(false);
     });
 
     it('should export Error class', () => {
-      const error = new ZT.Error('TEST_CODE', 'Test message');
-      expect(error).toBeInstanceOf(ZT.Error);
+      const error = new ZeroThrow.ZeroError('TEST_CODE', 'Test message');
+      expect(error).toBeInstanceOf(ZeroThrow.ZeroError);
       expect(error.code).toBe('TEST_CODE');
       expect(error.message).toBe('Test message');
     });
   });
 
-  describe('ZT.promise', () => {
+  describe('ZeroThrow.enhance', () => {
     it('should enhance a promise with combinator methods', async () => {
-      const enhanced = ZT.promise(Promise.resolve(ZT.ok(42)));
+      const enhanced = ZeroThrow.enhance(Promise.resolve(ZT.ok(42)));
       expect(enhanced.andThen).toBeDefined();
       expect(enhanced.map).toBeDefined();
       expect(enhanced.mapErr).toBeDefined();
@@ -35,7 +35,7 @@ describe('ZT Namespace', () => {
     });
 
     it('should chain andThen operations', async () => {
-      const result = await ZT.promise(Promise.resolve(ZT.ok(10)))
+      const result = await ZeroThrow.enhance(Promise.resolve(ZT.ok(10)))
         .andThen(x => ZT.ok(x * 2))
         .andThen(x => ZT.ok(x + 5));
       
@@ -44,7 +44,7 @@ describe('ZT Namespace', () => {
     });
 
     it('should map values', async () => {
-      const result = await ZT.promise(Promise.resolve(ZT.ok('hello')))
+      const result = await ZeroThrow.enhance(Promise.resolve(ZT.ok('hello')))
         .map(s => s.toUpperCase());
       
       expect(result.ok).toBe(true);
@@ -52,18 +52,18 @@ describe('ZT Namespace', () => {
     });
 
     it('should map errors', async () => {
-      const result = await ZT.promise(Promise.resolve(ZT.err(new Error('test'))))
-        .mapErr(e => new ZT.Error('MAPPED', e.message));
+      const result = await ZeroThrow.enhance(Promise.resolve(ZT.err(new Error('test'))))
+        .mapErr(e => new ZeroThrow.ZeroError('MAPPED', e.message));
       
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.error).toBeInstanceOf(ZT.Error);
+        expect(result.error).toBeInstanceOf(ZeroThrow.ZeroError);
         expect(result.error.code).toBe('MAPPED');
       }
     });
 
     it('should handle orElse fallback', async () => {
-      const result = await ZT.promise(Promise.resolve(ZT.err(new Error('fail'))))
+      const result = await ZeroThrow.enhance(Promise.resolve(ZT.err(new Error('fail'))))
         .orElse(() => ZT.ok('fallback'));
       
       expect(result.ok).toBe(true);
@@ -71,14 +71,14 @@ describe('ZT Namespace', () => {
     });
 
     it('should unwrapOr with default', async () => {
-      const value = await ZT.promise(Promise.resolve(ZT.err(new Error('fail'))))
+      const value = await ZeroThrow.enhance(Promise.resolve(ZT.err(new Error('fail'))))
         .unwrapOr('default');
       
       expect(value).toBe('default');
     });
 
     it('should unwrapOrThrow on success', async () => {
-      const value = await ZT.promise(Promise.resolve(ZT.ok('success')))
+      const value = await ZeroThrow.enhance(Promise.resolve(ZT.ok('success')))
         .unwrapOrThrow();
       
       expect(value).toBe('success');
@@ -86,15 +86,15 @@ describe('ZT Namespace', () => {
 
     it('should throw on unwrapOrThrow with error', async () => {
       await expect(
-        ZT.promise(Promise.resolve(ZT.err(new Error('fail'))))
+        ZeroThrow.enhance(Promise.resolve(ZT.err(new Error('fail'))))
           .unwrapOrThrow()
       ).rejects.toThrow('fail');
     });
   });
 
-  describe('ZT.async', () => {
+  describe('ZeroThrow.fromAsync', () => {
     it('should create enhanced promise from async function', async () => {
-      const result = await ZT.async(async () => ZT.ok(42))
+      const result = await ZeroThrow.fromAsync(async () => ZT.ok(42))
         .map(x => x * 2);
       
       expect(result.ok).toBe(true);
@@ -103,38 +103,38 @@ describe('ZT Namespace', () => {
   });
 
   describe('Type guards', () => {
-    it('ZT.isResult should identify Result types', () => {
+    it('ZeroThrow.isResult should identify Result types', () => {
       const okResult = ZT.ok(1);
-      const errResult = ZT.err(new ZT.Error('TEST', 'test error'));
+      const errResult = ZT.err(new ZeroThrow.ZeroError('TEST', 'test error'));
       
-      expect(ZT.isResult(okResult)).toBe(true);
-      expect(ZT.isResult(errResult)).toBe(true);
-      expect(ZT.isResult(null)).toBe(false);
-      expect(ZT.isResult({})).toBe(false);
-      expect(ZT.isResult({ ok: 'true' })).toBe(false);
-      expect(ZT.isResult({ ok: false, error: 'not an error' })).toBe(false);
+      expect(ZeroThrow.isResult(okResult)).toBe(true);
+      expect(ZeroThrow.isResult(errResult)).toBe(true);
+      expect(ZeroThrow.isResult(null)).toBe(false);
+      expect(ZeroThrow.isResult({})).toBe(false);
+      expect(ZeroThrow.isResult({ ok: 'true' })).toBe(false);
+      expect(ZeroThrow.isResult({ ok: false, error: 'not an error' })).toBe(false);
       
       // Check plain objects that match Result shape
       const plainOk = { ok: true, value: 1 };
       const plainErr = { ok: false, error: new Error() };
-      expect(ZT.isResult(plainOk)).toBe(true);
-      expect(ZT.isResult(plainErr)).toBe(true);
+      expect(ZeroThrow.isResult(plainOk)).toBe(true);
+      expect(ZeroThrow.isResult(plainErr)).toBe(true);
     });
 
-    it('ZT.isOk should identify Ok results', () => {
+    it('ZeroThrow.isOk should identify Ok results', () => {
       const ok = ZT.ok(1);
       const err = ZT.err(new Error());
       
-      expect(ZT.isOk(ok)).toBe(true);
-      expect(ZT.isOk(err)).toBe(false);
+      expect(ZeroThrow.isOk(ok)).toBe(true);
+      expect(ZeroThrow.isOk(err)).toBe(false);
     });
 
-    it('ZT.isErr should identify Err results', () => {
+    it('ZeroThrow.isErr should identify Err results', () => {
       const ok = ZT.ok(1);
       const err = ZT.err(new Error());
       
-      expect(ZT.isErr(ok)).toBe(false);
-      expect(ZT.isErr(err)).toBe(true);
+      expect(ZeroThrow.isErr(ok)).toBe(false);
+      expect(ZeroThrow.isErr(err)).toBe(true);
     });
   });
 
@@ -142,18 +142,16 @@ describe('ZT Namespace', () => {
     it('should export all core functions', () => {
       expect(ZT.ok).toBeDefined();
       expect(ZT.err).toBeDefined();
-      expect(ZT.tryR).toBeDefined();
-      expect(ZT.tryRSync).toBeDefined();
-      expect(ZT.tryRBatch).toBeDefined();
-      expect(ZT.wrap).toBeDefined();
+      expect(ZT.try).toBeDefined();
+      expect(ZeroThrow.wrap).toBeDefined();
     });
 
     it('should export all combinator functions', () => {
-      expect(ZT.pipe).toBeDefined();
-      expect(ZT.collect).toBeDefined();
-      expect(ZT.collectAsync).toBeDefined();
-      expect(ZT.firstSuccess).toBeDefined();
-      expect(ZT.makeCombinable).toBeDefined();
+      expect(ZeroThrow.pipe).toBeDefined();
+      expect(ZeroThrow.collect).toBeDefined();
+      expect(ZeroThrow.collectAsync).toBeDefined();
+      expect(ZeroThrow.firstSuccess).toBeDefined();
+      // makeCombinable is no longer needed - Results are combinable by default!
     });
   });
 });

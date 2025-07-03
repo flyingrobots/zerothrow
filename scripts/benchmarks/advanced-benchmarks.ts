@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ZT } from '../../src'
+import { ZT, ZeroThrow } from '../../src'
 
 const ITERATIONS = 100_000
 
@@ -38,8 +38,8 @@ function throwCatchSimple(i: number) {
   }
 }
 
-function resultSimple(i: number): ZT.Result<number> {
-  if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', 'fail ' + i))
+function resultSimple(i: number): ZeroThrow.Result<number> {
+  if (i % 2 === 0) return ZT.err(new ZeroThrow.ZeroError('FAIL', 'fail ' + i))
   return ZT.ok(i)
 }
 
@@ -74,14 +74,14 @@ function nestedThrow(i: number) {
   }
 }
 
-function nestedResult(i: number): ZT.Result<number> {
+function nestedResult(i: number): ZeroThrow.Result<number> {
   const r1 = i % 10 === 0 
-    ? ZT.err(new ZT.ZeroError('DEEP_ERR', 'deep error')) 
+    ? ZT.err(new ZeroThrow.ZeroError('DEEP_ERR', 'deep error')) 
     : ZT.ok(i * 2)
   
   if (!r1.ok) {
-    const r2 = ZT.err(ZT.wrap(r1.error, 'WRAPPED', 'wrapped error'))
-    const r3 = ZT.err(ZT.wrap(r2.error, 'DOUBLE_WRAPPED', 'double wrapped error'))
+    const r2 = ZT.err(ZeroThrow.wrap(r1.error, 'WRAPPED', 'wrapped error'))
+    const r3 = ZT.err(ZeroThrow.wrap(r2.error, 'DOUBLE_WRAPPED', 'double wrapped error'))
     return r3
   }
   
@@ -120,13 +120,13 @@ function throwWithContext(userId: string) {
   }
 }
 
-function resultWithContext(userId: string): ZT.Result<void> {
+function resultWithContext(userId: string): ZeroThrow.Result<void> {
   const context: UserContext = {
     userId,
     action: 'fetch',
     timestamp: Date.now()
   }
-  return ZT.err(new ZT.ZeroError('USER_NOT_FOUND', 'User not found', { context }))
+  return ZT.err(new ZeroThrow.ZeroError('USER_NOT_FOUND', 'User not found', { context }))
 }
 
 bench('throw with manual context', () => {
@@ -164,9 +164,9 @@ async function asyncThrow(i: number): Promise<number> {
   }
 }
 
-async function asyncResult(i: number): Promise<ZT.Result<number>> {
+async function asyncResult(i: number): Promise<ZeroThrow.Result<number>> {
   await Promise.resolve()
-  if (i % 2 === 0) return ZT.err(new ZT.ZeroError('ASYNC_FAIL', 'async fail'))
+  if (i % 2 === 0) return ZT.err(new ZeroThrow.ZeroError('ASYNC_FAIL', 'async fail'))
   return ZT.ok(i)
 }
 
@@ -179,7 +179,7 @@ await benchAsync('async throw/catch', async () => {
 })
 
 await benchAsync('async Result', async () => {
-  const promises: Promise<ZT.Result<number>>[] = []
+  const promises: Promise<ZeroThrow.Result<number>>[] = []
   for (let i = 0; i < ITERATIONS / 10; i++) {
     promises.push(asyncResult(i))
   }
@@ -205,11 +205,11 @@ function processArrayThrow(items: number[]): number[] {
   }
 }
 
-function processArrayResult(items: number[]): ZT.Result<number[]> {
+function processArrayResult(items: number[]): ZeroThrow.Result<number[]> {
   const results: number[] = []
   for (const item of items) {
     if (item < 0) {
-      return ZT.err(new ZT.ZeroError('NEGATIVE_NUMBER', 'negative number', { 
+      return ZT.err(new ZeroThrow.ZeroError('NEGATIVE_NUMBER', 'negative number', { 
         context: { item, index: results.length }
       }))
     }
@@ -248,9 +248,9 @@ for (let i = 0; i < 10000; i++) {
 const afterThrow = process.memoryUsage().heapUsed
 
 const beforeResult = process.memoryUsage().heapUsed
-const resultErrors: ZT.ZeroError[] = []
+const resultErrors: ZeroThrow.ZeroError[] = []
 for (let i = 0; i < 10000; i++) {
-  resultErrors.push(new ZT.ZeroError('ERR_CODE', `Error ${i}`, { 
+  resultErrors.push(new ZeroThrow.ZeroError('ERR_CODE', `Error ${i}`, { 
     context: { index: i, data: 'some context data' }
   }))
 }

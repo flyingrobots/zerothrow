@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 import { existsSync, mkdirSync, chmodSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { execCmd, readJsonFile, writeJsonFile, fileExists, readFile, writeFile } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 
 // Helper functions specific to setup-hooks
 
-function findProjectRoot(): ZT.Result<string, ZT.ZeroError> {
+function findProjectRoot(): ZeroThrow.Result<string, ZeroThrow.ZeroError> {
   let currentDir = process.cwd();
   
   while (currentDir !== '/') {
@@ -18,10 +18,10 @@ function findProjectRoot(): ZT.Result<string, ZT.ZeroError> {
     currentDir = path.dirname(currentDir);
   }
   
-  return ZT.err(new ZT.ZeroError('NOT_NODE_PROJECT', 'Not in a Node.js project - no package.json found'));
+  return ZT.err(new ZeroThrow.ZeroError('NOT_NODE_PROJECT', 'Not in a Node.js project - no package.json found'));
 }
 
-function detectPackageManager(): ZT.Result<string, ZT.ZeroError> {
+function detectPackageManager(): ZeroThrow.Result<string, ZeroThrow.ZeroError> {
   if (existsSync('yarn.lock')) return ZT.ok('yarn');
   if (existsSync('pnpm-lock.yaml')) return ZT.ok('pnpm');
   if (existsSync('bun.lockb')) return ZT.ok('bun');
@@ -41,7 +41,7 @@ function checkVanillaHooks(): boolean {
   return existsSync('.githooks/pre-commit') || existsSync('.git/hooks/pre-commit');
 }
 
-async function checkEslint(): Promise<ZT.Result<boolean, ZT.ZeroError>> {
+async function checkEslint(): Promise<ZeroThrow.Result<boolean, ZeroThrow.ZeroError>> {
   const localCheck = await execCmd('npx eslint --version');
   const globalCheck = await execCmd('eslint --version');
   
@@ -49,7 +49,7 @@ async function checkEslint(): Promise<ZT.Result<boolean, ZT.ZeroError>> {
 }
 
 // Setup functions
-async function setupHuskyHooks(pkgManager: string): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function setupHuskyHooks(pkgManager: string): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   console.log(chalk.blue('🐕 Setting up Husky hooks...'));
   
   // Check if .husky/pre-commit exists
@@ -79,13 +79,13 @@ async function setupHuskyHooks(pkgManager: string): Promise<ZT.Result<void, ZT.Z
     chmodSync('.husky/pre-commit', 0o755);
     console.log(chalk.green('✅ Created .husky/pre-commit hook'));
   } catch (error: any) {
-    return ZT.err(new ZT.ZeroError('HOOK_CREATE_FAILED', 'Failed to create pre-commit hook', { cause: error }));
+    return ZT.err(new ZeroThrow.ZeroError('HOOK_CREATE_FAILED', 'Failed to create pre-commit hook', { cause: error }));
   }
   
   return ZT.ok(undefined);
 }
 
-async function setupVanillaHooks(): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function setupVanillaHooks(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   console.log(chalk.blue('🔧 Setting up vanilla git hooks...'));
   
   // Create .githooks directory
@@ -130,19 +130,19 @@ async function setupVanillaHooks(): Promise<ZT.Result<void, ZT.ZeroError>> {
     // Configure git to use .githooks
     const gitConfigResult = await execCmd('git config core.hooksPath .githooks');
     if (!gitConfigResult.ok) {
-      return gitConfigResult;
+      return ZT.err(gitConfigResult.error);
     }
     console.log(chalk.green('✅ Configured Git to use .githooks directory'));
   } catch (error: any) {
-    return ZT.err(new ZT.ZeroError('GIT_HOOK_FAILED', 'Failed to create git hook', { cause: error }));
+    return ZT.err(new ZeroThrow.ZeroError('GIT_HOOK_FAILED', 'Failed to create git hook', { cause: error }));
   }
   
   return ZT.ok(undefined);
 }
 
-async function ensureEslint(pkgManager: string): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function ensureEslint(pkgManager: string): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const eslintCheck = await checkEslint();
-  if (!eslintCheck.ok) return eslintCheck;
+  if (!eslintCheck.ok) return ZT.err(eslintCheck.error);
   
   if (!eslintCheck.value) {
     console.log(chalk.yellow('⚠️  ESLint not found'));
@@ -154,7 +154,7 @@ async function ensureEslint(pkgManager: string): Promise<ZT.Result<void, ZT.Zero
     }]);
     
     if (!shouldInstall) {
-      return ZT.err(new ZT.ZeroError('ESLINT_REQUIRED', 'ESLint required - please install ESLint manually'));
+      return ZT.err(new ZeroThrow.ZeroError('ESLINT_REQUIRED', 'ESLint required - please install ESLint manually'));
     }
     
     const installCmd = pkgManager === 'npm' 
@@ -162,7 +162,7 @@ async function ensureEslint(pkgManager: string): Promise<ZT.Result<void, ZT.Zero
       : `${pkgManager} add -D eslint`;
       
     const installResult = await execCmd(installCmd);
-    if (!installResult.ok) return installResult;
+    if (!installResult.ok) return ZT.err(installResult.error);
     
     console.log(chalk.green('✅ Installed ESLint'));
     
@@ -182,7 +182,7 @@ async function ensureEslint(pkgManager: string): Promise<ZT.Result<void, ZT.Zero
           : `${pkgManager} add -D ${tsPkgs}`;
           
         const tsResult = await execCmd(tsInstallCmd);
-        if (!tsResult.ok) return tsResult;
+        if (!tsResult.ok) return ZT.err(tsResult.error);
         
         console.log(chalk.green('✅ Installed TypeScript ESLint plugins'));
       }
@@ -192,9 +192,9 @@ async function ensureEslint(pkgManager: string): Promise<ZT.Result<void, ZT.Zero
   return ZT.ok(undefined);
 }
 
-async function ensureLintScript(): Promise<ZT.Result<void, ZT.ZeroError>> {
-  const pkgResult = readJsonFile<any>('package.json');
-  if (!pkgResult.ok) return pkgResult;
+async function ensureLintScript(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  const pkgResult = await readJsonFile<any>('package.json');
+  if (!pkgResult.ok) return ZT.err(pkgResult.error);
   
   const pkg = pkgResult.value;
   if (!pkg.scripts?.lint) {
@@ -207,7 +207,7 @@ async function ensureLintScript(): Promise<ZT.Result<void, ZT.ZeroError>> {
     }]);
     
     if (!shouldAdd) {
-      return ZT.err(new ZT.ZeroError('LINT_SCRIPT_REQUIRED', 'Lint script required - please add a lint script manually'));
+      return ZT.err(new ZeroThrow.ZeroError('LINT_SCRIPT_REQUIRED', 'Lint script required - please add a lint script manually'));
     }
     
     pkg.scripts = pkg.scripts || {};
@@ -215,8 +215,8 @@ async function ensureLintScript(): Promise<ZT.Result<void, ZT.ZeroError>> {
       ? 'eslint "src/**/*.{ts,tsx}"'
       : 'eslint "src/**/*.{js,jsx}"';
       
-    const writeResult = writeJsonFile('package.json', pkg);
-    if (!writeResult.ok) return writeResult;
+    const writeResult = await writeJsonFile('package.json', pkg);
+    if (!writeResult.ok) return ZT.err(writeResult.error);
     
     console.log(chalk.green('✅ Added lint script to package.json'));
   }
@@ -231,7 +231,8 @@ async function main(): Promise<number> {
   // Find project root
   const rootResult = findProjectRoot();
   if (!rootResult.ok) {
-    console.error(chalk.red(rootResult.error.message));
+    const errorResult = rootResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+    console.error(chalk.red(errorResult.error.message));
     return 1;
   }
   
@@ -241,7 +242,8 @@ async function main(): Promise<number> {
   // Detect package manager
   const pkgMgrResult = detectPackageManager();
   if (!pkgMgrResult.ok) {
-    console.error(chalk.red(pkgMgrResult.error.message));
+    const errorResult = pkgMgrResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+    console.error(chalk.red(errorResult.error.message));
     return 1;
   }
   
@@ -251,13 +253,15 @@ async function main(): Promise<number> {
   // Ensure dependencies
   const eslintResult = await ensureEslint(pkgManager);
   if (!eslintResult.ok) {
-    console.error(chalk.red(eslintResult.error.message));
+    const errorResult = eslintResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+    console.error(chalk.red(errorResult.error.message));
     return 1;
   }
   
   const lintResult = await ensureLintScript();
   if (!lintResult.ok) {
-    console.error(chalk.red(lintResult.error.message));
+    const errorResult = lintResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+    console.error(chalk.red(errorResult.error.message));
     return 1;
   }
   
@@ -290,14 +294,16 @@ async function main(): Promise<number> {
     console.log(chalk.green('✅ Detected Husky setup'));
     const huskyResult = await setupHuskyHooks(pkgManager);
     if (!huskyResult.ok) {
-      console.error(chalk.red(huskyResult.error.message));
+      const errorResult = huskyResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+      console.error(chalk.red(errorResult.error.message));
       return 1;
     }
   } else if (checkVanillaHooks()) {
     console.log(chalk.green('✅ Detected existing git hooks'));
     const vanillaResult = await setupVanillaHooks();
     if (!vanillaResult.ok) {
-      console.error(chalk.red(vanillaResult.error.message));
+      const errorResult = vanillaResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+      console.error(chalk.red(errorResult.error.message));
       return 1;
     }
   } else {
@@ -339,13 +345,15 @@ async function main(): Promise<number> {
       
       const huskyResult = await setupHuskyHooks(pkgManager);
       if (!huskyResult.ok) {
-        console.error(chalk.red(huskyResult.error.message));
+        const errorResult = huskyResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+        console.error(chalk.red(errorResult.error.message));
         return 1;
       }
     } else {
       const vanillaResult = await setupVanillaHooks();
       if (!vanillaResult.ok) {
-        console.error(chalk.red(vanillaResult.error.message));
+        const errorResult = vanillaResult as ZeroThrow.Err<ZeroThrow.ZeroError>;
+        console.error(chalk.red(errorResult.error.message));
         return 1;
       }
     }

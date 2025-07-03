@@ -4,12 +4,12 @@ import {
   createPinoConfig,
   createPinoLogger,
 } from '../src/loggers/pino.js';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('Pino serializers', () => {
   describe('err serializer', () => {
     it('serializes ZeroError instances', () => {
-      const error = new ZT.Error('USER_NOT_FOUND', 'User does not exist', {
+      const error = new ZeroThrow.ZeroError('USER_NOT_FOUND', 'User does not exist', {
         context: { userId: 123 },
       });
 
@@ -32,7 +32,7 @@ describe('Pino serializers', () => {
 
     it('handles symbol error codes', () => {
       const symbolCode = Symbol('CUSTOM_ERROR');
-      const error = new ZT.Error(symbolCode, 'Custom error');
+      const error = new ZeroThrow.ZeroError(symbolCode, 'Custom error');
 
       const serialized = zerothrowPinoSerializers.err!(error);
 
@@ -92,7 +92,7 @@ describe('Pino serializers', () => {
     });
 
     it('serializes Err results with ZeroError', () => {
-      const error = new ZT.Error('VALIDATION_FAILED', 'Invalid input');
+      const error = new ZeroThrow.ZeroError('VALIDATION_FAILED', 'Invalid input');
       const result = ZT.err(error);
 
       const serialized = zerothrowPinoSerializers.result!(result);
@@ -123,7 +123,7 @@ describe('Pino serializers', () => {
       process.env.LOG_LEVEL = 'debug';
 
       try {
-        const error = new ZT.Error('DEBUG_ERROR', 'Debug test');
+        const error = new ZeroThrow.ZeroError('DEBUG_ERROR', 'Debug test');
         const serialized = zerothrowPinoSerializers.err!(error);
 
         expect(serialized.stack).toBeDefined();

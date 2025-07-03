@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -26,13 +26,13 @@ interface TestConfig {
 }
 
 // Check if Docker is running
-function isDockerRunning(): ZT.Promise<boolean> {
-  return ZT.promise(execCmd('docker info').then(result => ZT.ok(result.ok)));
+function isDockerRunning(): ZeroThrow.Async<boolean> {
+  return ZeroThrow.enhance(execCmd('docker info').then(result => ZT.ok(result.ok)));
 }
 
 // Check for docker-compose availability
-function getDockerComposeCommand(): ZT.Promise<string> {
-  return ZT.promise((async () => {
+function getDockerComposeCommand(): ZeroThrow.Async<string> {
+  return ZeroThrow.enhance((async () => {
     // Try 'docker compose' first (newer)
     const newStyleResult = await execCmd('docker compose version');
     if (newStyleResult.ok) {
@@ -45,13 +45,13 @@ function getDockerComposeCommand(): ZT.Promise<string> {
       return ZT.ok('docker-compose');
     }
     
-    return ZT.err(new ZT.Error('DOCKER_COMPOSE_NOT_FOUND', 'Neither docker compose nor docker-compose is available'));
+    return ZT.err(new ZeroThrow.ZeroError('DOCKER_COMPOSE_NOT_FOUND', 'Neither docker compose nor docker-compose is available'));
   })());
 }
 
 // Run a single test locally
-function runLocalTest(config: TestConfig): ZT.Promise<void> {
-  return ZT.promise((async () => {
+function runLocalTest(config: TestConfig): ZeroThrow.Async<void> {
+  return ZeroThrow.enhance((async () => {
     const spinner = ora(`Running ${config.name}...`).start();
   const logPath = join(tmpdir(), config.logFile);
   
@@ -92,7 +92,9 @@ function runLocalTest(config: TestConfig): ZT.Promise<void> {
     }
     console.log(chalk.yellow(`💡 To see full output: cat ${logPath}`));
     
-    return ZT.err(new ZT.Error('TEST_FAILED', `${config.name} failed`, { context: { logPath } }));
+    return ZT.err(new ZeroThrow.ZeroError('TEST_FAILED', `${config.name} failed`, { 
+      context: { logPath } 
+    }));
   }
   
   spinner.succeed(`${config.name} passed`);
@@ -101,8 +103,8 @@ function runLocalTest(config: TestConfig): ZT.Promise<void> {
 }
 
 // Run all tests locally (no Docker)
-function runLocalTests(): ZT.Promise<void> {
-  return ZT.promise((async () => {
+function runLocalTests(): ZeroThrow.Async<void> {
+  return ZeroThrow.enhance((async () => {
     console.log(chalk.yellow('⚠️  Docker is not running. Falling back to local test execution...'));
   console.log(chalk.blue('\n🏃 Running tests locally...\n'));
   
@@ -119,7 +121,7 @@ function runLocalTests(): ZT.Promise<void> {
       command: 'npm run test:integration',
       logFile: 'integration-test.log',
       errorPattern: /(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)/,
-      helpText: ['💡 To debug: npm run test:integration -- --reporter=verbose']
+      helpText: ['💡 To debug: npm run test:integration']
     },
     {
       name: 'lint checks',
@@ -163,8 +165,8 @@ function runLocalTests(): ZT.Promise<void> {
 }
 
 // Run tests using Docker Compose
-function runDockerTests(dockerComposeCmd: string): ZT.Promise<void> {
-  return ZT.promise((async () => {
+function runDockerTests(dockerComposeCmd: string): ZeroThrow.Async<void> {
+  return ZeroThrow.enhance((async () => {
     console.log(chalk.blue('🐳 Starting all tests in parallel using Docker Compose...'));
   console.log('   Running 6 containers simultaneously for maximum speed!');
   console.log('');
@@ -190,7 +192,7 @@ function runDockerTests(dockerComposeCmd: string): ZT.Promise<void> {
     console.log('To skip these checks and push anyway (NOT RECOMMENDED):');
     console.log('  git push --no-verify');
     
-    return ZT.err(new ZT.Error('DOCKER_TESTS_FAILED', 'Docker tests failed'));
+    return ZT.err(new ZeroThrow.ZeroError('DOCKER_TESTS_FAILED', 'Docker tests failed'));
   }
   
   console.log(chalk.green('\n🎉 All tests passed! Safe to push.'));

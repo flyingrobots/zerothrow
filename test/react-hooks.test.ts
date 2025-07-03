@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import type { UseResultState } from '../src/react-hooks.js';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('useResult types', () => {
   it('should have correct type definitions', () => {
@@ -27,16 +27,16 @@ describe('useResult types', () => {
   });
 
   it('should handle error state types', () => {
-    const mockErrorState: UseResultState<string, ZT.Error> = {
+    const mockErrorState: UseResultState<string, ZeroThrow.ZeroError> = {
       data: null,
-      error: new ZT.Error('TEST_ERR', 'Test error'),
+      error: new ZeroThrow.ZeroError('TEST_ERR', 'Test error'),
       loading: false,
       refetch: () => {},
       reset: () => {},
     };
 
     expect(mockErrorState.data).toBe(null);
-    expect(mockErrorState.error).toBeInstanceOf(ZT.Error);
+    expect(mockErrorState.error).toBeInstanceOf(ZeroThrow.ZeroError);
     expect(mockErrorState.error?.code).toBe('TEST_ERR');
   });
 
@@ -61,11 +61,11 @@ describe('useResult usage examples', () => {
     // Mock async function that returns a Result
     const fetchUser = async (
       id: number
-    ): Promise<ZT.Result<{ name: string; id: number }>> => {
+    ): Promise<ZeroThrow.Result<{ name: string; id: number }>> => {
       if (id > 0) {
         return ZT.ok({ name: 'John Doe', id });
       }
-      return ZT.err(new ZT.Error('USER_NOT_FOUND', `User ${id} not found`));
+      return ZT.err(new ZeroThrow.ZeroError('USER_NOT_FOUND', `User ${id} not found`));
     };
 
     // This is how you would use it in a component:
@@ -86,7 +86,7 @@ describe('useResult usage examples', () => {
   });
 
   it('demonstrates error handling pattern - success case', async () => {
-    const successfulOperation = async (): Promise<ZT.Result<string>> => {
+    const successfulOperation = async (): Promise<ZeroThrow.Result<string>> => {
       return ZT.ok('Success!');
     };
 
@@ -99,9 +99,9 @@ describe('useResult usage examples', () => {
   });
 
   it('demonstrates error handling pattern - failure case', async () => {
-    const failingOperation = async (): Promise<ZT.Result<string>> => {
+    const failingOperation = async (): Promise<ZeroThrow.Result<string>> => {
       return ZT.err(
-        new ZT.Error('OPERATION_FAILED', 'Operation failed', {
+        new ZeroThrow.ZeroError('OPERATION_FAILED', 'Operation failed', {
           cause: new Error('Controlled failure'),
         })
       );

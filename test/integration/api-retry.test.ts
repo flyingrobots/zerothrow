@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ZT } from '../../src/index.js';
+import { ZT, ZeroThrow } from '../../src/index.js';
 
 // Real-world API client integration test
 interface User {
@@ -22,7 +22,7 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async fetchUser(userId: string): Promise<ZT.Result<User, ZT.Error>> {
+  async fetchUser(userId: string): Promise<ZeroThrow.Result<User, ZeroThrow.ZeroError>> {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       const result = await this.attemptFetch(userId, attempt);
 
@@ -35,7 +35,7 @@ class ApiClient {
 
       if (!isRetryable || attempt === this.maxRetries) {
         return ZT.err(
-          ZT.wrap(
+          ZeroThrow.wrap(
             error,
             'API_FETCH_FAILED',
             `Failed to fetch user after ${attempt} attempts`,
@@ -52,20 +52,20 @@ class ApiClient {
       await this.delay(this.retryDelay * attempt);
     }
 
-    return ZT.err(new ZT.Error('RETRY_EXHAUSTED', 'All retry attempts failed'));
+    return ZT.err(new ZeroThrow.ZeroError('RETRY_EXHAUSTED', 'All retry attempts failed'));
   }
 
   private async attemptFetch(
     userId: string,
     attempt: number
-  ): Promise<ZT.Result<User, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<User, ZeroThrow.ZeroError>> {
     try {
       const response = await fetch(`${this.baseUrl}/users/${userId}`);
 
       if (!response.ok) {
         // Return HTTP error directly without wrapping as NETWORK_ERROR
         return ZT.err(
-          new ZT.Error(
+          new ZeroThrow.ZeroError(
             'HTTP_ERROR',
             `HTTP ${response.status}: ${response.statusText}`,
             {
@@ -83,7 +83,7 @@ class ApiClient {
     } catch (e) {
       // Only network/connection errors get wrapped as NETWORK_ERROR
       return ZT.err(
-        ZT.wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
+        ZeroThrow.wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
           userId,
           attempt,
           originalError: (e as Error).message,
@@ -92,7 +92,7 @@ class ApiClient {
     }
   }
 
-  private isRetryableError(error: ZT.Error): boolean {
+  private isRetryableError(error: ZeroThrow.ZeroError): boolean {
     // Only retry on specific network errors, not HTTP errors
     return error.code === 'NETWORK_ERROR' && !error.message.includes('HTTP');
   }

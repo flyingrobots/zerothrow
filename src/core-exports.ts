@@ -10,10 +10,8 @@ import {
   type Err as _Err,
   ok as _ok,
   err as _err,
-  tryR as _tryR,
-  tryRSync as _tryRSync,
-  tryRBatch as _tryRBatch,
-  wrap as _wrap
+  wrap as _wrap,
+  normalise as _normalise
 } from './result.js';
 
 import {
@@ -65,36 +63,78 @@ export const err = _err;
 
 // NEW: attempt function (replaces tryR, tryRSync, tryRBatch)
 // Single overloaded function that handles all cases
-export function attempt<T>(fn: () => T): Result<T, _ZeroError>;
-export function attempt<T>(fn: () => Promise<T>): Promise<Result<T, _ZeroError>>;
-export function attempt<T>(fn: () => T, mapError: (e: unknown) => _ZeroError): Result<T, _ZeroError>;
-export function attempt<T>(fn: () => Promise<T>, mapError: (e: unknown) => _ZeroError): Promise<Result<T, _ZeroError>>;
-export function attempt<T>(operations: Array<() => T | Promise<T>>): Promise<Result<T[], _ZeroError>>;
-export function attempt<T>(operations: Array<() => T | Promise<T>>, mapError: (e: unknown) => _ZeroError): Promise<Result<T[], _ZeroError>>;
+export function attempt<T>(fn: () => T): Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>;
+export function attempt<T>(fn: () => Promise<T>): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>>;
+export function attempt<T>(fn: () => T, mapError: (e: unknown) => _ZeroError): Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>;
+export function attempt<T>(fn: () => Promise<T>, mapError: (e: unknown) => _ZeroError): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>>;
+export function attempt<T>(operations: Array<() => T | Promise<T>>): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>>;
+export function attempt<T>(operations: Array<() => T | Promise<T>>, mapError: (e: unknown) => _ZeroError): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>>;
 export function attempt<T>(
   fnOrOps: (() => T) | (() => Promise<T>) | Array<() => T | Promise<T>>,
   mapError?: (e: unknown) => _ZeroError
-): Result<T, _ZeroError> | Promise<Result<T, _ZeroError>> | Promise<Result<T[], _ZeroError>> {
+): (Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>) | Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> | Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>> {
   // Handle array of operations (batch)
   if (Array.isArray(fnOrOps)) {
-    return _tryRBatch(fnOrOps as any, mapError as any) as any;
+    return attemptBatch(fnOrOps, mapError);
   }
   
   // Try to execute the function
   try {
     const result = fnOrOps();
     
-    // If it's a promise, use tryR
+    // If it's a promise, handle async
     if (result && typeof result === 'object' && 'then' in result) {
-      return _tryR(fnOrOps as () => Promise<T>, mapError as any) as any;
+      return attemptAsync(fnOrOps as () => Promise<T>, mapError);
     }
     
-    // Otherwise use tryRSync
-    return _tryRSync(fnOrOps as () => T, mapError as any) as any;
+    // Sync result
+    return ok(result as T);
   } catch (e) {
-    // Function threw synchronously, use tryRSync
-    return _tryRSync(fnOrOps as () => T, mapError as any) as any;
+    // Function threw synchronously
+    const base = _normalise(e);
+    return err(mapError ? mapError(base) : base);
   }
+}
+
+// Internal: async implementation
+function attemptAsync<T>(
+  fn: () => Promise<T>,
+  map?: (e: unknown) => _ZeroError
+): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> {
+  return Promise.resolve(fn()).then(
+    (value) => ok(value),
+    (error) => {
+      const base = _normalise(error);
+      return err(map ? map(base) : base);
+    }
+  );
+}
+
+// Internal: batch implementation
+async function attemptBatch<T>(
+  fns: Array<() => T | Promise<T>>,
+  map?: (e: unknown) => _ZeroError
+): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>> {
+  const results: T[] = [];
+
+  for (const fn of fns) {
+    // Always await Promise.resolve to handle both sync and async uniformly
+    const promisedResult = Promise.resolve().then(() => fn()).then(
+      (value) => ok(value),
+      (error) => {
+        const base = _normalise(error);
+        return err(map ? map(base) : base);
+      }
+    );
+    
+    const result = await promisedResult;
+    if (!result.ok) {
+      return result as Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>;
+    }
+    results.push(result.value);
+  }
+
+  return ok(results);
 }
 
 // Temporary alias for grace period
@@ -149,5 +189,35 @@ export const collect = _collect;
 export const collectAsync = _collectAsync;
 export const firstSuccess = _firstSuccess;
 
-// Internal function - makeCombinable (not exported)
-// Note: 'enhance' is used for the promise wrapper function above
+// Type guards
+export function isResult<T = unknown, E extends globalThis.Error = _ZeroError>(
+  value: unknown
+): value is Result<T, E> {
+  if (
+    value === null ||
+    typeof value !== 'object' ||
+    !('ok' in value) ||
+    typeof (value as any).ok !== 'boolean'
+  ) {
+    return false;
+  }
+  
+  const v = value as any;
+  if (v.ok === true) {
+    return 'value' in v;
+  } else {
+    return 'error' in v && v.error instanceof globalThis.Error;
+  }
+}
+
+export function isOk<T = unknown>(value: unknown): value is Ok<T> {
+  return isResult(value) && value.ok === true;
+}
+
+export function isErr<E extends globalThis.Error = _ZeroError>(
+  value: unknown
+): value is Err<E> {
+  return isResult(value) && value.ok === false;
+}
+
+

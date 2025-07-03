@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { readFile } from '../lib/shared';
 import chalk from 'chalk';
 
@@ -61,18 +61,18 @@ function parseArgs(): CoverageCheckConfig {
 }
 
 // Read and parse coverage summary
-function readCoverageSummary(path: string): ZT.Promise<CoverageSummary> {
-  return ZT.promise(readFile(path))
-    .mapErr(() => new ZT.Error('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
+function readCoverageSummary(path: string): ZeroThrow.Promise<CoverageSummary, ZeroThrow.ZeroError> {
+  return ZeroThrow.enhance(readFile(path))
+    .mapErr(() => new ZeroThrow.ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
       context: {
         path,
         hint: 'Run tests with coverage first: npm test -- --coverage'
       }
     }))
     .andThen(content =>
-      ZT.tryR(
+      ZT.try(
         () => JSON.parse(content) as CoverageSummary,
-        e => new ZT.Error('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
+        e => new ZeroThrow.ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
           context: {
             path,
             error: (e as Error).message
@@ -83,7 +83,7 @@ function readCoverageSummary(path: string): ZT.Promise<CoverageSummary> {
 }
 
 // Check coverage against threshold
-function checkCoverage(summary: CoverageSummary, threshold: number): ZT.Result<void> {
+function checkCoverage(summary: CoverageSummary, threshold: number): ZeroThrow.Result<void, ZeroThrow.ZeroError> {
   const metrics = ['lines', 'statements', 'functions', 'branches'] as const;
   const results: Array<{ metric: string; pct: number; passed: boolean }> = [];
   let allPassed = true;
@@ -115,7 +115,7 @@ function checkCoverage(summary: CoverageSummary, threshold: number): ZT.Result<v
     console.error(chalk.yellow('2. Check the coverage/lcov-report/index.html file'));
     
     const failedMetrics = results.filter(r => !r.passed);
-    return ZT.err(new ZT.Error('COVERAGE_THRESHOLD_NOT_MET', 'Coverage below threshold', {
+    return ZT.err(new ZeroThrow.ZeroError('COVERAGE_THRESHOLD_NOT_MET', 'Coverage below threshold', {
       context: {
         threshold,
         failedMetrics
@@ -130,7 +130,7 @@ function checkCoverage(summary: CoverageSummary, threshold: number): ZT.Result<v
 // Export for programmatic use
 export function checkCoverageThreshold(
   config: Partial<CoverageCheckConfig> = {}
-): ZT.Promise<void> {
+): ZeroThrow.Promise<void, ZeroThrow.ZeroError> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
   return readCoverageSummary(finalConfig.summaryPath)
@@ -146,6 +146,6 @@ async function main(): Promise<number> {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().then(exitCode => process.exit(exitCode));
 }

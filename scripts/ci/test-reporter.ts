@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { execCmd, readFile } from '../lib/shared';
 import chalk from 'chalk';
 import { existsSync } from 'fs';
@@ -28,7 +28,7 @@ async function extractErrors(
   logFile: string,
   pattern: RegExp,
   maxLines: number
-): Promise<ZT.Result<string[], ZT.ZeroError>> {
+): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
   if (!existsSync(logFile)) {
     return ZT.ok([]);
   }
@@ -68,7 +68,7 @@ function getDebuggingTip(testName: string): string {
 export async function generateTestReport(
   results: TestResult[],
   options: ReportOptions = {}
-): Promise<ZT.Result<string, ZT.ZeroError>> {
+): Promise<ZeroThrow.Result<string, ZeroThrow.ZeroError>> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const lines: string[] = [];
   
@@ -120,7 +120,7 @@ export async function generateTestReport(
       lines.push(chalk.yellow(`  - ${test.name}: ${getDebuggingTip(test.name)}`));
     });
     
-    return ZT.err(new ZT.ZeroError('TESTS_FAILED', 'Some tests failed', {
+    return ZT.err(new ZeroThrow.ZeroError('TESTS_FAILED', 'Some tests failed', {
       failedCount: failedTests.length,
       failedTests: failedTests.map(t => t.name)
     }));
@@ -203,6 +203,6 @@ async function main(): Promise<number> {
 }
 
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().then(exitCode => process.exit(exitCode));
 }

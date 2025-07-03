@@ -1,56 +1,55 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 
 const execAsync = promisify(exec);
 
 // Execute shell command and return Result  
-export async function execCmd(cmd: string): Promise<ZT.Result<string, ZT.ZeroError>> {
-  return ZT.tryR(
-    async () => {
-      const { stdout } = await execAsync(cmd);
-      return stdout.trim();
-    },
-    e => ZT.wrap(e, 'EXEC_FAILED', `Command failed: ${cmd}`)
-  );
+export async function execCmd(cmd: string): Promise<ZeroThrow.Result<string, ZeroThrow.ZeroError>> {
+  try {
+    const { stdout } = await execAsync(cmd);
+    return ZT.ok(stdout.trim());
+  } catch (e) {
+    return ZT.err(ZeroThrow.wrap(e as Error, 'EXEC_FAILED', `Command failed: ${cmd}`));
+  }
 }
 
 // Execute shell command with inherited stdio (for interactive commands)
-export async function execCmdInteractive(cmd: string): Promise<ZT.Result<void, ZT.ZeroError>> {
-  return ZT.tryR(
-    () => new Promise<void>((resolve, reject) => {
-      exec(cmd, { stdio: 'inherit' }, (error) => {
-        if (error) reject(error);
-        else resolve();
-      });
-    }),
-    e => ZT.wrap(e, 'EXEC_INTERACTIVE_FAILED', `Interactive command failed: ${cmd}`)
-  );
+export async function execCmdInteractive(cmd: string): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  return new Promise((resolve) => {
+    exec(cmd, { stdio: 'inherit' } as any, (error) => {
+      if (error) {
+        resolve(ZT.err(ZeroThrow.wrap(error, 'EXEC_INTERACTIVE_FAILED', `Interactive command failed: ${cmd}`)));
+      } else {
+        resolve(ZT.ok(undefined));
+      }
+    });
+  });
 }
 
 // Read JSON file
-export async function readJsonFile<T = any>(filePath: string): Promise<ZT.Result<T, ZT.ZeroError>> {
+export async function readJsonFile<T = any>(filePath: string): Promise<ZeroThrow.Result<T, ZeroThrow.ZeroError>> {
   if (!existsSync(filePath)) {
-    return ZT.err(new ZT.ZeroError('FILE_NOT_FOUND', `File not found: ${filePath}`));
+    return ZT.err(new ZeroThrow.ZeroError('FILE_NOT_FOUND', `File not found: ${filePath}`));
   }
   
-  return ZT.tryR(
+  return ZT.try(
     () => {
       const content = readFileSync(filePath, 'utf8');
       return JSON.parse(content) as T;
     },
-    e => ZT.wrap(e, 'JSON_PARSE_FAILED', `Failed to read JSON file: ${filePath}`)
+    e => ZeroThrow.wrap(e as Error, 'JSON_PARSE_FAILED', `Failed to read JSON file: ${filePath}`)
   );
 }
 
 // Write JSON file
-export async function writeJsonFile(filePath: string, data: any): Promise<ZT.Result<void, ZT.ZeroError>> {
-  return ZT.tryR(
+export async function writeJsonFile(filePath: string, data: any): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  return ZT.try(
     () => {
       writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
     },
-    e => ZT.wrap(e, 'FILE_WRITE_FAILED', `Failed to write JSON file: ${filePath}`)
+    e => ZeroThrow.wrap(e as Error, 'FILE_WRITE_FAILED', `Failed to write JSON file: ${filePath}`)
   );
 }
 
@@ -60,29 +59,29 @@ export function fileExists(path: string): boolean {
 }
 
 // Read file as string
-export async function readFile(path: string): Promise<ZT.Result<string, ZT.ZeroError>> {
+export async function readFile(path: string): Promise<ZeroThrow.Result<string, ZeroThrow.ZeroError>> {
   if (!existsSync(path)) {
-    return ZT.err(new ZT.ZeroError('FILE_NOT_FOUND', `File not found: ${path}`));
+    return ZT.err(new ZeroThrow.ZeroError('FILE_NOT_FOUND', `File not found: ${path}`));
   }
   
-  return ZT.tryR(
+  return ZT.try(
     () => readFileSync(path, 'utf8'),
-    e => ZT.wrap(e, 'FILE_READ_FAILED', `Failed to read file: ${path}`)
+    e => ZeroThrow.wrap(e as Error, 'FILE_READ_FAILED', `Failed to read file: ${path}`)
   );
 }
 
 // Write file
-export async function writeFile(path: string, content: string): Promise<ZT.Result<void, ZT.ZeroError>> {
-  return ZT.tryR(
+export async function writeFile(path: string, content: string): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  return ZT.try(
     () => writeFileSync(path, content),
-    e => ZT.wrap(e, 'FILE_WRITE_FAILED', `Failed to write file: ${path}`)
+    e => ZeroThrow.wrap(e as Error, 'FILE_WRITE_FAILED', `Failed to write file: ${path}`)
   );
 }
 
 // Combinable versions for fluent chaining
-export const execCmdC = (cmd: string) => execCmd(cmd).then(ZT.makeCombinable);
-export const execCmdInteractiveC = (cmd: string) => execCmdInteractive(cmd).then(ZT.makeCombinable);
-export const readJsonFileC = <T = any>(filePath: string) => readJsonFile<T>(filePath).then(ZT.makeCombinable);
-export const writeJsonFileC = (filePath: string, data: any) => writeJsonFile(filePath, data).then(ZT.makeCombinable);
-export const readFileC = (path: string) => readFile(path).then(ZT.makeCombinable);
-export const writeFileC = (path: string, content: string) => writeFile(path, content).then(ZT.makeCombinable);
+export const execCmdC = (cmd: string) => execCmd(cmd).then(r => r);
+export const execCmdInteractiveC = (cmd: string) => execCmdInteractive(cmd).then(r => r);
+export const readJsonFileC = <T = any>(filePath: string) => readJsonFile<T>(filePath).then(r => r);
+export const writeJsonFileC = (filePath: string, data: any) => writeJsonFile(filePath, data).then(r => r);
+export const readFileC = (path: string) => readFile(path).then(r => r);
+export const writeFileC = (path: string, content: string) => writeFile(path, content).then(r => r);

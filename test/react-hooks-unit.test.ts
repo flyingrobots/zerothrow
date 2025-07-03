@@ -3,7 +3,7 @@
  * Tests the hook implementation directly
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('useResult hook coverage', () => {
   let mockStates: any[] = [];
@@ -126,7 +126,7 @@ describe('useResult hook coverage', () => {
   });
 
   it('handles error result in effect', async () => {
-    const testError = new ZT.Error('TEST_ERR', 'Test error');
+    const testError = new ZeroThrow.ZeroError('TEST_ERR', 'Test error');
 
     // Mock the fetcher to return an error
     const mockFetcher = vi.fn().mockResolvedValue(ZT.err(testError));

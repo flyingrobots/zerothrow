@@ -1,4 +1,4 @@
-import { type Result, ok, err } from './result.js';
+import { type Result, type Ok, type Err, ok, err, _ok, _err } from './result.js';
 import { ZeroError } from './error.js';
 
 /**
@@ -61,7 +61,7 @@ export function makeCombinable<T, E extends Error = ZeroError>(
       fn: (error: E) => F
     ): Result<T, F> & ResultCombinable<T, F> {
       if (this.ok) return makeCombinable(this as Result<T, F>);
-      return makeCombinable(err(fn(this.error)));
+      return makeCombinable(_err(fn(this.error)));
     },
 
     map: function <U>(
@@ -69,7 +69,7 @@ export function makeCombinable<T, E extends Error = ZeroError>(
       fn: (value: T) => U
     ): Result<U, E> & ResultCombinable<U, E> {
       if (!this.ok) return makeCombinable(this as Result<U, E>);
-      return makeCombinable(ok(fn(this.value)));
+      return makeCombinable(_ok(fn(this.value)));
     },
 
     orElse: function (

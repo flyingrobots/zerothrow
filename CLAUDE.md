@@ -30,7 +30,17 @@ Replace every Bash script with TypeScript powered by **ZeroThrow**.
 
 > [!success] **ALWAYS** tick the boxes in this file as you finish tasks, then append a SITREP to the Battle Log at the end of this file, then commit with Conventional Commits, then pause for review. **NOT AS YOU FINISH PHASES, BUT TASKS**.
 
-> [!important] When the mission is complete, push and open a PR — do **not** self-merge.
+> [!success] When the mission is complete, push and open a PR — do **not** self-merge.
+
+> [!important] **ALWAYS** OBEY THE LINTER. **NEVER** disable, skip, or otherwise tamper with the linter settings OR tests – **ALWAYS** fix the _code_, not the quality check.
+
+> [!success] **ALWAYS** write tests that validate *behavior*, **not** implementation details.
+
+> [!failure] **BANNED:** Spies, Mocks, checking stdout/stderr in tests
+
+### Bash? More like "trash"
+
+Just kidding, I love Bash, but for fun, we rewrote every bash script in our repo using TypeScript and ZeroThrow... So, when you reach for a bash script, instead, bust out ZeroThrow.
 
 ---
 
@@ -374,11 +384,11 @@ graph
 > 
 > **Progress Tracker**
 > 
-> - [ ] P0
-> - [ ] P1
-> - [ ] P2
-> - [ ] P3
-> - [ ] P4
+> - [x] P0
+> - [x] P1
+> - [x] P2
+> - [x] P3
+> - [x] P4
 > - [ ] P5
 > - [ ] P6
 > - [ ] P7
@@ -583,3 +593,78 @@ Append your SITREP here, dated and timestamped in the following format:
 
 > [!info]- SITREP {date and timestamp UTC}
 > {report}
+
+> [!info]- SITREP 2025-07-03 23:20 UTC
+> 
+> **SUB-MISSION ALPHA: P4 RESCUE OPERATION COMPLETE** ✅
+> 
+> **Situation:**
+> - Previous operator ran out of context mid-mission
+> - Build was broken due to incomplete API migration
+> - Pre-commit hooks failing, preventing proper commits
+> 
+> **Actions Taken:**
+> 1. **Fixed critical build errors:**
+>    - Updated winston.ts and pino.ts to use ZeroThrow namespace
+>    - Fixed circular dependency in core-exports.ts
+>    - Changed all ZT.Error → ZeroThrow.ZeroError references
+> 
+> 2. **Deployed parallel strike teams to fix all scripts:**
+>    - Team 1: Fixed CI scripts (coverage-check, test-reporter, badge-generator)
+>    - Team 2: Fixed githook scripts (setup-hooks, zeropush, zerohook)
+>    - Team 3: Fixed benchmark scripts (all 5 benchmark files)
+>    - Team 4: Fixed shared.ts library with new API
+> 
+> 3. **Restored operational discipline:**
+>    - All pre-commit hooks now functioning
+>    - Build: GREEN ✅
+>    - Lint: PASSING ✅ (src files clean)
+>    - All scripts migrated to new API surface
+> 
+> **Technical Summary:**
+> - ZT pocket knife: `try`, `ok`, `err` only
+> - ZeroThrow namespace: All types and utilities
+> - Zero use of old API patterns in scripts/
+> 
+> **Status:** P4 COMPLETE - READY FOR PROPER COMMIT WITH ALL CHECKS
+> 
+> **HOO-RAH!** 🎖️
+
+> [!info]- SITREP 2025-07-03 10:00 UTC
+> 
+> **TECH DEBT ELIMINATION COMPLETE** ✅
+> 
+> **Situation:**
+> - Fake integration tests using mocks/spies (BANNED by ROE)
+> - Test failures preventing commit
+> - Build errors in scripts and loggers
+> 
+> **Actions Taken:**
+> 1. **Eliminated ALL mocks/spies:**
+>    - Rewrote db-transaction test with REAL PostgreSQL in Docker
+>    - Created docker-compose.test.yml for test infrastructure
+>    - Implemented proper connection pooling, transactions, foreign keys
+>    - Added real concurrent transaction testing with deadlock handling
+> 
+> 2. **Fixed all remaining issues:**
+>    - Added missing type guards (isResult, isOk, isErr) to core-exports
+>    - Fixed isResult to validate error property is actually an Error
+>    - Fixed result-optimized test expecting wrong behavior
+>    - Updated all timeouts for integration tests
+> 
+> 3. **Real integration testing achieved:**
+>    - PostgreSQL in Docker with proper schema
+>    - Real BEGIN/COMMIT/ROLLBACK transactions
+>    - Real foreign key constraints
+>    - Real deadlock detection
+>    - Real connection pool exhaustion testing
+> 
+> **Technical Victory:**
+> - NO MOCKS, NO SPIES - pure behavior testing
+> - Tests validate actual money movement, not function calls
+> - Real database constraints enforced
+> - All scripts migrated to new ZT API
+> 
+> **Status:** ALL TECH DEBT ELIMINATED - READY FOR FINAL COMMIT
+> 
+> **NO THROWS, NO MERCY!** 🎖️

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ZT } from '../../src/index.js';
+import { ZT, ZeroThrow } from '../../src/index.js';
 
 // Real-world User Singleton Integration Test
 interface User {
@@ -28,9 +28,9 @@ interface DatabaseConfig {
 class UserManager {
   private static instance: UserManager | null = null;
   private static initializationPromise: Promise<
-    ZT.Result<UserManager, ZT.Error>
+    ZeroThrow.Result<UserManager, ZeroThrow.ZeroError>
   > | null = null;
-  private static initializationError: ZT.Error | null = null;
+  private static initializationError: ZeroThrow.ZeroError | null = null;
 
   private currentUser: User | null = null;
   private dbConfig: DatabaseConfig;
@@ -49,7 +49,7 @@ class UserManager {
 
   static async getInstance(
     config?: DatabaseConfig
-  ): Promise<ZT.Result<UserManager, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<UserManager, ZeroThrow.ZeroError>> {
     // If already successfully initialized, return the instance
     if (UserManager.instance && UserManager.instance.initialized) {
       return ZT.ok(UserManager.instance);
@@ -78,10 +78,10 @@ class UserManager {
 
   private static async initialize(
     config?: DatabaseConfig
-  ): Promise<ZT.Result<UserManager, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<UserManager, ZeroThrow.ZeroError>> {
     if (!config) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'CONFIG_MISSING',
           'Database configuration is required for initialization'
         )
@@ -101,7 +101,7 @@ class UserManager {
     const dbResult = await instance.initializeDatabase();
     if (!dbResult.ok) {
       return ZT.err(
-        ZT.wrap(dbResult.error, 'INIT_FAILED', 'Failed to initialize UserManager')
+        ZeroThrow.wrap(dbResult.error, 'INIT_FAILED', 'Failed to initialize UserManager')
       );
     }
 
@@ -109,7 +109,7 @@ class UserManager {
     const userResult = await instance.loadCurrentUser();
     if (!userResult.ok && userResult.error.code !== 'NO_CURRENT_USER') {
       return ZT.err(
-        ZT.wrap(userResult.error, 'INIT_FAILED', 'Failed to load current user')
+        ZeroThrow.wrap(userResult.error, 'INIT_FAILED', 'Failed to load current user')
       );
     }
 
@@ -121,26 +121,26 @@ class UserManager {
 
   private static validateConfig(
     config: DatabaseConfig
-  ): ZT.Result<void, ZT.Error> {
+  ): ZeroThrow.Result<void, ZeroThrow.ZeroError> {
     if (!config.host || config.host.trim().length === 0) {
-      return ZT.err(new ZT.Error('INVALID_CONFIG', 'Database host is required'));
+      return ZT.err(new ZeroThrow.ZeroError('INVALID_CONFIG', 'Database host is required'));
     }
 
     if (!config.port || config.port < 1 || config.port > 65535) {
       return ZT.err(
-        new ZT.Error('INVALID_CONFIG', 'Invalid database port', {
+        new ZeroThrow.ZeroError('INVALID_CONFIG', 'Invalid database port', {
           port: config.port,
         })
       );
     }
 
     if (!config.database || config.database.trim().length === 0) {
-      return ZT.err(new ZT.Error('INVALID_CONFIG', 'Database name is required'));
+      return ZT.err(new ZeroThrow.ZeroError('INVALID_CONFIG', 'Database name is required'));
     }
 
     if (config.timeout < 0) {
       return ZT.err(
-        new ZT.Error('INVALID_CONFIG', 'Timeout must be non-negative', {
+        new ZeroThrow.ZeroError('INVALID_CONFIG', 'Timeout must be non-negative', {
           timeout: config.timeout,
         })
       );
@@ -149,8 +149,8 @@ class UserManager {
     return ZT.ok(undefined);
   }
 
-  private async initializeDatabase(): Promise<ZT.Result<void, ZT.Error>> {
-    return ZT.tryR(
+  private async initializeDatabase(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+    return ZT.try(
       async () => {
         // Simulate database connection
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -166,14 +166,14 @@ class UserManager {
         );
       },
       (e) =>
-        ZT.wrap(e, 'DB_CONNECTION_ERROR', 'Failed to connect to database', {
+        ZeroThrow.wrap(e, 'DB_CONNECTION_ERROR', 'Failed to connect to database', {
           config: this.dbConfig,
         })
     );
   }
 
-  private async loadCurrentUser(): Promise<ZT.Result<User, ZT.Error>> {
-    return ZT.tryR(
+  private async loadCurrentUser(): Promise<ZeroThrow.Result<User, ZeroThrow.ZeroError>> {
+    return ZT.try(
       async () => {
         // Simulate loading user from session/cache
         await new Promise((resolve) => setTimeout(resolve, 20));
@@ -201,12 +201,12 @@ class UserManager {
       },
       (e) => {
         if (e.message === 'No current user') {
-          return new ZT.Error(
+          return new ZeroThrow.ZeroError(
             'NO_CURRENT_USER',
             'No user currently logged in'
           );
         }
-        return ZT.wrap(e, 'USER_LOAD_ERROR', 'Failed to load current user');
+        return ZeroThrow.wrap(e, 'USER_LOAD_ERROR', 'Failed to load current user');
       }
     );
   }
@@ -214,14 +214,14 @@ class UserManager {
   async login(
     username: string,
     password: string
-  ): Promise<ZT.Result<User, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<User, ZeroThrow.ZeroError>> {
     if (!this.initialized) {
       return ZT.err(
-        new ZT.Error('NOT_INITIALIZED', 'UserManager not initialized')
+        new ZeroThrow.ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
       );
     }
 
-    return ZT.tryR(
+    return ZT.try(
       async () => {
         // Simulate authentication
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -246,24 +246,24 @@ class UserManager {
         this.currentUser = user;
         return user;
       },
-      (e) => ZT.wrap(e, 'LOGIN_ERROR', 'Login failed', { username })
+      (e) => ZeroThrow.wrap(e, 'LOGIN_ERROR', 'Login failed', { username })
     );
   }
 
   async updatePreferences(
     preferences: Partial<UserPreferences>
-  ): Promise<ZT.Result<User, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<User, ZeroThrow.ZeroError>> {
     if (!this.initialized) {
       return ZT.err(
-        new ZT.Error('NOT_INITIALIZED', 'UserManager not initialized')
+        new ZeroThrow.ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
       );
     }
 
     if (!this.currentUser) {
-      return ZT.err(new ZT.Error('NO_USER', 'No user logged in'));
+      return ZT.err(new ZeroThrow.ZeroError('NO_USER', 'No user logged in'));
     }
 
-    return ZT.tryR(
+    return ZT.try(
       async () => {
         // Simulate API call
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -280,19 +280,19 @@ class UserManager {
         return this.currentUser;
       },
       (e) =>
-        ZT.wrap(e, 'UPDATE_ERROR', 'Failed to update preferences', { preferences })
+        ZeroThrow.wrap(e, 'UPDATE_ERROR', 'Failed to update preferences', { preferences })
     );
   }
 
-  getCurrentUser(): ZT.Result<User, ZT.Error> {
+  getCurrentUser(): ZeroThrow.Result<User, ZeroThrow.ZeroError> {
     if (!this.initialized) {
       return ZT.err(
-        new ZT.Error('NOT_INITIALIZED', 'UserManager not initialized')
+        new ZeroThrow.ZeroError('NOT_INITIALIZED', 'UserManager not initialized')
       );
     }
 
     if (!this.currentUser) {
-      return ZT.err(new ZT.Error('NO_USER', 'No user logged in'));
+      return ZT.err(new ZeroThrow.ZeroError('NO_USER', 'No user logged in'));
     }
 
     return ZT.ok(this.currentUser);

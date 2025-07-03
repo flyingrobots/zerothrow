@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ZT } from '../../src'
+import { ZT, ZeroThrow } from '../../src'
 
 const ITERATIONS = 1_000_000
 
@@ -24,14 +24,14 @@ ${c.cyan}╔══════════════════════�
 `)
 
 // Strategy 1: Current approach - new error every time
-function currentApproach(i: number): ZT.Result<number> {
-  if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', 'fail ' + i))
+function currentApproach(i: number): ZeroThrow.Result<number> {
+  if (i % 2 === 0) return ZT.err(new ZeroThrow.ZeroError('FAIL', 'fail ' + i))
   return ZT.ok(i)
 }
 
 // Strategy 2: Pre-allocated error pool
 class ErrorPool {
-  private pool: ZT.ZeroError[] = []
+  private pool: ZeroThrow.ZeroError[] = []
   private index = 0
   private size: number
 
@@ -39,11 +39,11 @@ class ErrorPool {
     this.size = size
     // Pre-allocate errors
     for (let i = 0; i < size; i++) {
-      this.pool.push(new ZT.ZeroError('FAIL', ''))
+      this.pool.push(new ZeroThrow.ZeroError('FAIL', ''))
     }
   }
 
-  getError(message: string): ZT.ZeroError {
+  getError(message: string): ZeroThrow.ZeroError {
     const error = this.pool[this.index]
     error.message = message
     this.index = (this.index + 1) % this.size
@@ -53,20 +53,20 @@ class ErrorPool {
 
 const errorPool = new ErrorPool(1000)
 
-function pooledApproach(i: number): ZT.Result<number> {
+function pooledApproach(i: number): ZeroThrow.Result<number> {
   if (i % 2 === 0) return ZT.err(errorPool.getError('fail ' + i))
   return ZT.ok(i)
 }
 
 // Strategy 3: Singleton errors for common cases
 const COMMON_ERRORS = {
-  VALIDATION_FAILED: new ZT.ZeroError('VALIDATION_FAILED', 'Validation failed'),
-  NOT_FOUND: new ZT.ZeroError('NOT_FOUND', 'Not found'),
-  UNAUTHORIZED: new ZT.ZeroError('UNAUTHORIZED', 'Unauthorized'),
-  SERVER_ERROR: new ZT.ZeroError('SERVER_ERROR', 'Server error'),
+  VALIDATION_FAILED: new ZeroThrow.ZeroError('VALIDATION_FAILED', 'Validation failed'),
+  NOT_FOUND: new ZeroThrow.ZeroError('NOT_FOUND', 'Not found'),
+  UNAUTHORIZED: new ZeroThrow.ZeroError('UNAUTHORIZED', 'Unauthorized'),
+  SERVER_ERROR: new ZeroThrow.ZeroError('SERVER_ERROR', 'Server error'),
 }
 
-function singletonApproach(i: number): ZT.Result<number> {
+function singletonApproach(i: number): ZeroThrow.Result<number> {
   if (i % 4 === 0) return ZT.err(COMMON_ERRORS.VALIDATION_FAILED)
   if (i % 4 === 1) return ZT.err(COMMON_ERRORS.NOT_FOUND)
   if (i % 4 === 2) return ZT.err(COMMON_ERRORS.UNAUTHORIZED)
@@ -74,12 +74,12 @@ function singletonApproach(i: number): ZT.Result<number> {
 }
 
 // Strategy 4: Lazy error creation
-const lazyErr = <T>(code: string, message: string): ZT.Result<T> => ({
+const lazyErr = <T>(code: string, message: string): ZeroThrow.Result<T> => ({
   ok: false,
-  error: new ZT.ZeroError(code, message)
+  error: new ZeroThrow.ZeroError(code, message)
 })
 
-function lazyApproach(i: number): ZT.Result<number> {
+function lazyApproach(i: number): ZeroThrow.Result<number> {
   if (i % 2 === 0) return lazyErr('FAIL', 'fail ' + i)
   return ZT.ok(i)
 }
@@ -118,7 +118,7 @@ class MutableError extends Error {
 
 const mutableError = new MutableError()
 
-function mutableApproach(i: number): ZT.Result<number> {
+function mutableApproach(i: number): ZeroThrow.Result<number> {
   if (i % 2 === 0) {
     return ZT.err(mutableError.reset('FAIL', 'fail ' + i))
   }
@@ -184,9 +184,9 @@ ${'─'.repeat(70)}
 const memBefore = process.memoryUsage().heapUsed
 
 // Create many errors with current approach
-const currentErrors: ZT.Result<number>[] = []
+const currentErrors: ZeroThrow.Result<number>[] = []
 for (let i = 0; i < 10000; i++) {
-  currentErrors.push(ZT.err(new ZT.ZeroError('TEST', 'message ' + i)))
+  currentErrors.push(ZT.err(new ZeroThrow.ZeroError('TEST', 'message ' + i)))
 }
 const memAfterCurrent = process.memoryUsage().heapUsed
 

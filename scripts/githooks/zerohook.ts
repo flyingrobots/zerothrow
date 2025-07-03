@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -19,7 +19,7 @@ type GitDiff = {
 
 
 // Get staged TypeScript files
-async function getStagedFiles(): Promise<ZT.Result<string[], ZT.ZeroError>> {
+async function getStagedFiles(): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
   const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
   if (!result.ok) return result;
   
@@ -31,7 +31,7 @@ async function getStagedFiles(): Promise<ZT.Result<string[], ZT.ZeroError>> {
 }
 
 // Get staged TypeScript files that should be linted (using ESLint config)
-async function getStagedFilesForLinting(): Promise<ZT.Result<string[], ZT.ZeroError>> {
+async function getStagedFilesForLinting(): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
   const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
   if (!result.ok) return result;
   
@@ -56,7 +56,7 @@ async function getStagedFilesForLinting(): Promise<ZT.Result<string[], ZT.ZeroEr
 }
 
 // Check if a file has unstaged changes
-async function hasUnstagedChanges(file: string): Promise<ZT.Result<boolean, ZT.ZeroError>> {
+async function hasUnstagedChanges(file: string): Promise<ZeroThrow.Result<boolean, ZeroThrow.ZeroError>> {
   const result = await execCmd('git diff --name-only');
   if (!result.ok) return result;
   
@@ -65,12 +65,12 @@ async function hasUnstagedChanges(file: string): Promise<ZT.Result<boolean, ZT.Z
 }
 
 // Get diff for a specific file
-async function getFileDiff(file: string): Promise<ZT.Result<string, ZT.ZeroError>> {
+async function getFileDiff(file: string): Promise<ZeroThrow.Result<string, ZeroThrow.ZeroError>> {
   return execCmd(`git diff "${file}"`);
 }
 
 // Run tests
-async function runTests(): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function runTests(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const spinner = ora('Running tests...').start();
   
   const result = await execCmd('npm test');
@@ -85,7 +85,7 @@ async function runTests(): Promise<ZT.Result<void, ZT.ZeroError>> {
 }
 
 // Run linter on staged files
-async function runLinter(files: string[]): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function runLinter(files: string[]): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   if (files.length === 0) return ZT.ok(undefined);
   
   const spinner = ora('Running linter...').start();

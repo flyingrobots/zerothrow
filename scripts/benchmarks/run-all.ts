@@ -2,7 +2,7 @@
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { ZT } from '../../src/index';
+import { ZT, ZeroThrow } from '../../src/index';
 import { execCmd } from '../lib/shared';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -25,7 +25,7 @@ const benchmarks: Benchmark[] = [
   { name: 'Error pooling', file: 'error-pooling-benchmark.ts', emoji: '🏊' }
 ];
 
-async function runBenchmark(bench: Benchmark): Promise<ZT.Result<void, ZT.ZeroError>> {
+async function runBenchmark(bench: Benchmark): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const filePath = join(__dirname, bench.file);
   
   if (!existsSync(filePath)) {
@@ -40,7 +40,7 @@ async function runBenchmark(bench: Benchmark): Promise<ZT.Result<void, ZT.ZeroEr
   
   if (!result.ok) {
     spinner.fail(chalk.red('Failed'));
-    return ZT.err(ZT.wrap(result.error, 'BENCHMARK_FAILED', `Failed to run ${bench.name}`));
+    return ZT.err(ZeroThrow.wrap(result.error, 'BENCHMARK_FAILED', `Failed to run ${bench.name}`));
   }
   
   spinner.succeed(chalk.green('Completed'));

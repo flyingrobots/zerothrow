@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ZT } from '../../src/index.js';
+import { ZT, ZeroThrow } from '../../src/index.js';
 
 // Real-world Validation Pipeline Integration Test
 interface UserRegistration {
@@ -17,7 +17,7 @@ interface ValidationError {
   code: string;
 }
 
-type ValidationResult<T> = ZT.Result<T, ZT.Error>;
+type ValidationResult<T> = ZeroThrow.Result<T, ZeroThrow.ZeroError>;
 
 class ValidationPipeline<T> {
   private validators: Array<(data: T) => Promise<ValidationResult<T>>> = [];
@@ -54,7 +54,7 @@ class ValidationPipeline<T> {
 
     if (this.errors.length > 0) {
       return ZT.err(
-        new ZT.Error('VALIDATION_FAILED', 'Validation pipeline failed', {
+        new ZeroThrow.ZeroError('VALIDATION_FAILED', 'Validation pipeline failed', {
           context: {
             errors: this.errors,
             errorCount: this.errors.length,
@@ -92,7 +92,7 @@ class UserValidators {
 
     if (!username || username.trim().length === 0) {
       return ZT.err(
-        new ZT.Error('EMPTY_USERNAME', 'Username is required', {
+        new ZeroThrow.ZeroError('EMPTY_USERNAME', 'Username is required', {
           context: {
             field: 'username',
           },
@@ -102,7 +102,7 @@ class UserValidators {
 
     if (username.length < 3) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'USERNAME_TOO_SHORT',
           'Username must be at least 3 characters',
           {
@@ -118,7 +118,7 @@ class UserValidators {
 
     if (username.length > 20) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'USERNAME_TOO_LONG',
           'Username must be at most 20 characters',
           {
@@ -134,7 +134,7 @@ class UserValidators {
 
     if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'INVALID_USERNAME_FORMAT',
           'Username can only contain letters, numbers, underscores, and hyphens',
           {
@@ -157,7 +157,7 @@ class UserValidators {
 
     if (!email || email.trim().length === 0) {
       return ZT.err(
-        new ZT.Error('EMPTY_EMAIL', 'Email is required', {
+        new ZeroThrow.ZeroError('EMPTY_EMAIL', 'Email is required', {
           context: {
             field: 'email',
           },
@@ -168,7 +168,7 @@ class UserValidators {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return ZT.err(
-        new ZT.Error('INVALID_EMAIL_FORMAT', 'Invalid email format', {
+        new ZeroThrow.ZeroError('INVALID_EMAIL_FORMAT', 'Invalid email format', {
           context: {
             field: 'email',
             value: email,
@@ -187,7 +187,7 @@ class UserValidators {
 
     if (!password || password.length === 0) {
       return ZT.err(
-        new ZT.Error('EMPTY_PASSWORD', 'Password is required', {
+        new ZeroThrow.ZeroError('EMPTY_PASSWORD', 'Password is required', {
           context: {
             field: 'password',
           },
@@ -197,7 +197,7 @@ class UserValidators {
 
     if (password.length < 8) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'PASSWORD_TOO_SHORT',
           'Password must be at least 8 characters',
           {
@@ -218,7 +218,7 @@ class UserValidators {
 
     if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'WEAK_PASSWORD',
           'Password must contain uppercase, lowercase, number, and special character',
           {
@@ -246,7 +246,7 @@ class UserValidators {
 
     if (age === undefined || age === null) {
       return ZT.err(
-        new ZT.Error('MISSING_AGE', 'Age is required', {
+        new ZeroThrow.ZeroError('MISSING_AGE', 'Age is required', {
           context: {
             field: 'age',
           },
@@ -256,7 +256,7 @@ class UserValidators {
 
     if (!Number.isInteger(age)) {
       return ZT.err(
-        new ZT.Error('INVALID_AGE_TYPE', 'Age must be an integer', {
+        new ZeroThrow.ZeroError('INVALID_AGE_TYPE', 'Age must be an integer', {
           context: {
             field: 'age',
             value: age,
@@ -267,7 +267,7 @@ class UserValidators {
 
     if (age < 13) {
       return ZT.err(
-        new ZT.Error('AGE_TOO_YOUNG', 'Must be at least 13 years old', {
+        new ZeroThrow.ZeroError('AGE_TOO_YOUNG', 'Must be at least 13 years old', {
           context: {
             field: 'age',
             minAge: 13,
@@ -279,7 +279,7 @@ class UserValidators {
 
     if (age > 120) {
       return ZT.err(
-        new ZT.Error('AGE_TOO_OLD', 'Invalid age value', {
+        new ZeroThrow.ZeroError('AGE_TOO_OLD', 'Invalid age value', {
           context: {
             field: 'age',
             maxAge: 120,
@@ -297,7 +297,7 @@ class UserValidators {
   ): Promise<ValidationResult<UserRegistration>> {
     if (!data.termsAccepted) {
       return ZT.err(
-        new ZT.Error(
+        new ZeroThrow.ZeroError(
           'TERMS_NOT_ACCEPTED',
           'Terms and conditions must be accepted',
           {
@@ -323,7 +323,7 @@ class UserValidators {
 
     if (takenEmails.includes(data.email.toLowerCase())) {
       return ZT.err(
-        new ZT.Error('EMAIL_TAKEN', 'Email address is already registered', {
+        new ZeroThrow.ZeroError('EMAIL_TAKEN', 'Email address is already registered', {
           context: {
             field: 'email',
             value: data.email,
@@ -349,7 +349,7 @@ class UserValidators {
 
     if (!validCodes.includes(data.referralCode)) {
       return ZT.err(
-        new ZT.Error('INVALID_REFERRAL_CODE', 'Invalid referral code', {
+        new ZeroThrow.ZeroError('INVALID_REFERRAL_CODE', 'Invalid referral code', {
           context: {
             field: 'referralCode',
             value: data.referralCode,

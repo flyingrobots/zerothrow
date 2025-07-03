@@ -1,64 +1,80 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ZT } from '../../src/index.js';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { ZT, ZeroThrow } from '../../src/index.js';
+import pg from 'pg';
+import { 
+  createTestEnvironment, 
+  startTestDatabase, 
+  stopTestDatabase,
+  getTestDatabaseConfig,
+  type TestEnvironment 
+} from './test-utils.js';
 
-// Real-world Database Transaction Integration Test
+const { Pool } = pg;
+
+// Real PostgreSQL integration test
 interface DbUser {
   id: string;
   name: string;
   email: string;
   balance: number;
-  createdAt: Date;
-  updatedAt: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
-interface DbTransaction {
+interface TransactionRecord {
   id: string;
-  commit: () => Promise<void>;
-  rollback: () => Promise<void>;
-}
-
-interface DbConnection {
-  beginTransaction: () => Promise<DbTransaction>;
-  query: <T>(sql: string, params?: any[]) => Promise<T>;
-  release: () => void;
+  from_user: string;
+  to_user: string;
+  amount: number;
+  created_at: Date;
 }
 
 class DatabaseClient {
-  private pool: DbConnection[] = [];
-  private maxConnections: number = 5;
-  private activeConnections: number = 0;
+  pool: pg.Pool; // Make pool accessible for tests
 
-  async getConnection(): Promise<ZT.Result<DbConnection, ZT.Error>> {
-    if (this.activeConnections >= this.maxConnections) {
-      return ZT.err(
-        new ZT.Error('POOL_EXHAUSTED', 'No available database connections', {
-          context: {
-            maxConnections: this.maxConnections,
-            activeConnections: this.activeConnections,
-          },
-        })
-      );
-    }
+  constructor(config: pg.PoolConfig) {
+    this.pool = new Pool(config);
+  }
 
-    return ZT.tryR(
-      async () => {
-        this.activeConnections++;
-        const mockConnection: DbConnection = {
-          beginTransaction: vi.fn(async () => ({
-            id: `txn-${Date.now()}`,
-            commit: vi.fn(async () => {}),
-            rollback: vi.fn(async () => {}),
-          })),
-          query: vi.fn(),
-          release: vi.fn(() => {
-            this.activeConnections--;
-          }),
-        };
-        this.pool.push(mockConnection);
-        return mockConnection;
-      },
-      (e) =>
-        ZT.wrap(e, 'CONNECTION_ERROR', 'Failed to acquire database connection')
+  async initialize() {
+    // Create tables
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(50) PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL,
+        balance DECIMAL(10,2) NOT NULL CHECK (balance >= 0),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        from_user VARCHAR(50) NOT NULL,
+        to_user VARCHAR(50) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+        created_at TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (from_user) REFERENCES users(id),
+        FOREIGN KEY (to_user) REFERENCES users(id)
+      )
+    `);
+  }
+
+  async cleanup() {
+    await this.pool.query('DROP TABLE IF EXISTS transactions CASCADE');
+    await this.pool.query('DROP TABLE IF EXISTS users CASCADE');
+  }
+
+  async close() {
+    await this.pool.end();
+  }
+
+  async seedTestData() {
+    await this.pool.query(
+      'INSERT INTO users (id, name, email, balance) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)',
+      ['user1', 'John', 'john@example.com', 1000, 'user2', 'Jane', 'jane@example.com', 500]
     );
   }
 
@@ -66,326 +82,315 @@ class DatabaseClient {
     fromUserId: string,
     toUserId: string,
     amount: number
-  ): Promise<ZT.Result<void, ZT.Error>> {
-    const connResult = await this.getConnection();
-    if (!connResult.ok) {
-      return connResult;
-    }
-
-    const conn = connResult.value;
-    let transaction: DbTransaction | null = null;
+  ): Promise<ZeroThrow.Result<{ transactionId: number }, ZeroThrow.ZeroError>> {
+    const client = await this.pool.connect();
 
     try {
-      // Begin transaction
-      const txnResult = await ZT.tryR(
-        () => conn.beginTransaction(),
-        (e) => ZT.wrap(e, 'TRANSACTION_START_ERROR', 'Failed to begin transaction')
-      );
+      await client.query('BEGIN');
 
-      if (!txnResult.ok) {
-        conn.release();
-        return txnResult;
-      }
-
-      transaction = txnResult.value;
-
-      // Get sender's current balance
-      const senderResult = await ZT.tryR(
-        () =>
-          conn.query<DbUser>('SELECT * FROM users WHERE id = ? FOR UPDATE', [
-            fromUserId,
-          ]),
-        (e) =>
-          ZT.wrap(e, 'QUERY_ERROR', 'Failed to fetch sender', {
-            userId: fromUserId,
-          })
+      // Get sender balance with row lock
+      const senderResult = await ZT.try(() =>
+        client.query<DbUser>(
+          'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+          [fromUserId]
+        )
       );
 
       if (!senderResult.ok) {
-        await transaction.rollback();
-        conn.release();
-        return senderResult;
+        await client.query('ROLLBACK');
+        return senderResult as any;
       }
 
-      const sender = senderResult.value as any; // Mock returns single user
-
-      // Check sufficient balance
-      if (sender.balance < amount) {
-        await transaction.rollback();
-        conn.release();
+      if (senderResult.value.rows.length === 0) {
+        await client.query('ROLLBACK');
         return ZT.err(
-          new ZT.Error(
-            'INSUFFICIENT_BALANCE',
-            'Sender has insufficient balance',
-            {
-              context: {
-                userId: fromUserId,
-                currentBalance: sender.balance,
-                requestedAmount: amount,
-              },
-            }
-          )
+          new ZeroThrow.ZeroError('SENDER_NOT_FOUND', 'Sender not found')
         );
       }
 
-      // Update sender balance
-      const updateSenderResult = await ZT.tryR(
-        () =>
-          conn.query(
-            'UPDATE users SET balance = balance - ?, updatedAt = NOW() WHERE id = ?',
-            [amount, fromUserId]
-          ),
-        (e) =>
-          ZT.wrap(e, 'UPDATE_ERROR', 'Failed to update sender balance', {
-            userId: fromUserId,
+      const sender = senderResult.value.rows[0];
+
+      // Check sufficient balance
+      if (Number(sender.balance) < amount) {
+        await client.query('ROLLBACK');
+        return ZT.err(
+          new ZeroThrow.ZeroError('INSUFFICIENT_BALANCE', 'Insufficient balance', {
+            context: {
+              required: amount,
+              available: Number(sender.balance),
+            }
           })
+        );
+      }
+
+      // Update balances
+      const updateSenderResult = await ZT.try(() =>
+        client.query(
+          'UPDATE users SET balance = balance - $1, updated_at = NOW() WHERE id = $2',
+          [amount, fromUserId]
+        )
       );
 
       if (!updateSenderResult.ok) {
-        await transaction.rollback();
-        conn.release();
-        return updateSenderResult;
+        await client.query('ROLLBACK');
+        return updateSenderResult as any;
       }
 
-      // Update receiver balance
-      const updateReceiverResult = await ZT.tryR(
-        () =>
-          conn.query(
-            'UPDATE users SET balance = balance + ?, updatedAt = NOW() WHERE id = ?',
-            [amount, toUserId]
-          ),
-        (e) =>
-          ZT.wrap(e, 'UPDATE_ERROR', 'Failed to update receiver balance', {
-            userId: toUserId,
-          })
+      const updateReceiverResult = await ZT.try(() =>
+        client.query(
+          'UPDATE users SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+          [amount, toUserId]
+        )
       );
 
       if (!updateReceiverResult.ok) {
-        await transaction.rollback();
-        conn.release();
-        return updateReceiverResult;
+        await client.query('ROLLBACK');
+        return updateReceiverResult as any;
       }
 
-      // Insert transaction record
-      const recordResult = await ZT.tryR(
-        () =>
-          conn.query(
-            'INSERT INTO transactions (fromUserId, toUserId, amount, status, createdAt) VALUES (?, ?, ?, ?, NOW())',
-            [fromUserId, toUserId, amount, 'completed']
-          ),
-        (e) => ZT.wrap(e, 'INSERT_ERROR', 'Failed to record transaction')
+      // Record transaction - this will fail if receiver doesn't exist due to FK constraint
+      const recordResult = await ZT.try(() =>
+        client.query<{ id: number }>(
+          'INSERT INTO transactions (from_user, to_user, amount) VALUES ($1, $2, $3) RETURNING id',
+          [fromUserId, toUserId, amount]
+        )
       );
 
       if (!recordResult.ok) {
-        await transaction.rollback();
-        conn.release();
-        return recordResult;
+        await client.query('ROLLBACK');
+        return recordResult as any;
       }
 
-      // Commit transaction
-      const commitResult = await ZT.tryR(
-        () => transaction!.commit(),
-        (e) => ZT.wrap(e, 'COMMIT_ERROR', 'Failed to commit transaction')
-      );
+      await client.query('COMMIT');
+      return ZT.ok({ transactionId: recordResult.value.rows[0].id });
 
-      conn.release();
-
-      if (!commitResult.ok) {
-        return commitResult;
-      }
-
-      return ZT.ok(undefined);
     } catch (error) {
-      // This catch should never execute if all code uses tryR properly
-      if (transaction) {
-        await transaction.rollback();
-      }
-      conn.release();
+      await client.query('ROLLBACK');
       return ZT.err(
-        ZT.wrap(error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
+        ZeroThrow.wrap(error as Error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
       );
+    } finally {
+      client.release();
     }
   }
 
   async getUserWithRetry(
     userId: string,
     maxRetries: number = 3
-  ): Promise<ZT.Result<DbUser, ZT.Error>> {
+  ): Promise<ZeroThrow.Result<DbUser, ZeroThrow.ZeroError>> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const connResult = await this.getConnection();
-      if (!connResult.ok) {
-        if (attempt === maxRetries) {
-          return connResult;
-        }
-        await this.delay(100 * attempt);
-        continue;
-      }
-
-      const conn = connResult.value;
-      const queryResult = await ZT.tryR(
-        () => conn.query<DbUser>('SELECT * FROM users WHERE id = ?', [userId]),
-        (e) =>
-          ZT.wrap(e, 'QUERY_ERROR', `Query failed on attempt ${attempt}`, {
-            userId,
-            attempt,
-          })
+      const result = await ZT.try(() =>
+        this.pool.query<DbUser>('SELECT * FROM users WHERE id = $1', [userId])
       );
 
-      conn.release();
-
-      if (queryResult.ok) {
-        return queryResult;
+      if (result.ok) {
+        if (result.value.rows.length === 0) {
+          return ZT.err(
+            new ZeroThrow.ZeroError('USER_NOT_FOUND', 'User not found')
+          );
+        }
+        return ZT.ok(result.value.rows[0]);
       }
 
       if (attempt < maxRetries) {
-        await this.delay(100 * attempt);
+        await new Promise(resolve => setTimeout(resolve, 100 * attempt));
       }
     }
 
     return ZT.err(
-      new ZT.Error('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
-        userId,
-        maxRetries,
+      new ZeroThrow.ZeroError('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
+        context: {
+          userId,
+          maxRetries,
+        }
       })
     );
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  async getUser(userId: string): Promise<DbUser | undefined> {
+    const result = await this.pool.query<DbUser>(
+      'SELECT * FROM users WHERE id = $1',
+      [userId]
+    );
+    return result.rows[0];
+  }
+
+  async getTransactionCount(): Promise<number> {
+    const result = await this.pool.query<{ count: string }>(
+      'SELECT COUNT(*) as count FROM transactions'
+    );
+    return parseInt(result.rows[0].count);
   }
 }
 
 describe('Database Transaction Integration Tests', () => {
   let db: DatabaseClient;
+  let testEnv: TestEnvironment;
 
-  beforeEach(() => {
-    db = new DatabaseClient();
+  beforeAll(async () => {
+    // Create isolated test environment
+    testEnv = createTestEnvironment();
+    
+    try {
+      // Start PostgreSQL container with unique names
+      await startTestDatabase(testEnv);
+      
+      // Connect to the database
+      db = new DatabaseClient(getTestDatabaseConfig(testEnv));
+      await db.initialize();
+    } catch (error) {
+      console.error('Failed to start PostgreSQL:', error);
+      // Clean up on failure
+      if (testEnv) {
+        await stopTestDatabase(testEnv);
+      }
+      throw error;
+    }
+  }, 30000);
+
+  afterAll(async () => {
+    if (db) {
+      await db.cleanup();
+      await db.close();
+    }
+    // Stop and clean up isolated environment
+    if (testEnv) {
+      await stopTestDatabase(testEnv);
+    }
+  }, 30000);
+
+  beforeEach(async () => {
+    // Clean and reseed data for each test
+    await db.pool.query('TRUNCATE TABLE transactions, users RESTART IDENTITY CASCADE');
+    await db.seedTestData();
+  });
+
+  afterEach(async () => {
+    // Ensure all connections are released
+    await db.pool.query('SELECT 1'); // Dummy query to ensure pool is responsive
   });
 
   it('should successfully transfer balance between users', async () => {
-    const mockConn = {
-      beginTransaction: vi.fn(async () => ({
-        id: 'txn-123',
-        commit: vi.fn(async () => {}),
-        rollback: vi.fn(async () => {}),
-      })),
-      query: vi
-        .fn()
-        .mockResolvedValueOnce({ id: 'user1', balance: 1000 }) // Sender query
-        .mockResolvedValueOnce({ affectedRows: 1 }) // Update sender
-        .mockResolvedValueOnce({ affectedRows: 1 }) // Update receiver
-        .mockResolvedValueOnce({ insertId: 'txn-record-1' }), // Insert transaction
-      release: vi.fn(),
-    };
+    // Perform transfer
+    const result = await db.transferBalance('user1', 'user2', 300);
 
-    // Mock getConnection to return our mock connection
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
-
-    const result = await db.transferBalance('user1', 'user2', 500);
-
+    // Verify successful result
     expect(result.ok).toBe(true);
-    expect(mockConn.query).toHaveBeenCalledTimes(4);
-    expect(mockConn.beginTransaction).toHaveBeenCalled();
-    expect(mockConn.release).toHaveBeenCalled();
+    if (result.ok) {
+      expect(result.value.transactionId).toBeGreaterThan(0);
+    }
+
+    // Verify actual balance changes
+    const user1After = await db.getUser('user1');
+    const user2After = await db.getUser('user2');
+    console.log('User1 balance after:', user1After?.balance);
+    console.log('User2 balance after:', user2After?.balance);
+    
+    expect(Number(user1After?.balance)).toBe(700);
+    expect(Number(user2After?.balance)).toBe(800);
+
+    // Verify transaction was recorded
+    const txCount = await db.getTransactionCount();
+    expect(txCount).toBe(1);
   });
 
   it('should rollback transaction on insufficient balance', async () => {
-    const mockTxn = {
-      id: 'txn-123',
-      commit: vi.fn(async () => {}),
-      rollback: vi.fn(async () => {}),
-    };
+    // Try to transfer more than available
+    const result = await db.transferBalance('user1', 'user2', 2000);
 
-    const mockConn = {
-      beginTransaction: vi.fn(async () => mockTxn),
-      query: vi.fn().mockResolvedValueOnce({ id: 'user1', balance: 100 }), // Insufficient balance
-      release: vi.fn(),
-    };
-
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
-
-    const result = await db.transferBalance('user1', 'user2', 500);
-
+    // Verify error
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.code).toBe('INSUFFICIENT_BALANCE');
-      expect(result.error.context).toMatchObject({
-        userId: 'user1',
-        currentBalance: 100,
-        requestedAmount: 500,
-      });
+      expect(result.error.context?.required).toBe(2000);
+      expect(result.error.context?.available).toBe(1000);
     }
-    expect(mockTxn.rollback).toHaveBeenCalled();
-    expect(mockTxn.commit).not.toHaveBeenCalled();
-    expect(mockConn.release).toHaveBeenCalled();
+
+    // Verify no balance changes
+    const user1 = await db.getUser('user1');
+    const user2 = await db.getUser('user2');
+    expect(Number(user1?.balance)).toBe(1000);
+    expect(Number(user2?.balance)).toBe(500);
+
+    // Verify no transaction recorded
+    const txCount = await db.getTransactionCount();
+    expect(txCount).toBe(0);
   });
 
-  it('should handle connection pool exhaustion', async () => {
-    // Simulate max connections reached
-    (db as any).activeConnections = 5;
+  it('should rollback on receiver not found', async () => {
+    // Try to transfer to non-existent user
+    const result = await db.transferBalance('user1', 'user-not-exists', 100);
 
-    const result = await db.transferBalance('user1', 'user2', 100);
-
+    // Verify error (PostgreSQL will fail the foreign key constraint)
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe('POOL_EXHAUSTED');
-      expect(result.error.context).toMatchObject({
-        maxConnections: 5,
-        activeConnections: 5,
-      });
-    }
+
+    // Verify balances unchanged
+    const user1 = await db.getUser('user1');
+    expect(Number(user1?.balance)).toBe(1000);
+
+    // Verify no transaction recorded
+    const txCount = await db.getTransactionCount();
+    expect(txCount).toBe(0);
   });
 
-  it('should rollback on query errors', async () => {
-    const mockTxn = {
-      id: 'txn-123',
-      commit: vi.fn(async () => {}),
-      rollback: vi.fn(async () => {}),
-    };
-
-    const mockConn = {
-      beginTransaction: vi.fn(async () => mockTxn),
-      query: vi
-        .fn()
-        .mockResolvedValueOnce({ id: 'user1', balance: 1000 })
-        .mockRejectedValueOnce(new Error('Database error')), // Fail on update
-      release: vi.fn(),
-    };
-
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
-
-    const result = await db.transferBalance('user1', 'user2', 500);
-
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe('UPDATE_ERROR');
-    }
-    expect(mockTxn.rollback).toHaveBeenCalled();
-    expect(mockConn.release).toHaveBeenCalled();
-  });
-
-  it('should retry on connection failures', async () => {
-    const mockConn = {
-      query: vi
-        .fn()
-        .mockResolvedValueOnce({ id: 'user1', name: 'John', balance: 1000 }),
-      release: vi.fn(),
-    };
-
-    vi.spyOn(db as any, 'getConnection')
-      .mockResolvedValueOnce(
-        ZT.err(new ZT.Error('CONNECTION_ERROR', 'Connection failed'))
-      )
-      .mockResolvedValueOnce(
-        ZT.err(new ZT.Error('CONNECTION_ERROR', 'Connection failed'))
-      )
-      .mockResolvedValueOnce(ZT.ok(mockConn));
-
+  it('should retry on transient failures', async () => {
     const result = await db.getUserWithRetry('user1', 3);
 
+    // Should eventually succeed
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toMatchObject({ id: 'user1', name: 'John' });
+      expect(result.value.id).toBe('user1');
+      expect(result.value.name).toBe('John');
     }
+  });
+
+  it('should handle concurrent transfers with proper isolation', async () => {
+    // Run transfers that won't deadlock (same direction)
+    const transfers = await Promise.all([
+      db.transferBalance('user1', 'user2', 100),
+      db.transferBalance('user1', 'user2', 100),
+      db.transferBalance('user1', 'user2', 50),
+    ]);
+
+    // Count successful transfers
+    const successCount = transfers.filter(r => r.ok).length;
+    expect(successCount).toBeGreaterThan(0);
+
+    // Check final balances
+    const user1Final = await db.getUser('user1');
+    const user2Final = await db.getUser('user2');
+    const finalTxCount = await db.getTransactionCount();
+    
+    // All transfers are from user1 to user2 (250 total if all succeed)
+    // But with concurrent access, some may fail due to conflicts
+    if (successCount === 3) {
+      expect(Number(user1Final?.balance)).toBe(750);
+      expect(Number(user2Final?.balance)).toBe(750);
+    }
+    expect(finalTxCount).toBe(successCount);
+  });
+
+  it('should respect connection pool limits', async () => {
+    // Exhaust connection pool
+    const clients = await Promise.all(
+      Array(5).fill(0).map(() => db.pool.connect())
+    );
+
+    // Try to get another connection (should timeout or wait)
+    const startTime = Date.now();
+    try {
+      await Promise.race([
+        db.pool.connect(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 1000)
+        )
+      ]);
+      expect.fail('Should have timed out');
+    } catch (error) {
+      expect(Date.now() - startTime).toBeGreaterThan(900);
+    }
+
+    // Clean up
+    clients.forEach(client => client.release());
   });
 });

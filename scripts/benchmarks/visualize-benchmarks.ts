@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ZT } from '../../src'
+import { ZT, ZeroThrow } from '../../src'
 
 // Terminal colors
 const colors = {
@@ -155,8 +155,8 @@ async function benchmarkSimple(): Promise<BenchResult> {
     }
   }
   
-  function resultPattern(i: number): ZT.Result<number> {
-    if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', 'fail'))
+  function resultPattern(i: number): ZeroThrow.Result<number> {
+    if (i % 2 === 0) return ZT.err(new ZeroThrow.ZeroError('FAIL', 'fail'))
     return ZT.ok(i)
   }
   
@@ -184,10 +184,10 @@ async function benchmarkNested(): Promise<BenchResult> {
         try {
           if (i % 10 === 0) throw new Error('deep')
           return i * 2
-        } catch {
+        } catch (e) {
           throw new Error('wrapped: ' + (e as Error).message)
         }
-      } catch {
+      } catch (e) {
         throw new Error('double: ' + (e as Error).message)
       }
     } catch {
@@ -195,14 +195,14 @@ async function benchmarkNested(): Promise<BenchResult> {
     }
   }
   
-  function nestedResult(i: number): ZT.Result<number> {
+  function nestedResult(i: number): ZeroThrow.Result<number> {
     const r1 = i % 10 === 0 
-      ? ZT.err(new ZT.ZeroError('DEEP', 'deep')) 
+      ? ZT.err(new ZeroThrow.ZeroError('DEEP', 'deep')) 
       : ZT.ok(i * 2)
     
     if (!r1.ok) {
-      const r2 = ZT.err(ZT.wrap(r1.error, 'WRAPPED', 'wrapped'))
-      const r3 = ZT.err(ZT.wrap(r2.error, 'DOUBLE', 'double'))
+      const r2 = ZT.err(ZeroThrow.wrap(r1.error, 'WRAPPED', 'wrapped'))
+      const r3 = ZT.err(ZeroThrow.wrap(r2.error, 'DOUBLE', 'double'))
       return r3
     }
     
@@ -235,8 +235,8 @@ async function benchmarkContext(): Promise<BenchResult> {
     }
   }
   
-  function resultWithContext(userId: string): ZT.Result<void> {
-    return ZT.err(new ZT.ZeroError('USER_NOT_FOUND', 'User not found', {
+  function resultWithContext(userId: string): ZeroThrow.Result<void> {
+    return ZT.err(new ZeroThrow.ZeroError('USER_NOT_FOUND', 'User not found', {
       context: { userId, timestamp: Date.now() }
     }))
   }

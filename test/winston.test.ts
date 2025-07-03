@@ -3,12 +3,12 @@ import {
   zerothrowWinstonFormat,
   createWinstonLogger,
 } from '../src/loggers/winston.js';
-import { ZT } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('Winston formatter', () => {
   describe('transform function', () => {
     it('formats ZeroError instances', () => {
-      const error = new ZT.Error('DATABASE_ERROR', 'Connection failed', {
+      const error = new ZeroThrow.ZeroError('DATABASE_ERROR', 'Connection failed', {
         context: { host: 'localhost', port: 5432 },
       });
 
@@ -36,7 +36,7 @@ describe('Winston formatter', () => {
       process.env.LOG_LEVEL = 'debug';
 
       try {
-        const error = new ZT.Error('DEBUG_ERROR', 'Debug test');
+        const error = new ZeroThrow.ZeroError('DEBUG_ERROR', 'Debug test');
         const info = {
           level: 'error',
           message: 'Error in debug mode',
@@ -57,7 +57,7 @@ describe('Winston formatter', () => {
 
     it('handles symbol error codes', () => {
       const symbolCode = Symbol('CUSTOM_ERROR');
-      const error = new ZT.Error(symbolCode, 'Custom error');
+      const error = new ZeroThrow.ZeroError(symbolCode, 'Custom error');
 
       const info = {
         level: 'error',
@@ -107,7 +107,7 @@ describe('Winston formatter', () => {
     });
 
     it('formats Err results with ZeroError', () => {
-      const error = new ZT.Error('AUTH_FAILED', 'Invalid credentials');
+      const error = new ZeroThrow.ZeroError('AUTH_FAILED', 'Invalid credentials');
       const result = ZT.err(error);
 
       const info = {
@@ -155,7 +155,7 @@ describe('Winston formatter', () => {
       const originalInfo = {
         level: 'error',
         message: 'Original message',
-        error: new ZT.Error('TEST_ERROR', 'Test error'),
+        error: new ZeroThrow.ZeroError('TEST_ERROR', 'Test error'),
       };
 
       // Create a deep copy to compare later
@@ -211,7 +211,7 @@ describe('Winston formatter', () => {
 
     it('formats Err results with ZeroError having symbol code', () => {
       const symbolCode = Symbol('SYMBOL_ERROR');
-      const error = new ZT.Error(symbolCode, 'Symbol error test');
+      const error = new ZeroThrow.ZeroError(symbolCode, 'Symbol error test');
       const result = ZT.err(error);
 
       const info = {
