@@ -21,7 +21,7 @@ interface DbUser {
   updated_at: Date;
 }
 
-interface TransactionRecord {
+interface _TransactionRecord {
   id: string;
   from_user: string;
   to_user: string;
@@ -83,95 +83,111 @@ class DatabaseClient {
     toUserId: string,
     amount: number
   ): Promise<ZeroThrow.Result<{ transactionId: number }, ZeroThrow.ZeroError>> {
-    const client = await this.pool.connect();
+    // Using the new .finally() combinator for resource cleanup!
+    return ZeroThrow.enhance(
+      ZT.try(() => this.pool.connect())
+    )
+      .tap(client => console.log(`[DB] Got connection from pool for transfer ${fromUserId} -> ${toUserId}`))
+      .andThen(client => 
+        ZeroThrow.enhance(
+          Promise.resolve(this.executeTransaction(client, fromUserId, toUserId, amount))
+        ).finally(() => {
+          client.release();
+          console.log('[DB] Released connection back to pool');
+        })
+      )
+      .tapErr(err => console.error('[DB] Transfer failed:', err.message));
+  }
 
-    try {
-      await client.query('BEGIN');
+  private async executeTransaction(
+    client: pg.PoolClient,
+    fromUserId: string,
+    toUserId: string,
+    amount: number
+  ): Promise<ZeroThrow.Result<{ transactionId: number }, ZeroThrow.ZeroError>> {
+    // Helper to rollback on error
+    const withRollback = <T>(result: ZeroThrow.Result<T, ZeroThrow.ZeroError>) =>
+      result.mapErr(async err => {
+        await client.query('ROLLBACK');
+        return err;
+      });
 
-      // Get sender balance with row lock
-      const senderResult = await ZT.try(() =>
-        client.query<DbUser>(
-          'SELECT * FROM users WHERE id = $1 FOR UPDATE',
-          [fromUserId]
+    // Start transaction and execute all steps
+    return ZeroThrow.enhance(
+      ZT.try(() => client.query('BEGIN'))
+    )
+      .andThen(() => 
+        // Get sender with row lock
+        ZT.try(() =>
+          client.query<DbUser>(
+            'SELECT * FROM users WHERE id = $1 FOR UPDATE',
+            [fromUserId]
+          )
         )
-      );
-
-      if (!senderResult.ok) {
-        await client.query('ROLLBACK');
-        return senderResult as any;
-      }
-
-      if (senderResult.value.rows.length === 0) {
-        await client.query('ROLLBACK');
-        return ZT.err(
-          new ZeroThrow.ZeroError('SENDER_NOT_FOUND', 'Sender not found')
-        );
-      }
-
-      const sender = senderResult.value.rows[0];
-
-      // Check sufficient balance
-      if (Number(sender.balance) < amount) {
-        await client.query('ROLLBACK');
-        return ZT.err(
-          new ZeroThrow.ZeroError('INSUFFICIENT_BALANCE', 'Insufficient balance', {
-            context: {
-              required: amount,
-              available: Number(sender.balance),
-            }
-          })
-        );
-      }
-
-      // Update balances
-      const updateSenderResult = await ZT.try(() =>
-        client.query(
-          'UPDATE users SET balance = balance - $1, updated_at = NOW() WHERE id = $2',
-          [amount, fromUserId]
+      )
+      .andThen(senderQuery => {
+        if (senderQuery.rows.length === 0) {
+          return withRollback(
+            ZT.err(new ZeroThrow.ZeroError('SENDER_NOT_FOUND', 'Sender not found'))
+          );
+        }
+        
+        const sender = senderQuery.rows[0];
+        
+        // Check balance
+        if (Number(sender.balance) < amount) {
+          return withRollback(
+            ZT.err(
+              new ZeroThrow.ZeroError('INSUFFICIENT_BALANCE', 'Insufficient balance', {
+                context: {
+                  required: amount,
+                  available: Number(sender.balance),
+                }
+              })
+            )
+          );
+        }
+        
+        // Continue with updates
+        return ZT.ok(sender);
+      })
+      .andThen(() =>
+        // Update sender balance
+        ZT.try(() =>
+          client.query(
+            'UPDATE users SET balance = balance - $1, updated_at = NOW() WHERE id = $2',
+            [amount, fromUserId]
+          )
         )
-      );
-
-      if (!updateSenderResult.ok) {
-        await client.query('ROLLBACK');
-        return updateSenderResult as any;
-      }
-
-      const updateReceiverResult = await ZT.try(() =>
-        client.query(
-          'UPDATE users SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
-          [amount, toUserId]
+      )
+      .andThen(() =>
+        // Update receiver balance
+        ZT.try(() =>
+          client.query(
+            'UPDATE users SET balance = balance + $1, updated_at = NOW() WHERE id = $2',
+            [amount, toUserId]
+          )
         )
-      );
-
-      if (!updateReceiverResult.ok) {
-        await client.query('ROLLBACK');
-        return updateReceiverResult as any;
-      }
-
-      // Record transaction - this will fail if receiver doesn't exist due to FK constraint
-      const recordResult = await ZT.try(() =>
-        client.query<{ id: number }>(
-          'INSERT INTO transactions (from_user, to_user, amount) VALUES ($1, $2, $3) RETURNING id',
-          [fromUserId, toUserId, amount]
+      )
+      .andThen(() =>
+        // Record transaction
+        ZT.try(() =>
+          client.query<{ id: number }>(
+            'INSERT INTO transactions (from_user, to_user, amount) VALUES ($1, $2, $3) RETURNING id',
+            [fromUserId, toUserId, amount]
+          )
         )
-      );
-
-      if (!recordResult.ok) {
+      )
+      .andThen(insertResult =>
+        // Commit and return transaction ID
+        ZT.try(() => client.query('COMMIT'))
+          .map(() => ({ transactionId: insertResult.rows[0].id }))
+      )
+      .mapErr(async err => {
+        // Rollback on any error
         await client.query('ROLLBACK');
-        return recordResult as any;
-      }
-
-      await client.query('COMMIT');
-      return ZT.ok({ transactionId: recordResult.value.rows[0].id });
-
-    } catch (error) {
-      await client.query('ROLLBACK');
-      return ZT.err(
-        ZeroThrow.wrap(error as Error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
-      );
-    } finally {
-      client.release();
-    }
+        return err;
+      });
   }
 
   async getUserWithRetry(
@@ -437,21 +453,32 @@ describe.sequential('Database Transaction Integration Tests', () => {
       Array(5).fill(0).map(() => db.pool.connect())
     );
 
-    // Try to get another connection (should timeout or wait)
+    // Try to get another connection (should timeout)
     const startTime = Date.now();
-    try {
-      await Promise.race([
-        db.pool.connect(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 1000)
-        )
-      ]);
-      expect.fail('Should have timed out');
-    } catch (error) {
-      expect(Date.now() - startTime).toBeGreaterThan(900);
+    
+    const timeoutResult = await ZeroThrow.enhance(
+      ZT.try(() =>
+        Promise.race([
+          db.pool.connect(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Connection pool timeout')), 1000)
+          )
+        ])
+      )
+    )
+      .tap(() => console.log('[TEST] Unexpectedly got a connection!'))
+      .tapErr(err => console.log('[TEST] Expected timeout:', err.message))
+      .finally(() => {
+        // Always clean up the exhausted connections
+        clients.forEach(client => client.release());
+        console.log('[TEST] Released all test connections');
+      });
+    
+    expect(timeoutResult.ok).toBe(false);
+    expect(Date.now() - startTime).toBeGreaterThan(900);
+    
+    if (!timeoutResult.ok) {
+      expect(timeoutResult.error.message).toContain('timeout');
     }
-
-    // Clean up
-    clients.forEach(client => client.release());
   });
 });

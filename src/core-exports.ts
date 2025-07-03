@@ -51,6 +51,9 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
   orElse(fallback: () => Result<TValue, TError>): Async<TValue, TError>;
   unwrapOr(fallback: TValue): globalThis.Promise<TValue>;
   unwrapOrThrow(): globalThis.Promise<TValue>;
+  tap(fn: (value: TValue) => void): Async<TValue, TError>;
+  tapErr(fn: (error: TError) => void): Async<TValue, TError>;
+  finally(fn: (value?: TValue) => void): Async<TValue, TError>;
 }
 
 // ==========================================
@@ -167,6 +170,18 @@ export function enhance<TValue, TError extends globalThis.Error = _ZeroError>(
     return this.then(result => result.unwrapOrThrow());
   };
   
+  enhanced.tap = function(fn: (value: TValue) => void): Async<TValue, TError> {
+    return enhance(this.then(result => result.tap(fn)));
+  };
+  
+  enhanced.tapErr = function(fn: (error: TError) => void): Async<TValue, TError> {
+    return enhance(this.then(result => result.tapErr(fn)));
+  };
+  
+  enhanced.finally = function(fn: (value?: TValue) => void): Async<TValue, TError> {
+    return enhance(this.then(result => result.finally(fn)));
+  };
+  
   return enhanced;
 }
 
@@ -191,7 +206,7 @@ export function isResult<T = unknown, E extends globalThis.Error = _ZeroError>(
     value === null ||
     typeof value !== 'object' ||
     !('ok' in value) ||
-    typeof (value as any).ok !== 'boolean'
+    typeof (value as { ok: unknown }).ok !== 'boolean'
   ) {
     return false;
   }
