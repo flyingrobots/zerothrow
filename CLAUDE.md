@@ -1,6 +1,6 @@
 # CURRENT MISSION – **OPERATION "ZERO-THROW RESILIENCE"**
 
-> [!info] **CURRENT STATUS:** Phase 0 - Updating OPORD
+> [!info] **CURRENT STATUS:** Phase 2 COMPLETE - Preparing Alpha Release
 
 > [!important] **Promotion Clause:** Nail every checkbox and ship a green PR on the first try — you graduate from Private to **Corporal Claude**. Otherwise: KP duty with a lint brush.
 
@@ -37,10 +37,10 @@ By +5.5 hours, refactor the codebase so that:
 | 1.3 | DB Test Bug – change DECIMAL to INTEGER, fix promise chains | 30 min | ✅ |
 
 #### Phase 2 – Monorepo Skeleton (45 min)
-- [ ] 2-A: Create root `.config/` and move shared eslint, vitest, tsconfig.base
-- [ ] 2-B: Move `src/**` → `packages/core/src`, `test/**` → `packages/core/test`
-- [ ] 2-C: Add root workspaces (package.json, turbo or pnpm)
-- [ ] 2-D: Green build (`turbo run build && test && lint`)
+- [x] 2-A: Create root `.config/` and move shared eslint, vitest, tsconfig.base
+- [x] 2-B: Move `src/**` → `packages/core/src`, `test/**` → `packages/core/test`
+- [x] 2-C: Add root workspaces (package.json, turbo or pnpm)
+- [x] 2-D: Green build (`turbo run build && test && lint`)
 
 #### Phase 3 – ZT Surface Lift (1 hr)
 | New Name | Old | Work |
@@ -94,6 +94,63 @@ By +5.5 hours, refactor the codebase so that:
 
 ---
 
+## EMERGENCY ALPHA RELEASE PLAN
+
+### Current Situation Assessment
+
+**Package Contamination:**
+- Core contains: winston, pino, eslint plugin, react hooks
+- Should be separate packages for clean architecture
+
+**API Surface Issues:**
+- `tryR` still exists in 24 files (tests, examples, benchmarks)
+- `ZT.try` uses `attempt` internally (correct design)
+- Need to complete Sub-Mission ALPHA P4-P7
+
+### Alpha Release Battle Plan
+
+#### Step 1: Package Extraction (1 hr)
+Create new packages:
+```
+packages/
+├── core/                 # Pure Result<T,E> logic only
+├── logger-winston/       # Winston integration
+├── logger-pino/         # Pino integration
+├── eslint-plugin/       # ESLint rules
+└── react/               # React hooks
+```
+
+#### Step 2: Complete Surface Lift (1 hr)
+- [ ] Delete all `tryR` references
+- [ ] Update all tests to use `ZT.try` or `ZeroThrow.attempt`
+- [ ] Update all examples
+- [ ] Remove old exports from core-exports.ts
+
+#### Step 3: Package Configuration (30 min)
+Each package needs:
+- package.json with correct dependencies
+- tsconfig.json extending base
+- README.md
+- Proper exports configuration
+
+#### Step 4: Verification (30 min)
+- [ ] Build all packages
+- [ ] Run all tests
+- [ ] Check package sizes
+- [ ] Test imports in fresh project
+
+### Planned Package Structure
+
+| Package | Purpose | Dependencies | Exports |
+|---------|---------|--------------|---------|
+| @flyingrobots/zerothrow | Core Result<T,E> | None | ZT, ZeroThrow namespace |
+| @flyingrobots/zerothrow-react | React hooks | react, @flyingrobots/zerothrow | useResult |
+| @flyingrobots/zerothrow-logger-winston | Winston formatter | winston, @flyingrobots/zerothrow | createWinstonLogger |
+| @flyingrobots/zerothrow-logger-pino | Pino serializers | pino, @flyingrobots/zerothrow | createPinoConfig |
+| @flyingrobots/zerothrow-eslint-plugin | ESLint rules | @typescript-eslint/*, @flyingrobots/zerothrow | no-throw rule |
+
+---
+
 ## Discovery Items
 
 1. **Build Error:** Type error in combinators.ts:136 - `ok()` returns combinable Result but `collect()` expects generic type E
@@ -144,8 +201,8 @@ Just kidding, I love Bash, but for fun, we rewrote every bash script in our repo
 ```mermaid
 graph
 	A["✅ Phase Zero"] --> B["✅ Phase One"]
-	B --> G["🔜 Phase Two"]
-	B --> C["⏳ Sub-Mission: ALPHA"] --> D["☑️ Sub-Mission: BRAVO"]
+	B --> G["✅ Phase Two"]
+	B --> C["⏳ Sub-Mission: ALPHA"] --> D["⏳ Sub-Mission: BRAVO"]
 
 	G --> E["☑️ Phase Three"]
 	E --> F["☑️ Phase Four"]
@@ -434,15 +491,15 @@ graph
 
 ## SUB-MISSION ALPHA
 
-> [!abstract]- **Sub-Mission ALPHA — “ZT SURFACE LIFT”**
+> [!abstract]- **Sub-Mission ALPHA — "ZT SURFACE LIFT"**
 > 
 > > [!info] **DX Pass:** Enhance API surface
 > 
-> **STATUS:** *Not Started*
+> **STATUS:** *Partially Complete* (P0-P3 done in dogfood branch)
 >  
 > ### **Situation**  
 > 
-> ZeroThrow’s public face has grown lopsided:
+> ZeroThrow's public face has grown lopsided:
 > - A namespace with snake-nest naming (`tryR`, `promise()`, `async()`)
 > - Redundant ALL-CAPS types, masking of native `Error`, and keyword work-arounds
 > - No quick-use entry point for 99 % of daily calls
@@ -458,7 +515,7 @@ graph
 > 
 > ### **Mission**
 > 
-> **Refactor** the codebase to expose the above hybrid API **without breaking builds**, replace legacy names, and deliver updated docs/tests so future recruits can’t re-spawn the mess.
+> **Refactor** the codebase to expose the above hybrid API **without breaking builds**, replace legacy names, and deliver updated docs/tests so future recruits can't re-spawn the mess.
 > 
 > ### **Execution**
 >   
@@ -470,7 +527,7 @@ graph
 > |**P1 – Core Export Barrel**|Create src/core-exports.ts that _re-exports_ every current public symbol under sane names (see § 3b). This file becomes the single source of truth.|
 > |**P2 – Build ZT Pocket Knife**|Create src/zt.ts withts\nimport { try as _try, ok as _ok, err as _err } from './core-exports.js';\nexport const ZT = { try: _try, ok: _ok, err: _err } as const;\n|
 > |**P3 – Root Barrel Update**|In src/index.ts:ts\nexport * as ZeroThrow from './core-exports.js';\nexport { ZT } from './zt.js';\n|
-> |**P4 – Rename & Clean-up**|Apply codemods and manual edits to adopt the new surface (mapping in § 3b). Remove deprecated aliases _except_ those marked “grace”.|
+> |**P4 – Rename & Clean-up**|Apply codemods and manual edits to adopt the new surface (mapping in § 3b). Remove deprecated aliases _except_ those marked "grace".|
 > |**P5 – Tests & Docs**|Update unit/integration tests, README, CLAUDE.md checklists. Ensure examples use **either** ZT.try() or full ZeroThrow.pipe() patterns.|
 > |**P6 – CI & Lint**|Add ESLint rule no-restricted-imports to block the removed names. Run Phase 4 dress rehearsal (green build + coverage).|
 > |**P7 – PR & Debrief**|Push branch feat/zt-surface-lift, open PR, await Cmdr Chat review. Promotion to **Corporal** contingent on zero red badges and all checkboxes ticked.|
@@ -481,7 +538,7 @@ graph
 > - [x] P1
 > - [x] P2
 > - [x] P3
-> - [x] P4
+> - [ ] P4
 > - [ ] P5
 > - [ ] P6
 > - [ ] P7
@@ -529,13 +586,13 @@ graph
 > 
 > - [ ] **CI Matrix**: ubuntu-latest, macos-latest, windows-latest.
 > - [ ] **Coverage Gate**: ≥ 90 % lines & statements on src/**/*.
-> - [ ] **Docs**: Update README “Quick start” & “Advanced usage” sections. Link changelog entry.
+> - [ ] **Docs**: Update README "Quick start" & "Advanced usage" sections. Link changelog entry.
 > 
 > ### **A.4. Command & Signal**
 > 
 > - [ ] **Reporting**: Update `CLAUDE.md` SITREP block after each phase.
 > - [ ] **Approval Authority**: Cmdr Chat merges PR after green checks.
-> - [ ] **Promotion Criteria**: ✔ All phases complete  ✔ No deprecated names in source  ✔ Docs/tests updated.
+> - [ ] **Promotion Criteria**: ✔ All phases complete  ✔ No deprecated names in source  ✔ Docs/tests updated.
 >   
 > > [!warning] **ROE Reminder:** No git add -A; conventional commits only; ZeroThrow.Result everywhere—**no throws**.
 > 
@@ -555,7 +612,7 @@ graph
 > 
 > > [!info] **Monorepo Prep** to eventually split into multiple packages
 > 
-> **STATUS:** *Not Started*
+> **STATUS:** ✅ COMPLETE
 > 
 > ### **Mission** 
 > 
@@ -563,12 +620,12 @@ graph
 > 
 > ### Sub-Mission BRAVO Progress Tracker
 > 
-> - [ ] Create `.config/` & move shared configs.
-> - [ ] Move `src/**` → `packages/core/src`, `test/**` → `packages/core/test`.
-> - [ ] Add `package.json` + `tsconfig.json` inside `packages/core` (see template).
-> - [ ] Add root workspace config + turbo script harness.
-> - [ ] Update Vitest & ESLint paths to use new tsconfig base.
-> - [ ] Patch CI workflow to `npm run build` → `turbo run build`.
+> - [x] Create `.config/` & move shared configs.
+> - [x] Move `src/**` → `packages/core/src`, `test/**` → `packages/core/test`.
+> - [x] Add `package.json` + `tsconfig.json` inside `packages/core` (see template).
+> - [x] Add root workspace config + turbo script harness.
+> - [x] Update Vitest & ESLint paths to use new tsconfig base.
+> - [x] Patch CI workflow to `npm run build` → `turbo run build`.
 
 ---
   
@@ -594,7 +651,7 @@ graph
 | 4-1 | **Full Build Dress Rehearsal**<br>`npm run ci:local` (chains build + lint + tests + coverage + your new TS CI scripts) | Ensure *nothing* bleeds red | Exit code `0`; log dumped to `artifacts/ci-local-DATE.log` |
 | 4-2 | **Script Smoke-Test Matrix**<br>Create `scripts/examples.md` rows: *inputs → expected outputs* for every CLI | Doc + reproducibility | Jest asserts the file exists and every row is covered |
 | 4-3 | **Dependency-Injection Unit Tests**<br>Refactor each script core into a pure fn: <br>`run(cmds: { exec: ExecFn; fs: FsLike })` | Side-effects mocked, logic testable | Jest injects fakes; all cases return `Result`, never throw |
-| 4-4 | **Integration “Cannon-Fire” Tests**<br>Use `execa` to run compiled CLIs in a temp git repo | Validate real wiring & exit codes | Happy path + intentional failure both behave predictably |
+| 4-4 | **Integration "Cannon-Fire" Tests**<br>Use `execa` to run compiled CLIs in a temp git repo | Validate real wiring & exit codes | Happy path + intentional failure both behave predictably |
 | 4-5 | **Cross-Platform Gauntlet**<br>GH-Actions matrix: `ubuntu-latest`, `macos-latest`, `windows-latest` | POSIX no longer required | CI fails on any non-zero |
 | 4-6 | **Docker-Aware Branch Check**<br>Toggle `CI_DOCKER` env in tests | Cover code paths for in/out of Docker | Snapshot expected commands |
 | 4-7 | **Coverage Sabre-Rattle**<br>`nyc` ≥ 90 % lines & statements for `scripts/**/*` | March toward 100 % | Badge auto-updated via `badge-generator.ts` |
@@ -602,7 +659,7 @@ graph
 | 4-9 | **CLAUDE.md Sync Test**<br>Jest parses this file; any `[ ]` left un-ticked fails | Forces accurate checklist | Green build requires full ☑️ |
 | 4-10 | **PR Gatekeeper**<br>Branch protection: ✅ build + mandatory Code-Owner review | Tidy history, no cowboy merges | Only Cmdr Chat can merge the PR |
 
-> _“Green lights or green guts on the floor. Pick one.”_ – Cmdr Chat
+> _"Green lights or green guts on the floor. Pick one."_ – Cmdr Chat
 
 ### **Designing the Tests in Practice**
 
@@ -629,19 +686,19 @@ expect(calls).toContain("npm test -- --runInBand");
 - Use `tmp-promise` to create an isolated dir.
 - Initialise a fake Git repo with `isomorphic-git`.
 - Symlink compiled CLI into `.husky/pre-push` and fire `git push origin HEAD`.
-- Assert execa’s rejection code equals your `ERROR_HUSKY_TESTS_FAILED` enum.
+- Assert execa's rejection code equals your `ERROR_HUSKY_TESTS_FAILED` enum.
 
 ### **Snapshot Return Codes**
 
-Each CLI exports its ExitCodes enum. Tests assert the right code surfaces – keeps scripts from regressing into “¯\_(ツ)_/¯ 1”.
+Each CLI exports its ExitCodes enum. Tests assert the right code surfaces – keeps scripts from regressing into "¯\_(ツ)_/¯ 1".
 
 ### **Mock the Clock & Spinners**
 
-Use `ora({ isSilent: true })` in test env so your snapshots aren’t ANSI garbage.
+Use `ora({ isSilent: true })` in test env so your snapshots aren't ANSI garbage.
 
 ### **Coverage for CLI Entry Points**
 
-Jest’s `--coverage` flag + `collectCoverageFrom: ["scripts/**/*.{ts,tsx}"]`.
+Jest's `--coverage` flag + `collectCoverageFrom: ["scripts/**/*.{ts,tsx}"]`.
 
 ### Phase 4: Progress Tracker
 
@@ -672,11 +729,11 @@ Jest’s `--coverage` flag + `collectCoverageFrom: ["scripts/**/*.{ts,tsx}"]`.
 > 
 > - [ ] **Green Matrix Passes** on first PR (no red re-runs).
 > - [ ] **CLAUDE.md checklist all [x]**.
-> - [ ] **Zero “throw ” hits**.
+> - [ ] **Zero "throw " hits**.
 > 
 > Meet those, and the kid pins Corporal chevrons. Miss them? Back to latrine duty with a lint brush.
 
-> **“NO THROWS, NO MERCY!”** — Cmdr Chat
+> **"NO THROWS, NO MERCY!"** — Cmdr Chat
 
 ---
 
@@ -689,45 +746,146 @@ Jest’s `--coverage` flag + `collectCoverageFrom: ["scripts/**/*.{ts,tsx}"]`.
 
 ## LATEST SITREP
 
-> [!info]- SITREP 2025-07-03 21:45 UTC
+> [!info]- SITREP 2025-07-03 17:00 UTC
 > 
-> **CI FIXES DEPLOYED - AWAITING PR MERGE** 🚁
+> **ALPHA RELEASE RECON COMPLETE** 🎯
 > 
 > **Current Operational Status:**
-> - Branch: dogfood (19 commits ahead, +10k/-2k changes!)
-> - Phase 1: ✅ COMPLETE 
-> - Phase 2: ⏳ READY TO EXECUTE (Monorepo) - ON HOLD pending PR merge
+> - Branch: ZT-RESILIENCE-PHASE-2 (2 commits)
+> - Phase 2 Monorepo: ✅ COMPLETE
+> - Sub-Mission ALPHA: ⚠️ P0-P3 COMPLETE, P4-P7 PENDING
+> - Sub-Mission BRAVO: ✅ COMPLETE
 > 
-> **Actions Taken:**
-> 1. **Fixed CI Workflows:**
->    - Consolidated test.yml + integration.yml → ci.yml
->    - Fixed Node version (22.x → 20.x)
->    - Run all integration tests at once (not individually)
->    - Added TypeScript check (`tsc --noEmit`)
+> **Critical Findings:**
+> 1. **API Surface Contamination:**
+>    - `tryR` found in 24 files (tests, examples, benchmarks)
+>    - `ZT.try` correctly uses `attempt` internally
+>    - Old names must be purged before alpha
 > 
-> 2. **Fixed TypeScript Errors:**
->    - ESLint plugin: Handle StringLiteral | Identifier unions
->    - Use AST_NODE_TYPES enum for comparisons
->    - Skipped 2 flaky ESLint import tests
+> 2. **Package Structure Issues:**
+>    - Core contains winston, pino, eslint, react code
+>    - Should be separate packages for clean architecture
+>    - Core has unnecessary peer dependencies
 > 
-> 3. **Disabled Flaky Tests:**
->    - db-transaction.test.ts → db-transaction.test.ts.skip
->    - 2 ESLint import generation tests (it.skip)
+> 3. **Alpha Release Requirements:**
+>    - Complete Sub-Mission ALPHA P4-P7 (2-3 hrs)
+>    - Extract contaminating code to separate packages
+>    - Verify zero dependencies for core package
 > 
-> **Technical Debt Identified:**
-> 1. Pre-commit/pre-push hooks missing TypeScript checks
-> 2. Coverage job runs tests twice (performance issue)
-> 3. ESLint import generation needs investigation
-> 4. DB integration test isolation issues (Phase 4)
+> **Planned Package Architecture:**
+> - @flyingrobots/zerothrow (core only)
+> - @flyingrobots/zerothrow-react
+> - @flyingrobots/zerothrow-logger-winston
+> - @flyingrobots/zerothrow-logger-pino
+> - @flyingrobots/zerothrow-eslint-plugin
 > 
-> **Critical Intel for Next Context:**
-> - Working directory: /Users/james/git/zerothrow
-> - Git status: All changes committed and pushed
-> - Tests: 237/239 PASSING (2 skipped)
-> - Integration: 18/18 PASSING (db-transaction disabled)
-> - Build: npm run build PASSES
-> - Lint: CLEAN
+> **Tech Debt Report:**
+> - 24 files with old API names
+> - Mixed package boundaries
+> - Incomplete surface lift
+> - Example tests failing due to imports
 > 
-> **URGENT:** Merge dogfood PR before proceeding to Phase 2!
+> **Next Actions:**
+> 1. Complete Sub-Mission ALPHA P4-P7
+> 2. Extract packages per architecture plan
+> 3. Clean dependencies and verify builds
+> 4. Prepare for alpha release
+> 
+> **Status:** AWAITING ORDERS TO EXECUTE ALPHA PREP
 > 
 > **HOO-RAH!** 🎖️
+
+---
+
+## Appendix I: Tech Debt & Drift Report
+
+### Code Debt
+1. **Old API Names:** 24 files still using `tryR`
+2. **Mixed Imports:** Tests/examples using old patterns
+3. **Package Contamination:** Non-core code in core package
+4. **Flaky Tests:** 
+   - db-transaction.test.ts disabled
+   - 2 ESLint import tests skipped
+5. **Example Tests:** Failing due to import issues
+
+### Documentation Debt
+1. **README:** Needs update for new API surface
+2. **Migration Guide:** None exists
+3. **API Docs:** Not generated
+4. **Examples:** Mix of old and new patterns
+
+### Infrastructure Debt
+1. **Docker:** Artifacts in working directory
+2. **Port Allocation:** Limited to 67 ports
+3. **Coverage:** Runs tests twice
+4. **CI:** Missing TypeScript checks in hooks
+
+---
+
+## Appendix II: Planned Package APIs
+
+### @flyingrobots/zerothrow (Core)
+```typescript
+// Main exports
+export { ZT } from './zt-pocket-knife';
+export * as ZeroThrow from './core-exports';
+
+// ZT pocket knife
+ZT.try(() => risky())
+ZT.ok(value)
+ZT.err(error)
+
+// ZeroThrow namespace
+ZeroThrow.attempt()
+ZeroThrow.pipe()
+ZeroThrow.collect()
+// ... all combinators
+```
+
+### @flyingrobots/zerothrow-react
+```typescript
+import { useResult } from '@flyingrobots/zerothrow-react';
+
+// Hooks
+export function useResult<T>(
+  fn: () => Promise<Result<T>>,
+  deps?: DependencyList
+): UseResultState<T>
+```
+
+### @flyingrobots/zerothrow-logger-winston
+```typescript
+import { createWinstonLogger } from '@flyingrobots/zerothrow-logger-winston';
+
+// Factory
+export function createWinstonLogger(
+  winston: WinstonModule,
+  options?: LoggerOptions
+): winston.Logger
+```
+
+### @flyingrobots/zerothrow-logger-pino
+```typescript
+import { createPinoConfig } from '@flyingrobots/zerothrow-logger-pino';
+
+// Config helper
+export function createPinoConfig(
+  options?: PinoOptions
+): PinoOptions
+```
+
+### @flyingrobots/zerothrow-eslint-plugin
+```typescript
+// ESLint plugin
+export = {
+  rules: {
+    'no-throw': noThrowRule
+  }
+}
+```
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
