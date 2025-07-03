@@ -26,12 +26,12 @@ import {
 } from './index.js';
 
 // Core types
-export type Result<T, E extends Error = _ZeroError> = _Result<T, E>;
-export type AnyError = Error; // For generic error constraints
+export type Result<T, E extends globalThis.Error = _ZeroError> = _Result<T, E>;
+export type AnyError = globalThis.Error; // For generic error constraints
 export type Ok<T> = _Ok<T>;
 export type OK<T> = _Ok<T>; // Alias for those who prefer all-caps
-export type Err<E extends Error> = _Err<E>;
-export type ERR<E extends Error> = _Err<E>; // Alias for those who prefer all-caps
+export type Err<E extends globalThis.Error> = _Err<E>;
+export type ERR<E extends globalThis.Error> = _Err<E>; // Alias for those who prefer all-caps
 export type Error = _ZeroError;
 export type ErrorCode = _ErrorCode;
 export type ErrorContext = _ErrorContext;
@@ -40,10 +40,10 @@ export type ErrorContext = _ErrorContext;
 export const Error = _ZeroError;
 
 // Enhanced Promise type with built-in combinators
-export interface Promise<T, E extends Error = _ZeroError> extends globalThis.Promise<Result<T, E> & _ResultCombinable<T, E>> {
+export interface Promise<T, E extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<T, E> & _ResultCombinable<T, E>> {
   andThen<U>(fn: (value: T) => Result<U, E>): Promise<U, E>;
   map<U>(fn: (value: T) => U): Promise<U, E>;
-  mapErr<F extends Error>(fn: (error: E) => F): Promise<T, F>;
+  mapErr<F extends globalThis.Error>(fn: (error: E) => F): Promise<T, F>;
   orElse(fallback: () => Result<T, E>): Promise<T, E>;
   unwrapOr(fallback: T): globalThis.Promise<T>;
   unwrapOrThrow(): globalThis.Promise<T>;
@@ -67,7 +67,7 @@ export const firstSuccess = _firstSuccess;
 export const makeCombinable = _makeCombinable;
 
 // Promise enhancement
-export function promise<T, E extends Error = _ZeroError>(promise: globalThis.Promise<Result<T, E>>): Promise<T, E> {
+export function promise<T, E extends globalThis.Error = _ZeroError>(promise: globalThis.Promise<Result<T, E>>): Promise<T, E> {
   const enhanced = promise.then(_makeCombinable) as Promise<T, E>;
   
   enhanced.andThen = function<U>(fn: (value: T) => Result<U, E>): Promise<U, E> {
@@ -78,7 +78,7 @@ export function promise<T, E extends Error = _ZeroError>(promise: globalThis.Pro
     return exports.promise(this.then(result => result.map(fn)));
   };
   
-  enhanced.mapErr = function<F extends Error>(fn: (error: E) => F): Promise<T, F> {
+  enhanced.mapErr = function<F extends globalThis.Error>(fn: (error: E) => F): Promise<T, F> {
     return exports.promise(this.then(result => result.mapErr(fn))) as Promise<T, F>;
   };
   
@@ -98,14 +98,14 @@ export function promise<T, E extends Error = _ZeroError>(promise: globalThis.Pro
 }
 
 // Async helper
-export function async<T, E extends Error = _ZeroError>(
+export function async<T, E extends globalThis.Error = _ZeroError>(
   fn: () => globalThis.Promise<Result<T, E>>
 ): Promise<T, E> {
   return promise(fn());
 }
 
 // Type guards
-export function isResult<T, E extends Error = _ZeroError>(value: unknown): value is Result<T, E> {
+export function isResult<T, E extends globalThis.Error = _ZeroError>(value: unknown): value is Result<T, E> {
   if (typeof value !== 'object' || value === null) return false;
   if (!('ok' in value)) return false;
   const obj = value as Record<string, unknown>;
@@ -118,10 +118,10 @@ export function isResult<T, E extends Error = _ZeroError>(value: unknown): value
   }
 }
 
-export function isOk<T>(result: Result<T, Error>): result is Ok<T> {
+export function isOk<T>(result: Result<T, globalThis.Error>): result is Ok<T> {
   return result.ok === true;
 }
 
-export function isErr<E extends Error>(result: Result<unknown, E>): result is Err<E> {
+export function isErr<E extends globalThis.Error>(result: Result<unknown, E>): result is Err<E> {
   return result.ok === false;
 }

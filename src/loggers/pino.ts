@@ -8,7 +8,7 @@ interface PinoSerializers {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is ZT.Result<unknown, Error> {
+function isResult(value: unknown): value is ZT.Result<unknown, ZT.AnyError> {
   return (
     value !== null &&
     typeof value === 'object' &&

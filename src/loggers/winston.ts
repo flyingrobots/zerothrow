@@ -13,7 +13,7 @@ interface WinstonFormatInfo {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is ZT.Result<unknown, Error> {
+function isResult(value: unknown): value is ZT.Result<unknown, ZT.AnyError> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -53,7 +53,7 @@ export const zerothrowWinstonFormat = {
 
     // Format Result types
     if (info.result && isResult(info.result)) {
-      const result = info.result;
+      const result = info.result as ZT.Result<unknown, ZT.AnyError>;
 
       if (result.ok) {
         transformed.zerothrow = {
@@ -66,23 +66,27 @@ export const zerothrowWinstonFormat = {
         transformed.zerothrow = {
           type: 'Result',
           status: 'err',
-          error:
-            result.error instanceof ZT.Error
-              ? {
-                  code:
-                    typeof result.error.code === 'symbol'
-                      ? String(result.error.code)
-                      : result.error.code,
-                  message: result.error.message,
-                  context: result.error.context,
-                }
-              : result.error instanceof Error
-                ? {
-                    message: result.error.message,
-                  }
-                : {
-                    message: String(result.error),
-                  },
+          error: (() => {
+            const err: unknown = result.error;
+            if (err instanceof ZT.Error) {
+              return {
+                code:
+                  typeof err.code === 'symbol'
+                    ? String(err.code)
+                    : err.code,
+                message: err.message,
+                context: err.context,
+              };
+            } else if (err instanceof globalThis.Error) {
+              return {
+                message: err.message,
+              };
+            } else {
+              return {
+                message: String(err),
+              };
+            }
+          })(),
         };
         const errorMessage =
           result.error instanceof ZT.Error
