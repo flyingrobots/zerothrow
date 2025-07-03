@@ -90,16 +90,35 @@ async function runLinter(files: string[]): Promise<ZT.Result<void, ZT.ZeroError>
   
   const spinner = ora('Running linter...').start();
   
-  // Use the same ESLint command as npm run lint, but with specific files
-  // ESLint v9 with flat config: exit code 1 = errors, 0 = success (warnings are ok)
-  const result = await execCmd(`npx eslint ${files.join(' ')}`);
+  // Separate src files from other files
+  const srcFiles = files.filter(f => f.startsWith('src/'));
+  const otherFiles = files.filter(f => !f.startsWith('src/'));
   
-  if (!result.ok) {
-    // Check if it's just warnings (ESLint exits with 0 for warnings-only)
-    // Only fail if there are actual errors
-    spinner.fail('Linting failed');
-    console.error(result.error.message);
-    return ZT.err(result.error);
+  // Run strict linting on src files (fail on any errors)
+  if (srcFiles.length > 0) {
+    spinner.text = 'Running strict linting on src files...';
+    const srcResult = await execCmd(`npx eslint ${srcFiles.join(' ')}`);
+    
+    if (!srcResult.ok) {
+      spinner.fail('Source file linting failed (strict mode)');
+      console.error(chalk.red('\n❌ Source files must pass strict linting rules'));
+      console.error(srcResult.error.message);
+      return ZT.err(srcResult.error);
+    }
+  }
+  
+  // Run relaxed linting on other files (warnings are ok)
+  if (otherFiles.length > 0) {
+    spinner.text = 'Running linting on test/other files...';
+    const otherResult = await execCmd(`npx eslint ${otherFiles.join(' ')}`);
+    
+    if (!otherResult.ok) {
+      // For non-src files, we could be more lenient
+      // But for now, still fail on errors (ESLint returns exit code 1 for errors, 0 for warnings)
+      spinner.fail('Test/other file linting failed');
+      console.error(otherResult.error.message);
+      return ZT.err(otherResult.error);
+    }
   }
   
   spinner.succeed('Linting passed');
