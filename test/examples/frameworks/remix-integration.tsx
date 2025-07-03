@@ -4,7 +4,7 @@ import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
 import type { 
   LoaderFunctionArgs, 
   ActionFunctionArgs,
-  MetaFunction 
+  MetaFunction as _MetaFunction 
 } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { 
@@ -183,17 +183,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     throw redirect('/login');
   }
 
-  const userId = authResult.value.userId;
+  const _userId = authResult.value.userId;
 
   // Critical data - await it
-  const userResult = await getUser(userId);
+  const userResult = await getUser(_userId);
   if (!userResult.ok) {
     throw json({ error: userResult.error.message }, { status: 500 });
   }
 
   // Non-critical data - defer it
-  const statsPromise = getUserStats(userId);
-  const notificationsPromise = getUserNotifications(userId);
+  const statsPromise = getUserStats(_userId);
+  const notificationsPromise = getUserNotifications(_userId);
 
   return defer({
     user: userResult.value,
@@ -637,21 +637,21 @@ interface UpdateUserData {
 }
 
 // Mock functions with Result returns
-async function getUserById(id: string): Promise<Result<User, ZeroError>> {
+async function getUserById(_id: string): Promise<Result<User, ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  if (id === 'invalid') {
-    return err(new ZeroError('USER_NOT_FOUND', 'User not found', { userId: id }));
+  if (_id === 'invalid') {
+    return err(new ZeroError('USER_NOT_FOUND', 'User not found', { userId: _id }));
   }
   
   return ok({
-    id,
+    id: _id,
     name: 'John Doe',
     email: 'john@example.com'
   });
 }
 
-async function getUserPosts(userId: string): Promise<Result<Post[], ZeroError>> {
+async function getUserPosts(_userId: string): Promise<Result<Post[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok([
     { id: '1', title: 'First Post', content: 'Content' }
@@ -677,15 +677,15 @@ async function createUser(data: any): Promise<Result<User, ZeroError>> {
   });
 }
 
-async function updateUser(id: string, data: UpdateUserData): Promise<Result<User, ZeroError>> {
+async function updateUser(_id: string, data: UpdateUserData): Promise<Result<User, ZeroError>> {
   return ok({
-    id,
+    id: _id,
     name: data.name || 'Updated',
     email: data.email || 'updated@example.com'
   });
 }
 
-async function deleteUser(id: string): Promise<Result<void, ZeroError>> {
+async function deleteUser(_id: string): Promise<Result<void, ZeroError>> {
   return ok(undefined);
 }
 
@@ -700,16 +700,16 @@ async function authenticateUser(request: Request): Promise<Result<{ userId: stri
   return ok({ userId });
 }
 
-async function getUser(userId: string): Promise<Result<User, ZeroError>> {
-  return getUserById(userId);
+async function getUser(_userId: string): Promise<Result<User, ZeroError>> {
+  return getUserById(_userId);
 }
 
-async function getUserStats(userId: string): Promise<Result<any, ZeroError>> {
+async function getUserStats(_userId: string): Promise<Result<any, ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 500));
   return ok({ posts: 10, followers: 100 });
 }
 
-async function getUserNotifications(userId: string): Promise<Result<any[], ZeroError>> {
+async function getUserNotifications(_userId: string): Promise<Result<any[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 300));
   return ok([{ id: '1', message: 'New follower' }]);
 }
@@ -739,11 +739,11 @@ function validateRegistrationForm(formData: FormData): Result<any, ZeroError[]> 
   return ok({ name, email, password });
 }
 
-async function updateTodo(id: string, data: { completed: boolean }): Promise<Result<Todo, ZeroError>> {
-  return ok({ id, title: 'Todo', completed: data.completed });
+async function updateTodo(_id: string, data: { completed: boolean }): Promise<Result<Todo, ZeroError>> {
+  return ok({ id: _id, title: 'Todo', completed: data.completed });
 }
 
-async function deleteTodo(id: string): Promise<Result<void, ZeroError>> {
+async function deleteTodo(_id: string): Promise<Result<void, ZeroError>> {
   return ok(undefined);
 }
 

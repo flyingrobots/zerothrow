@@ -74,7 +74,7 @@ const processPayment = async (amount: number, payment: OrderData['payment']): Pr
 };
 
 // Result chain helper - sequential processing with early termination on error
-async function chainResults<T>(
+async function _chainResults<T>(
   operations: Array<() => Promise<Result<any, ZeroError>>>
 ): Promise<Result<T, ZeroError>> {
   let lastResult: any;

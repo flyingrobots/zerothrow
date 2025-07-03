@@ -1,5 +1,4 @@
-import { ZeroError } from '../error.js';
-import { type Result } from '../result.js';
+import { ZeroThrow } from '../index.js';
 
 interface WinstonFormatInfo {
   level: string;
@@ -14,7 +13,7 @@ interface WinstonFormatInfo {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is Result<unknown, Error> {
+function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.ZeroError> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -32,7 +31,7 @@ export const zerothrowWinstonFormat = {
     const transformed: WinstonFormatInfo = { ...info };
 
     // Format ZeroError instances
-    if (info.error instanceof ZeroError) {
+    if (info.error instanceof ZeroThrow.ZeroError) {
       const codeStr =
         typeof info.error.code === 'symbol'
           ? String(info.error.code)
@@ -54,7 +53,7 @@ export const zerothrowWinstonFormat = {
 
     // Format Result types
     if (info.result && isResult(info.result)) {
-      const result = info.result;
+      const result = info.result as ZeroThrow.Result<unknown, ZeroThrow.ZeroError>;
 
       if (result.ok) {
         transformed.zerothrow = {
@@ -67,26 +66,30 @@ export const zerothrowWinstonFormat = {
         transformed.zerothrow = {
           type: 'Result',
           status: 'err',
-          error:
-            result.error instanceof ZeroError
-              ? {
-                  code:
-                    typeof result.error.code === 'symbol'
-                      ? String(result.error.code)
-                      : result.error.code,
-                  message: result.error.message,
-                  context: result.error.context,
-                }
-              : result.error instanceof Error
-                ? {
-                    message: result.error.message,
-                  }
-                : {
-                    message: String(result.error),
-                  },
+          error: (() => {
+            const err: unknown = result.error;
+            if (err instanceof ZeroThrow.ZeroError) {
+              return {
+                code:
+                  typeof err.code === 'symbol'
+                    ? String(err.code)
+                    : err.code,
+                message: err.message,
+                context: err.context,
+              };
+            } else if (err instanceof globalThis.Error) {
+              return {
+                message: err.message,
+              };
+            } else {
+              return {
+                message: String(err),
+              };
+            }
+          })(),
         };
         const errorMessage =
-          result.error instanceof ZeroError
+          result.error instanceof ZeroThrow.ZeroError
             ? result.error.message
             : info.message || 'Operation failed';
         transformed.formattedMessage = `[ERR] ${errorMessage}`;

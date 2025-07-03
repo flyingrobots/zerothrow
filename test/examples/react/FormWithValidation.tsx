@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Result, ok, err, ZeroError } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError as _ZeroError } from '@flyingrobots/zerothrow';
 
 // Validation types
 type ValidationError = {

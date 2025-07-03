@@ -40,9 +40,26 @@ services:
         npx vitest run --config vitest.integration.prepush.config.ts
       "
 
+  # TypeScript check
+  typescript-check:
+    container_name: zerothrow-tests-c-typescript
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/source:ro
+    environment:
+      - CI=true
+      - PREPUSH=true
+    command: >
+      sh -c "
+        cp -r /source/* /app/ &&
+        npm ci --quiet &&
+        npx tsc --noEmit
+      "
+
   # Lint check
   lint-check:
-    container_name: zerothrow-tests-c-lint
+    container_name: zerothrow-tests-d-lint
     image: node:22-alpine
     working_dir: /app
     volumes:
@@ -59,7 +76,7 @@ services:
 
   # Build check
   build-check:
-    container_name: zerothrow-tests-d-build
+    container_name: zerothrow-tests-e-build
     image: node:22-alpine
     working_dir: /app
     volumes:
@@ -77,7 +94,7 @@ services:
 
   # Coverage check
   coverage-check:
-    container_name: zerothrow-tests-e-coverage
+    container_name: zerothrow-tests-f-coverage
     image: node:22-alpine
     working_dir: /app
     volumes:

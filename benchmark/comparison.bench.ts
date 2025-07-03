@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { ok, err, tryR, tryRSync, ZeroError } from '../src/index.js';
+import { ZT } from '../src/zt.js';
 
 /**
  * Performance comparison with other error handling patterns
@@ -64,7 +64,7 @@ const simpleErr = <E>(error: E): SimpleResult<never, E> => ({ type: 'error', err
 
 describe('Result Creation - Library Comparison', () => {
   bench('zerothrow - ok()', () => {
-    ok(42);
+    ZT.ok(42);
   });
 
   bench('neverthrow-style - ok()', () => {
@@ -88,7 +88,7 @@ describe('Error Creation - Library Comparison', () => {
   const error = new Error('test error');
 
   bench('zerothrow - err()', () => {
-    err(error);
+    ZT.err(error);
   });
 
   bench('neverthrow-style - err()', () => {
@@ -110,11 +110,11 @@ describe('Error Creation - Library Comparison', () => {
 
 describe('Try/Catch Wrapper - Library Comparison', () => {
   bench('zerothrow - tryRSync', () => {
-    tryRSync(() => 42);
+    ZT.tryRSync(() => 42);
   });
 
   bench('zerothrow - tryR (async)', async () => {
-    await tryR(() => 42);
+    await ZT.tryR(() => 42);
   });
 
   bench('native try/catch wrapper', () => {
@@ -145,7 +145,7 @@ describe('Error Handling Flow - Library Comparison', () => {
   };
 
   bench('zerothrow - full flow with tryRSync', () => {
-    const result = tryRSync(riskyOperation);
+    const result = ZT.tryRSync(riskyOperation);
     if (result.ok) {
       return result.value * 2;
     } else {

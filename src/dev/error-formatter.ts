@@ -1,5 +1,4 @@
-import { ZeroError } from '../error.js';
-import { Result } from '../result.js';
+import { ZeroThrow } from '../index.js';
 
 interface FormatOptions {
   colors?: boolean;
@@ -38,7 +37,7 @@ export class ErrorFormatter {
     };
   }
 
-  formatZeroError(error: ZeroError): string {
+  formatZeroError(error: ZeroThrow.ZeroError): string {
     const lines: string[] = [];
     const { colors } = this.options;
 
@@ -101,7 +100,7 @@ export class ErrorFormatter {
     return lines.join('\n');
   }
 
-  formatResult<T, E extends Error>(result: Result<T, E>): string {
+  formatResult<T, E extends Error>(result: ZeroThrow.Result<T, E>): string {
     if (result.ok) {
       const { colors } = this.options;
       const valueStr = JSON.stringify(result.value);
@@ -110,7 +109,7 @@ export class ErrorFormatter {
         : `✓ Success: ${valueStr}`;
     } else {
       const error = result.error;
-      if (error instanceof ZeroError) {
+      if (error instanceof ZeroThrow.ZeroError) {
         return this.formatZeroError(error);
       } else {
         const { colors } = this.options;
@@ -123,12 +122,12 @@ export class ErrorFormatter {
   }
 
   // Console helper methods
-  logError(error: ZeroError): void {
+  logError(error: ZeroThrow.ZeroError): void {
     // eslint-disable-next-line no-console
     console.error(this.formatZeroError(error));
   }
 
-  logResult<T, E extends Error>(result: Result<T, E>): void {
+  logResult<T, E extends Error>(result: ZeroThrow.Result<T, E>): void {
     // eslint-disable-next-line no-console
     console.log(this.formatResult(result));
   }

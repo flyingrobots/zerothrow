@@ -1,4 +1,4 @@
-import { type Result, ok, err } from './result.js';
+import { type Result, err, _ok, _err } from './result.js';
 import { ZeroError } from './error.js';
 
 /**
@@ -39,6 +39,23 @@ export interface ResultCombinable<T, E extends Error = ZeroError> {
    * Get value or throw (use sparingly!)
    */
   unwrapOrThrow(): T;
+
+  /**
+   * Execute side effect without changing the Result
+   * Useful for logging, metrics, debugging
+   */
+  tap(fn: (value: T) => void): Result<T, E> & ResultCombinable<T, E>;
+
+  /**
+   * Execute side effect on error without changing the Result
+   */
+  tapErr(fn: (error: E) => void): Result<T, E> & ResultCombinable<T, E>;
+
+  /**
+   * Execute cleanup function regardless of success/failure
+   * Gets the value if successful, undefined if error
+   */
+  finally(fn: (value?: T) => void): Result<T, E> & ResultCombinable<T, E>;
 }
 
 /**
@@ -61,7 +78,7 @@ export function makeCombinable<T, E extends Error = ZeroError>(
       fn: (error: E) => F
     ): Result<T, F> & ResultCombinable<T, F> {
       if (this.ok) return makeCombinable(this as Result<T, F>);
-      return makeCombinable(err(fn(this.error)));
+      return makeCombinable(_err(fn(this.error)));
     },
 
     map: function <U>(
@@ -69,7 +86,7 @@ export function makeCombinable<T, E extends Error = ZeroError>(
       fn: (value: T) => U
     ): Result<U, E> & ResultCombinable<U, E> {
       if (!this.ok) return makeCombinable(this as Result<U, E>);
-      return makeCombinable(ok(fn(this.value)));
+      return makeCombinable(_ok(fn(this.value)));
     },
 
     orElse: function (
@@ -93,6 +110,30 @@ export function makeCombinable<T, E extends Error = ZeroError>(
     unwrapOrThrow: function (this: Result<T, E>): T {
       if (!this.ok) throw this.error;
       return this.value;
+    },
+
+    tap: function (
+      this: Result<T, E>,
+      fn: (value: T) => void
+    ): Result<T, E> & ResultCombinable<T, E> {
+      if (this.ok) fn(this.value);
+      return makeCombinable(this);
+    },
+
+    tapErr: function (
+      this: Result<T, E>,
+      fn: (error: E) => void
+    ): Result<T, E> & ResultCombinable<T, E> {
+      if (!this.ok) fn(this.error);
+      return makeCombinable(this);
+    },
+
+    finally: function (
+      this: Result<T, E>,
+      fn: (value?: T) => void
+    ): Result<T, E> & ResultCombinable<T, E> {
+      fn(this.ok ? this.value : undefined);
+      return makeCombinable(this);
     },
   });
 }
@@ -133,7 +174,7 @@ export function collect<T, E extends Error = ZeroError>(
     values[index++] = result.value;
   }
 
-  return ok(values);
+  return _ok(values) as Result<T[], E>;
 }
 
 /**

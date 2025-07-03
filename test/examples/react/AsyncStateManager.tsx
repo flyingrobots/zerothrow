@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback } from 'react';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok as _ok, err as _err, ZeroError, tryR } from '@flyingrobots/zerothrow';
 
 // State management with Result types
 type AsyncState<T> = 

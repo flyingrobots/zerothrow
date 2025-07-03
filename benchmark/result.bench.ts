@@ -1,5 +1,5 @@
 import { bench, describe } from 'vitest';
-import { ok, err, tryR, wrap, ZeroError } from '../src/index.js';
+import { ZT } from '../src/zt.js';
 
 // Baseline comparisons
 const nativeThrow = () => {
@@ -16,19 +16,19 @@ const nativeReturn = () => {
 
 describe('Result Creation Performance', () => {
   bench('ok() - simple value', () => {
-    ok(42);
+    ZT.ok(42);
   });
 
   bench('ok() - object value', () => {
-    ok({ id: 1, name: 'test', data: [1, 2, 3, 4, 5] });
+    ZT.ok({ id: 1, name: 'test', data: [1, 2, 3, 4, 5] });
   });
 
   bench('err() - simple error', () => {
-    err(new Error('test'));
+    ZT.err(new Error('test'));
   });
 
   bench('err() - ZeroError', () => {
-    err(new ZeroError('TEST_ERR', 'Test error'));
+    ZT.err(new ZT.Error('TEST_ERR', 'Test error'));
   });
 
   bench('native throw/catch (baseline)', () => {
@@ -42,25 +42,25 @@ describe('Result Creation Performance', () => {
 
 describe('tryR Performance', () => {
   bench('tryR - sync success', async () => {
-    await tryR(() => 42);
+    await ZT.tryR(() => 42);
   });
 
   bench('tryR - async success', async () => {
-    await tryR(async () => 42);
+    await ZT.tryR(async () => 42);
   });
 
   bench('tryR - sync failure', async () => {
-    await tryR(() => { throw new Error('test'); });
+    await ZT.tryR(() => { throw new Error('test'); });
   });
 
   bench('tryR - async failure', async () => {
-    await tryR(async () => { throw new Error('test'); });
+    await ZT.tryR(async () => { throw new Error('test'); });
   });
 
   bench('tryR - with map function', async () => {
-    await tryR(
+    await ZT.tryR(
       () => { throw new Error('test'); },
-      (e) => new ZeroError('MAPPED', 'Mapped error', { cause: e })
+      (e) => new ZT.Error('MAPPED', 'Mapped error', { cause: e })
     );
   });
 
@@ -75,23 +75,23 @@ describe('tryR Performance', () => {
 
 describe('Error Normalization Performance', () => {
   bench('tryR - Error instance', async () => {
-    await tryR(() => { throw new Error('test'); });
+    await ZT.tryR(() => { throw new Error('test'); });
   });
 
   bench('tryR - ZeroError instance', async () => {
-    await tryR(() => { throw new ZeroError('CODE', 'message'); });
+    await ZT.tryR(() => { throw new ZT.Error('CODE', 'message'); });
   });
 
   bench('tryR - string throw', async () => {
-    await tryR(() => { throw 'string error'; });
+    await ZT.tryR(() => { throw 'string error'; });
   });
 
   bench('tryR - object throw', async () => {
-    await tryR(() => { throw { code: 'ERR', message: 'test' }; });
+    await ZT.tryR(() => { throw { code: 'ERR', message: 'test' }; });
   });
 
   bench('tryR - null throw', async () => {
-    await tryR(() => { throw null; });
+    await ZT.tryR(() => { throw null; });
   });
 });
 
@@ -99,11 +99,11 @@ describe('wrap Performance', () => {
   const baseError = new Error('base error');
 
   bench('wrap - simple', () => {
-    wrap(baseError, 'WRAP_ERR', 'Wrapped error');
+    ZT.wrap(baseError, 'WRAP_ERR', 'Wrapped error');
   });
 
   bench('wrap - with context', () => {
-    wrap(baseError, 'WRAP_ERR', 'Wrapped error', {
+    ZT.wrap(baseError, 'WRAP_ERR', 'Wrapped error', {
       userId: '123',
       operation: 'test',
       timestamp: Date.now()
@@ -120,20 +120,20 @@ describe('wrap Performance', () => {
 describe('Memory Allocation Tests', () => {
   bench('ok() allocation - 1000 iterations', () => {
     for (let i = 0; i < 1000; i++) {
-      ok(i);
+      ZT.ok(i);
     }
   });
 
   bench('err() allocation - 1000 iterations', () => {
     const error = new Error('test');
     for (let i = 0; i < 1000; i++) {
-      err(error);
+      ZT.err(error);
     }
   });
 
   bench('tryR allocation - 1000 iterations', async () => {
     for (let i = 0; i < 1000; i++) {
-      await tryR(() => i);
+      await ZT.tryR(() => i);
     }
   });
 });
@@ -147,16 +147,16 @@ describe('Real-world Scenarios', () => {
   };
 
   bench('DB operation - success path', async () => {
-    const result = await tryR(() => dbOperation(false));
+    const result = await ZT.tryR(() => dbOperation(false));
     if (result.ok) {
       return result.value;
     }
   });
 
   bench('DB operation - error path with wrap', async () => {
-    const result = await tryR(() => dbOperation(true));
+    const result = await ZT.tryR(() => dbOperation(true));
     if (!result.ok) {
-      return wrap(result.error, 'DB_ERR', 'Database operation failed', {
+      return ZT.wrap(result.error, 'DB_ERR', 'Database operation failed', {
         operation: 'select',
         table: 'users'
       });
@@ -165,7 +165,7 @@ describe('Real-world Scenarios', () => {
 
   // Simulate API request parsing
   const parseJSON = (str: string) => {
-    return tryR(() => JSON.parse(str));
+    return ZT.tryR(() => JSON.parse(str));
   };
 
   bench('JSON parsing - valid', async () => {

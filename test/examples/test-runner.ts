@@ -179,7 +179,7 @@ class ExampleTestRunner {
       try {
         const files = readdirSync(examplePath);
         testFiles = files.some((file: string) => file.includes('.test.'));
-      } catch (e) {
+      } catch {
         // Directory read error
       }
 
@@ -199,7 +199,7 @@ class ExampleTestRunner {
             issues.push('vitest not found in devDependencies');
           }
         }
-      } catch (e) {
+      } catch {
         issues.push('Invalid package.json');
       }
 

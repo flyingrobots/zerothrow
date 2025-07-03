@@ -68,7 +68,7 @@ export abstract class BaseRepository<T> {
     return tryR(
       async () => {
         const keys = Object.keys(conditions);
-        const placeholders = keys.map(() => '?').join(' AND ');
+        const _placeholders = keys.map(() => '?').join(' AND ');
         const values = Object.values(conditions);
 
         const sql = `SELECT * FROM ${this.tableName} WHERE ${keys.map(k => `${k} = ?`).join(' AND ')} LIMIT 1`;
@@ -458,7 +458,7 @@ export async function example(db: DatabaseConnection) {
   const txManager = new TransactionManager(db);
 
   // Create a user within a transaction
-  const result = await txManager.executeInTransaction(async (txDb) => {
+  const result = await txManager.executeInTransaction(async (_txDb) => {
     const userResult = await userRepo.createUser({
       email: 'john@example.com',
       username: 'johndoe',

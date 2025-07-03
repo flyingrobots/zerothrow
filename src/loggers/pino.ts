@@ -1,5 +1,4 @@
-import { ZeroError } from '../error.js';
-import { type Result } from '../result.js';
+import { ZeroThrow } from '../index.js';
 
 interface PinoSerializers {
   err?: (error: unknown) => unknown;
@@ -9,7 +8,7 @@ interface PinoSerializers {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is Result<unknown, Error> {
+function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.ZeroError> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -23,7 +22,7 @@ function isResult(value: unknown): value is Result<unknown, Error> {
 
 export const zerothrowPinoSerializers: PinoSerializers = {
   err: (error: unknown) => {
-    if (error instanceof ZeroError) {
+    if (error instanceof ZeroThrow.ZeroError) {
       return {
         type: 'ZeroError',
         code: typeof error.code === 'symbol' ? String(error.code) : error.code,
@@ -70,7 +69,9 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         return {
           type: 'Result',
           status: 'err',
-          error: zerothrowPinoSerializers.err!(result.error),
+          error: zerothrowPinoSerializers.err
+            ? zerothrowPinoSerializers.err(result.error)
+            : result.error,
         };
       }
     }

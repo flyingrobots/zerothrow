@@ -1,20 +1,24 @@
 import { describe, it, expect } from 'vitest';
-import { ok, err, tryR, wrap, ZeroError } from '../src/index.js';
+import { ZT, ZeroThrow } from '../src/index.js';
 
 describe('Result helpers', () => {
   it('ok()', () => {
-    expect(ok(42)).toEqual({ ok: true, value: 42 });
+    const result = ZT.ok(42);
+    expect(result.ok).toBe(true);
+    expect(result.value).toBe(42);
   });
   it('err()', () => {
     const e = new Error('boom');
-    expect(err(e)).toEqual({ ok: false, error: e });
+    const result = ZT.err(e);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe(e);
   });
   it('tryR success', async () => {
-    const r = await tryR(() => 1);
+    const r = await ZT.try(() => 1);
     expect(r.ok).toBe(true);
   });
   it('tryR failure', async () => {
-    const r = await tryR(() => {
+    const r = await ZT.try(() => {
       throw new Error('bad');
     });
     expect(r.ok).toBe(false);
@@ -24,9 +28,9 @@ describe('Result helpers', () => {
 describe('wrap function', () => {
   it('wraps an error with code and message', () => {
     const cause = new Error('original error');
-    const wrapped = wrap(cause, 'DB_ERR', 'Database connection failed');
+    const wrapped = ZeroThrow.wrap(cause, 'DB_ERR', 'Database connection failed');
 
-    expect(wrapped).toBeInstanceOf(ZeroError);
+    expect(wrapped).toBeInstanceOf(ZeroThrow.ZeroError);
     expect(wrapped.code).toBe('DB_ERR');
     expect(wrapped.message).toBe('Database connection failed');
     expect(wrapped.cause).toBe(cause);
@@ -35,14 +39,14 @@ describe('wrap function', () => {
   it('wraps an error with context', () => {
     const cause = new Error('original error');
     const context = { userId: '123', operation: 'fetch' };
-    const wrapped = wrap(cause, 'USER_ERR', 'User operation failed', context);
+    const wrapped = ZeroThrow.wrap(cause, 'USER_ERR', 'User operation failed', context);
 
     expect(wrapped.context).toEqual(context);
   });
 
   it("uses cause's message when msg not provided", () => {
     const cause = new Error('original error message');
-    const wrapped = wrap(cause, 'DB_ERR');
+    const wrapped = ZeroThrow.wrap(cause, 'DB_ERR');
 
     expect(wrapped.message).toBe('original error message');
     expect(wrapped.code).toBe('DB_ERR');
@@ -50,8 +54,8 @@ describe('wrap function', () => {
   });
 
   it('extracts code and message from ZeroError cause', () => {
-    const cause = new ZeroError('ORIGINAL_CODE', 'original message');
-    const wrapped = wrap(cause);
+    const cause = new ZeroThrow.ZeroError('ORIGINAL_CODE', 'original message');
+    const wrapped = ZeroThrow.wrap(cause);
 
     expect(wrapped.code).toBe('ORIGINAL_CODE');
     expect(wrapped.message).toBe('original message');
@@ -60,7 +64,7 @@ describe('wrap function', () => {
 
   it('uses WRAPPED_ERROR code for regular errors when code not provided', () => {
     const cause = new Error('some error');
-    const wrapped = wrap(cause);
+    const wrapped = ZeroThrow.wrap(cause);
 
     expect(wrapped.code).toBe('WRAPPED_ERROR');
     expect(wrapped.message).toBe('some error');
@@ -69,7 +73,7 @@ describe('wrap function', () => {
 
   it('preserves stack trace through cause chain', () => {
     const cause = new Error('original error');
-    const wrapped = wrap(cause, 'WRAP_CODE', 'wrapped message');
+    const wrapped = ZeroThrow.wrap(cause, 'WRAP_CODE', 'wrapped message');
 
     expect(wrapped.cause).toBe(cause);
     expect(wrapped.stack).toContain('wrap');
@@ -79,10 +83,10 @@ describe('wrap function', () => {
 
   it('displays full error chain with toString()', () => {
     const originalError = new Error('database connection timeout');
-    const dbError = wrap(originalError, 'DB_ERROR', 'Failed to fetch user', {
+    const dbError = ZeroThrow.wrap(originalError, 'DB_ERROR', 'Failed to fetch user', {
       userId: 123,
     });
-    const apiError = wrap(dbError, 'API_ERROR', 'User endpoint failed', {
+    const apiError = ZeroThrow.wrap(dbError, 'API_ERROR', 'User endpoint failed', {
       endpoint: '/api/user/123',
     });
 
@@ -102,7 +106,7 @@ describe('wrap function', () => {
 
   it('getFullStack includes all stack traces', () => {
     const originalError = new Error('original');
-    const wrapped = wrap(originalError, 'WRAPPED', 'wrapped error');
+    const wrapped = ZeroThrow.wrap(originalError, 'WRAPPED', 'wrapped error');
 
     const fullStack = wrapped.getFullStack();
 
@@ -119,7 +123,7 @@ describe('tryR advanced cases', () => {
       context: { data: 'test' },
     });
 
-    const result = await tryR(() => {
+    const result = await ZT.try(() => {
       throw errorLike;
     });
 
@@ -131,16 +135,17 @@ describe('tryR advanced cases', () => {
   });
 
   it('handles sync functions', async () => {
-    const r = await tryR(() => 'sync result');
-    expect(r).toEqual({ ok: true, value: 'sync result' });
+    const r = await ZT.try(() => 'sync result');
+    expect(r.ok).toBe(true);
+    expect(r.value).toBe('sync result');
   });
 
   it('applies map function on error', async () => {
-    const r = await tryR(
+    const r = await ZT.try(
       () => {
         throw new Error('original');
       },
-      (e) => new ZeroError('MAPPED_ERR', 'Mapped error', { cause: e })
+      (e) => new ZeroThrow.ZeroError('MAPPED_ERR', 'Mapped error', { cause: e })
     );
 
     expect(r.ok).toBe(false);
@@ -151,22 +156,22 @@ describe('tryR advanced cases', () => {
   });
 
   it('normalizes non-Error throws to ZeroError', async () => {
-    // eslint-disable-next-line no-throw-literal
-    const r = await tryR(() => {
+    const r = await ZT.try(() => {
+       
       throw 'string error';
     });
 
     expect(r.ok).toBe(false);
     if (!r.ok) {
-      expect(r.error).toBeInstanceOf(ZeroError);
+      expect(r.error).toBeInstanceOf(ZeroThrow.ZeroError);
       expect(r.error.code).toBe('UNKNOWN_ERR');
       expect(r.error.message).toBe('string error');
     }
   });
 
   it('preserves ZeroError instances', async () => {
-    const originalError = new ZeroError('CUSTOM_ERR', 'Custom error');
-    const r = await tryR(() => {
+    const originalError = new ZeroThrow.ZeroError('CUSTOM_ERR', 'Custom error');
+    const r = await ZT.try(() => {
       throw originalError;
     });
 
@@ -177,12 +182,12 @@ describe('tryR advanced cases', () => {
   });
 
   it('handles null and undefined throws', async () => {
-    // eslint-disable-next-line no-throw-literal
-    const r1 = await tryR(() => {
+    const r1 = await ZT.try(() => {
+       
       throw null;
     });
-    // eslint-disable-next-line no-throw-literal
-    const r2 = await tryR(() => {
+    const r2 = await ZT.try(() => {
+       
       throw undefined;
     });
 
@@ -198,7 +203,7 @@ describe('Additional branch coverage tests', () => {
     const errorWithoutStack = new Error('No stack');
     Object.defineProperty(errorWithoutStack, 'stack', { value: undefined });
 
-    const zeroError = new ZeroError('TEST_ERROR', 'Test error', {
+    const zeroError = new ZeroThrow.ZeroError('TEST_ERROR', 'Test error', {
       cause: errorWithoutStack,
     });
     Object.defineProperty(zeroError, 'stack', { value: undefined });
@@ -211,7 +216,7 @@ describe('Additional branch coverage tests', () => {
     const errorWithoutName = new Error('No name');
     Object.defineProperty(errorWithoutName, 'name', { value: undefined });
 
-    const zeroError = new ZeroError('TEST_ERROR', 'Test error', {
+    const zeroError = new ZeroThrow.ZeroError('TEST_ERROR', 'Test error', {
       cause: errorWithoutName,
     });
 
@@ -226,7 +231,7 @@ describe('Additional branch coverage tests', () => {
     };
     errorWithCode.code = 'CUSTOM_CODE';
 
-    const wrapped = wrap(errorWithCode);
+    const wrapped = ZeroThrow.wrap(errorWithCode);
     expect(wrapped.code).toBe('CUSTOM_CODE');
   });
 });

@@ -1,6 +1,6 @@
 #!/usr/bin/env node --expose-gc
 
-import { ok, err, tryR, wrap, ZeroError } from '../dist/index.js';
+import { ZT } from '../dist/zt.js';
 import { MemoryProfiler, MemoryLeakDetector } from './memory-profile.js';
 
 async function main() {
@@ -10,39 +10,39 @@ async function main() {
 
   // Test 1: ok() allocations
   await profiler.profile('ok() - 100k allocations', 100000, () => {
-    return ok(42);
+    return ZT.ok(42);
   });
 
   // Test 2: err() allocations
   const testError = new Error('test');
   await profiler.profile('err() - 100k allocations', 100000, () => {
-    return err(testError);
+    return ZT.err(testError);
   });
 
   // Test 3: ZeroError allocations
   await profiler.profile('ZeroError creation - 10k', 10000, () => {
-    return new ZeroError('TEST_ERR', 'Test error message');
+    return new ZT.Error('TEST_ERR', 'Test error message');
   });
 
   // Test 4: tryR success path
   await profiler.profile('tryR success - 10k', 10000, async () => {
-    return await tryR(() => 'success');
+    return await ZT.tryR(() => 'success');
   });
 
   // Test 5: tryR failure path
   await profiler.profile('tryR failure - 10k', 10000, async () => {
-    return await tryR(() => { throw new Error('failure'); });
+    return await ZT.tryR(() => { throw new Error('failure'); });
   });
 
   // Test 6: wrap() allocations
   const baseError = new Error('base');
   await profiler.profile('wrap() - 10k', 10000, () => {
-    return wrap(baseError, 'WRAPPED', 'Wrapped error', { userId: '123' });
+    return ZT.wrap(baseError, 'WRAPPED', 'Wrapped error', { userId: '123' });
   });
 
   // Test 7: Complex object in ok()
   await profiler.profile('ok() with complex object - 10k', 10000, () => {
-    return ok({
+    return ZT.ok({
       id: 1,
       name: 'test',
       data: [1, 2, 3, 4, 5],
@@ -58,7 +58,7 @@ async function main() {
   
   // Run a loop that could potentially leak memory
   for (let i = 0; i < 1000; i++) {
-    await tryR(async () => {
+    await ZT.tryR(async () => {
       if (Math.random() > 0.5) {
         throw new Error(`Error ${i}`);
       }
