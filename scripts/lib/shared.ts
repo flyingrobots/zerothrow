@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { ZT, ZeroThrow } from '../../src/index';
+import { ZT, ZeroThrow } from '../../packages/core/src/index';
 
 const execAsync = promisify(exec);
 

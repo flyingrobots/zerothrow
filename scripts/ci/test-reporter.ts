@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow } from '../../src/index';
+import { ZT, ZeroThrow } from '../../packages/core/src/index';
 import { execCmd, readFile } from '../lib/shared';
 import chalk from 'chalk';
 import { existsSync } from 'fs';

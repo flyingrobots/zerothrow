@@ -1,0 +1,59 @@
+{
+  "name": "@zerothrow/core",
+  "version": "0.0.1-alpha",
+  "description": "Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react-hooks.d.ts",
+      "import": "./dist/react-hooks.js",
+      "require": "./dist/react-hooks.cjs"
+    },
+    "./loggers/pino": {
+      "types": "./dist/loggers/pino.d.ts",
+      "import": "./dist/loggers/pino.js",
+      "require": "./dist/loggers/pino.cjs"
+    },
+    "./loggers/winston": {
+      "types": "./dist/loggers/winston.d.ts",
+      "import": "./dist/loggers/winston.js",
+      "require": "./dist/loggers/winston.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "pino": ">=8.0.0",
+    "winston": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "pino": {
+      "optional": true
+    },
+    "winston": {
+      "optional": true
+    }
+  }
+}

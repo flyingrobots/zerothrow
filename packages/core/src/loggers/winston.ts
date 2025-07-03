@@ -18,8 +18,8 @@ function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.
     value !== null &&
     typeof value === 'object' &&
     'ok' in value &&
-    typeof (value as Record<string, unknown>).ok === 'boolean' &&
-    ((value as Record<string, unknown>).ok === true
+    typeof (value as Record<string, unknown>)['ok'] === 'boolean' &&
+    ((value as Record<string, unknown>)['ok'] === true
       ? 'value' in value
       : 'error' in value)
   );
@@ -42,12 +42,12 @@ export const zerothrowWinstonFormat = {
         message: info.error.message,
         context: info.error.context,
         // Only include stack in debug mode
-        ...(process?.env?.LOG_LEVEL === 'debug' ||
-        process?.env?.LOG_STACK === 'true'
+        ...(process?.env?.['LOG_LEVEL'] === 'debug' ||
+        process?.env?.['LOG_STACK'] === 'true'
           ? { stack: info.error.stack }
           : {}),
       };
-      transformed.formattedMessage = `[${codeStr}] ${info.error.message}`;
+      transformed['formattedMessage'] = `[${codeStr}] ${info.error.message}`;
       // Leave original error untouched for downstream formats
     }
 

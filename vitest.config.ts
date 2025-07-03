@@ -7,17 +7,17 @@ export default mergeConfig(
   defineConfig({
     resolve: {
       alias: {
-        '@': resolve(__dirname, './src')
+        '@': resolve(__dirname, './packages/core/src')
       }
     },
     test: {
-      include: ['test/**/*.test.ts'],
+      include: ['packages/core/test/**/*.test.ts'],
       exclude: [
-        'test/examples/**',
+        'packages/core/test/examples/**',
         '**/node_modules/**',
         '**/dist/**',
         '**/build/**',
-        'test/**/*performance*.test.ts',
+        'packages/core/test/**/*performance*.test.ts',
       ],
       reporters: process.env.CI ? ['verbose', 'github-actions'] : ['verbose'],
       logHeapUsage: true,
@@ -27,12 +27,12 @@ export default mergeConfig(
         return false;
       },
       coverage: {
-        include: ['src/**/*.ts'],
+        include: ['packages/core/src/**/*.ts'],
         exclude: [
           '**/*.config.ts',
           '**/node_modules/**',
-          'src/platform/**',
-          'test/**',
+          'packages/core/src/platform/**',
+          'packages/core/test/**',
         ],
         reporter: ['text', 'json-summary', 'json'],
       },
