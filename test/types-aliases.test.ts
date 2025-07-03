@@ -262,8 +262,8 @@ describe('Modern ZT Patterns', () => {
           sql.includes('ERROR') 
             ? ZT.err(new Error('Query failed'))
             : ZT.ok({ rows: 1 }),
-        commit: (tx: string) => ZT.ok(undefined),
-        rollback: (tx: string) => ZT.ok(undefined)
+        commit: (_tx: string) => ZT.ok(undefined),
+        rollback: (_tx: string) => ZT.ok(undefined)
       };
       
       const transaction = await ZeroThrow.attempt(async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ErrorFormatter } from '../src/dev/error-formatter.js';
-import { ZT, ZeroThrow } from '../src/index.js';
+import { ZeroThrow } from '../src/index.js';
 
 describe('ErrorFormatter complete coverage', () => {
   it('handles errors without stack traces', () => {

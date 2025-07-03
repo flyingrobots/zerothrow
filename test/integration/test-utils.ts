@@ -47,7 +47,7 @@ export function createTestEnvironment(): TestEnvironment {
 
 export async function startTestDatabase(env: TestEnvironment): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   // Clean up any existing containers first
-  const cleanupResult = ZT.try(() => 
+  const _cleanupResult = ZT.try(() => 
     execSync(`docker compose -f ${env.composeFile} down -v`, {
       stdio: 'pipe'
     })

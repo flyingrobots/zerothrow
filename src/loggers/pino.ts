@@ -1,4 +1,4 @@
-import { ZeroThrow, ZT } from '../index.js';
+import { ZeroThrow } from '../index.js';
 
 interface PinoSerializers {
   err?: (error: unknown) => unknown;

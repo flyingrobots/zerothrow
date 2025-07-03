@@ -1,4 +1,4 @@
-import { ZeroThrow, ZT } from '../index.js';
+import { ZeroThrow } from '../index.js';
 
 interface WinstonFormatInfo {
   level: string;
