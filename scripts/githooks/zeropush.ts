@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { Result, ok, err, ZeroError, ZTResult, ZTPromise, ztPromise, ztOk, ztErr } from '../../src/index';
+import { ZT } from '../../src/index';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import ora from 'ora';
@@ -26,31 +26,33 @@ interface TestConfig {
 }
 
 // Check if Docker is running
-async function isDockerRunning(): ZTPromise<boolean> {
-  const result = await execCmd('docker info');
-  return ok(result.ok);
+function isDockerRunning(): ZT.Promise<boolean> {
+  return ZT.promise(execCmd('docker info').then(result => ZT.ok(result.ok)));
 }
 
 // Check for docker-compose availability
-async function getDockerComposeCommand(): ZTPromise<string> {
-  // Try 'docker compose' first (newer)
-  const newStyleResult = await execCmd('docker compose version');
-  if (newStyleResult.ok) {
-    return ok('docker compose');
-  }
-  
-  // Try 'docker-compose' (older)
-  const oldStyleResult = await execCmd('docker-compose --version');
-  if (oldStyleResult.ok) {
-    return ok('docker-compose');
-  }
-  
-  return ztErr({ code: 'DOCKER_COMPOSE_NOT_FOUND', message: 'Neither docker compose nor docker-compose is available' });
+function getDockerComposeCommand(): ZT.Promise<string> {
+  return ZT.promise((async () => {
+    // Try 'docker compose' first (newer)
+    const newStyleResult = await execCmd('docker compose version');
+    if (newStyleResult.ok) {
+      return ZT.ok('docker compose');
+    }
+    
+    // Try 'docker-compose' (older)
+    const oldStyleResult = await execCmd('docker-compose --version');
+    if (oldStyleResult.ok) {
+      return ZT.ok('docker-compose');
+    }
+    
+    return ZT.err(new ZT.Error('DOCKER_COMPOSE_NOT_FOUND', 'Neither docker compose nor docker-compose is available'));
+  })());
 }
 
 // Run a single test locally
-async function runLocalTest(config: TestConfig): ZTPromise<void> {
-  const spinner = ora(`Running ${config.name}...`).start();
+function runLocalTest(config: TestConfig): ZT.Promise<void> {
+  return ZT.promise((async () => {
+    const spinner = ora(`Running ${config.name}...`).start();
   const logPath = join(tmpdir(), config.logFile);
   
   // Run the test and capture output
@@ -90,16 +92,18 @@ async function runLocalTest(config: TestConfig): ZTPromise<void> {
     }
     console.log(chalk.yellow(`💡 To see full output: cat ${logPath}`));
     
-    return ztErr(new ZeroError('TEST_FAILED', `${config.name} failed`, { context: { logPath } }));
+    return ZT.err(new ZT.Error('TEST_FAILED', `${config.name} failed`, { context: { logPath } }));
   }
   
   spinner.succeed(`${config.name} passed`);
-  return ztOk(undefined);
+  return ZT.ok(undefined);
+  })());
 }
 
 // Run all tests locally (no Docker)
-async function runLocalTests(): ZTPromise<void> {
-  console.log(chalk.yellow('⚠️  Docker is not running. Falling back to local test execution...'));
+function runLocalTests(): ZT.Promise<void> {
+  return ZT.promise((async () => {
+    console.log(chalk.yellow('⚠️  Docker is not running. Falling back to local test execution...'));
   console.log(chalk.blue('\n🏃 Running tests locally...\n'));
   
   const tests: TestConfig[] = [
@@ -154,12 +158,14 @@ async function runLocalTests(): ZTPromise<void> {
   
   console.log(chalk.green('\n✅ All local tests passed! Safe to push.'));
   console.log(chalk.yellow('Note: Full CI matrix with multiple Node versions requires Docker.'));
-  return ztOk(undefined);
+  return ZT.ok(undefined);
+  })());
 }
 
 // Run tests using Docker Compose
-async function runDockerTests(dockerComposeCmd: string): ZTPromise<void> {
-  console.log(chalk.blue('🐳 Starting all tests in parallel using Docker Compose...'));
+function runDockerTests(dockerComposeCmd: string): ZT.Promise<void> {
+  return ZT.promise((async () => {
+    console.log(chalk.blue('🐳 Starting all tests in parallel using Docker Compose...'));
   console.log('   Running 6 containers simultaneously for maximum speed!');
   console.log('');
   
@@ -184,11 +190,12 @@ async function runDockerTests(dockerComposeCmd: string): ZTPromise<void> {
     console.log('To skip these checks and push anyway (NOT RECOMMENDED):');
     console.log('  git push --no-verify');
     
-    return ztErr({ code: 'DOCKER_TESTS_FAILED', message: 'Docker tests failed' });
+    return ZT.err(new ZT.Error('DOCKER_TESTS_FAILED', 'Docker tests failed'));
   }
   
   console.log(chalk.green('\n🎉 All tests passed! Safe to push.'));
-  return ztOk(undefined);
+  return ZT.ok(undefined);
+  })());
 }
 
 // Main pre-push logic

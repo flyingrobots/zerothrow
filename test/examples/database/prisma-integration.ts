@@ -334,7 +334,7 @@ export async function batchCreateUsers(
 }
 
 // Query builder helper
-export class QueryBuilder<T> {
+export class QueryBuilder<_T> {
   private whereClause: any = {};
   private orderByClause: any = {};
   private skipValue?: number;

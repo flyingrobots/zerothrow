@@ -3,7 +3,7 @@
  * Tests the hook implementation directly
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ok, err, ZeroError } from '../src/index.js';
+import { ZT } from '../src/index.js';
 
 describe('useResult hook coverage', () => {
   let mockStates: any[] = [];
@@ -29,11 +29,11 @@ describe('useResult hook coverage', () => {
           });
           return [mockStates[index], setter];
         }),
-        useEffect: vi.fn((effect, deps) => {
+        useEffect: vi.fn((effect, _deps) => {
           mockEffects.push(effect);
         }),
-        useCallback: vi.fn((callback, deps) => {
-          mockCallbacks.set(callback, deps || []);
+        useCallback: vi.fn((callback, _deps) => {
+          mockCallbacks.set(callback, _deps || []);
           return callback;
         }),
       },
@@ -48,11 +48,11 @@ describe('useResult hook coverage', () => {
         });
         return [mockStates[index], setter];
       }),
-      useEffect: vi.fn((effect, deps) => {
+      useEffect: vi.fn((effect, _deps) => {
         mockEffects.push(effect);
       }),
-      useCallback: vi.fn((callback, deps) => {
-        mockCallbacks.set(callback, deps || []);
+      useCallback: vi.fn((callback, _deps) => {
+        mockCallbacks.set(callback, _deps || []);
         return callback;
       }),
     }));
@@ -66,7 +66,7 @@ describe('useResult hook coverage', () => {
   it('initializes with correct default state', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test'));
     const result = useResult(mockFn);
 
     // Check initial states
@@ -86,7 +86,7 @@ describe('useResult hook coverage', () => {
   it('executes effect on mount', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('success'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('success'));
     useResult(mockFn);
 
     // Should register one effect
@@ -103,8 +103,8 @@ describe('useResult hook coverage', () => {
   it('handles successful result in effect', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test data'));
-    const result = useResult(mockFn);
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test data'));
+    const _result = useResult(mockFn);
 
     // Get setters
     const [, setData] = vi.mocked((await import('react')).useState).mock
@@ -126,19 +126,21 @@ describe('useResult hook coverage', () => {
   });
 
   it('handles error result in effect', async () => {
-    const { useResult } = await import('../src/react-hooks');
+    const testError = new ZT.Error('TEST_ERR', 'Test error');
 
-    const testError = new ZeroError('TEST_ERR', 'Test error');
-    const mockFn = vi.fn().mockResolvedValue(err(testError));
-    const result = useResult(mockFn);
+    // Mock the fetcher to return an error
+    const mockFetcher = vi.fn().mockResolvedValue(ZT.err(testError));
+    
+    // Call useResult with error-returning fetcher
+    (await import('../src/react-hooks.js')).useResult(mockFetcher, []);
 
-    // Get setters
-    const [, setData] = vi.mocked((await import('react')).useState).mock
-      .results[0].value;
-    const [, setError] = vi.mocked((await import('react')).useState).mock
-      .results[1].value;
-    const [, setLoading] = vi.mocked((await import('react')).useState).mock
-      .results[2].value;
+    // Get setters from useState mocks
+    const React = await import('react');
+    const useStateMock = vi.mocked(React.useState);
+    
+    const [, setData] = useStateMock.mock.results[0].value;
+    const [, setError] = useStateMock.mock.results[1].value;
+    const [, setLoading] = useStateMock.mock.results[2].value;
 
     // Execute effect
     const effect = mockEffects[0];
@@ -154,9 +156,9 @@ describe('useResult hook coverage', () => {
   it('memoizes execute callback with deps', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test'));
     const deps = [1, 2, 3];
-    const result = useResult(mockFn, deps);
+    const _result = useResult(mockFn, deps);
 
     // Check that useCallback was called with correct deps
     const React = await import('react');
@@ -170,7 +172,7 @@ describe('useResult hook coverage', () => {
   it('reset function works correctly', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test'));
     const result = useResult(mockFn);
 
     // Get setters
@@ -193,7 +195,7 @@ describe('useResult hook coverage', () => {
   it('refetch function triggers execute', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test'));
     const result = useResult(mockFn);
 
     // The refetch function should be the same as execute
@@ -208,7 +210,7 @@ describe('useResult hook coverage', () => {
   it('handles dependencies properly', async () => {
     const { useResult } = await import('../src/react-hooks');
 
-    const mockFn = vi.fn().mockResolvedValue(ok('test'));
+    const mockFn = vi.fn().mockResolvedValue(ZT.ok('test'));
     const deps = ['dep1', 'dep2'];
 
     useResult(mockFn, deps);
@@ -223,10 +225,10 @@ describe('useResult hook coverage', () => {
 // Type-level tests
 describe('UseResultState type coverage', () => {
   it('exports correct types', async () => {
-    const mod = await import('../src/react-hooks');
+    const _mod = await import('../src/react-hooks');
 
     // Type check - this will fail at compile time if types are wrong
-    const state: typeof mod.UseResultState<string, Error> = {
+    const state: typeof _mod.UseResultState<string, Error> = {
       data: 'test',
       error: null,
       loading: false,

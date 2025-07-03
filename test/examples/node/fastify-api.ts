@@ -186,7 +186,7 @@ export async function createServer() {
   const taskService = new TaskService();
 
   // Routes
-  fastify.get('/tasks', async (request, reply) => {
+  fastify.get('/tasks', async (_request, reply) => {
     const result = await taskService.getAllTasks();
     return reply.sendResult(result);
   });
@@ -248,7 +248,7 @@ export async function createServer() {
   });
 
   // Error handler for uncaught errors
-  fastify.setErrorHandler(async (error, request, reply) => {
+  fastify.setErrorHandler(async (error, _request, reply) => {
     fastify.log.error(error);
     
     const zeroError = new ZeroError(
@@ -325,7 +325,7 @@ export function createRateLimiter(maxRequests: number, windowMs: number) {
 
   return async (
     request: FastifyRequest,
-    reply: FastifyReply
+    _reply: FastifyReply
   ): Promise<Result<void, ZeroError>> => {
     const ip = request.ip;
     const now = Date.now();

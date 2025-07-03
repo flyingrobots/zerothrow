@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR as _tryR } from '@flyingrobots/zerothrow';
 
 // Example Express API with ZeroThrow for error handling
 
@@ -142,7 +142,7 @@ class UserService {
 function resultHandler<T>(
   handler: (req: Request, res: Response) => Promise<Result<T, ZeroError>>
 ) {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, _next: NextFunction) => {
     const result = await handler(req, res);
     
     if (result.ok) {
@@ -210,7 +210,7 @@ export function createApp() {
   }));
 
   // Global error handler for unexpected errors
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Unexpected error:', err);
     res.status(500).json({
       success: false,

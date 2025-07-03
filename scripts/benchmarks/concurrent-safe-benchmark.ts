@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, Result, ZeroError } from '../../src'
+import { ZT } from '../../src'
 
 const ITERATIONS = 1_000_000
 const CONCURRENT_OPS = 100
@@ -25,29 +25,29 @@ ${c.cyan}╔══════════════════════�
 `)
 
 // Strategy 1: Current approach (always safe)
-function currentApproach(i: number): Result<number> {
-  if (i % 2 === 0) return err(new ZeroError('FAIL', `fail ${i}`))
-  return ok(i)
+function currentApproach(i: number): ZT.Result<number> {
+  if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', `fail ${i}`))
+  return ZT.ok(i)
 }
 
 // Strategy 2: Object pool with immutable checkout
 class ImmutableErrorPool {
-  private available: ZeroError[] = []
-  private inUse = new Set<ZeroError>()
-  private factory: (code: string, msg: string) => ZeroError
+  private available: ZT.ZeroError[] = []
+  private inUse = new Set<ZT.ZeroError>()
+  private factory: (code: string, msg: string) => ZT.ZeroError
 
   constructor(size: number) {
-    this.factory = (code, msg) => new ZeroError(code, msg)
+    this.factory = (code, msg) => new ZT.ZeroError(code, msg)
     // Pre-create pool
     for (let i = 0; i < size; i++) {
       this.available.push(this.factory('', ''))
     }
   }
 
-  acquire(code: string, message: string, context?: any): ZeroError {
+  acquire(code: string, message: string, context?: any): ZT.ZeroError {
     // If pool is empty, create new
     if (this.available.length === 0) {
-      return new ZeroError(code, message, { context })
+      return new ZT.ZeroError(code, message, { context })
     }
 
     // Get from pool and mark as in-use
@@ -64,7 +64,7 @@ class ImmutableErrorPool {
     return newError
   }
 
-  release(error: ZeroError) {
+  release(error: ZT.ZeroError) {
     if (this.inUse.has(error)) {
       this.inUse.delete(error)
       this.available.push(error)
@@ -74,11 +74,11 @@ class ImmutableErrorPool {
 
 const immutablePool = new ImmutableErrorPool(100)
 
-function pooledImmutable(i: number): Result<number> {
+function pooledImmutable(i: number): ZT.Result<number> {
   if (i % 2 === 0) {
-    return err(immutablePool.acquire('FAIL', `fail ${i}`))
+    return ZT.err(immutablePool.acquire('FAIL', `fail ${i}`))
   }
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Strategy 3: Flyweight pattern with immutable data
@@ -91,7 +91,7 @@ interface ErrorData {
 class ErrorFlyweight {
   private static cache = new Map<string, ErrorData>()
 
-  static getError(code: string, message: string, context?: any): ZeroError {
+  static getError(code: string, message: string, context?: any): ZT.ZeroError {
     const key = `${code}:${message}`
     let data = this.cache.get(key)
     
@@ -101,31 +101,31 @@ class ErrorFlyweight {
     }
 
     // Always create new Error instance with shared data
-    return new ZeroError(data.code, data.message, { context: data.context })
+    return new ZT.ZeroError(data.code, data.message, { context: data.context })
   }
 }
 
-function flyweightApproach(i: number): Result<number> {
+function flyweightApproach(i: number): ZT.Result<number> {
   if (i % 2 === 0) {
     // Reuse data, new instance
-    return err(ErrorFlyweight.getError('FAIL', `fail ${i % 100}`))
+    return ZT.err(ErrorFlyweight.getError('FAIL', `fail ${i % 100}`))
   }
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Strategy 4: Copy-on-read with frozen prototypes
-const frozenPrototypes = new Map<string, Readonly<ZeroError>>()
+const frozenPrototypes = new Map<string, Readonly<ZT.ZeroError>>()
 
-function getFrozenPrototype(code: string): Readonly<ZeroError> {
+function getFrozenPrototype(code: string): Readonly<ZT.ZeroError> {
   let proto = frozenPrototypes.get(code)
   if (!proto) {
-    proto = Object.freeze(new ZeroError(code, ''))
+    proto = Object.freeze(new ZT.ZeroError(code, ''))
     frozenPrototypes.set(code, proto)
   }
   return proto
 }
 
-function frozenPrototypeApproach(i: number): Result<number> {
+function frozenPrototypeApproach(i: number): ZT.Result<number> {
   if (i % 2 === 0) {
     const proto = getFrozenPrototype('FAIL')
     // Create new error with proto as prototype
@@ -133,9 +133,9 @@ function frozenPrototypeApproach(i: number): Result<number> {
       message: { value: `fail ${i}`, writable: true, enumerable: true },
       stack: { value: new Error().stack, writable: true }
     })
-    return err(error)
+    return ZT.err(error)
   }
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Strategy 5: Struct with lazy error conversion
@@ -143,21 +143,21 @@ interface StructError {
   readonly code: string
   readonly message: string
   readonly context?: any
-  toError?: () => ZeroError
+  toError?: () => ZT.ZeroError
 }
 
-function structLazyApproach(i: number): Result<number, StructError> {
+function structLazyApproach(i: number): ZT.Result<number, StructError> {
   if (i % 2 === 0) {
     const error: StructError = {
       code: 'FAIL',
       message: `fail ${i}`,
       toError: function() {
-        return new ZeroError(this.code, this.message, { context: this.context })
+        return new ZT.ZeroError(this.code, this.message, { context: this.context })
       }
     }
     return { ok: false, error }
   }
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Concurrency test
@@ -166,7 +166,7 @@ async function testConcurrency() {
   console.log(`Testing with ${CONCURRENT_OPS} concurrent operations...\n`)
 
   // Test singleton problem
-  const sharedError = new ZeroError('SHARED', 'shared error')
+  const sharedError = new ZT.ZeroError('SHARED', 'shared error')
   
   const results = await Promise.all(
     Array(CONCURRENT_OPS).fill(0).map(async (_, i) => {

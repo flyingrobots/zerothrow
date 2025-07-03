@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
-import { Result, ok, err, ZeroError } from '../../src/index';
+import { ZT } from '../../src/index';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
+import { ESLint } from 'eslint';
 
 
 type GitFile = {
@@ -18,7 +19,7 @@ type GitDiff = {
 
 
 // Get staged TypeScript files
-async function getStagedFiles(): Promise<Result<string[], ZeroError>> {
+async function getStagedFiles(): Promise<ZT.Result<string[], ZT.ZeroError>> {
   const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
   if (!result.ok) return result;
   
@@ -26,25 +27,50 @@ async function getStagedFiles(): Promise<Result<string[], ZeroError>> {
     .split('\n')
     .filter(f => f && f.match(/\.(ts|tsx)$/));
     
-  return ok(files);
+  return ZT.ok(files);
+}
+
+// Get staged TypeScript files that should be linted (using ESLint config)
+async function getStagedFilesForLinting(): Promise<ZT.Result<string[], ZT.ZeroError>> {
+  const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
+  if (!result.ok) return result;
+  
+  const allFiles = result.value
+    .split('\n')
+    .filter(f => f && f.match(/\.(ts|tsx|js|jsx)$/));
+  
+  if (allFiles.length === 0) return ZT.ok([]);
+  
+  // Create ESLint instance to check which files should be linted
+  const eslint = new ESLint();
+  const filesToLint: string[] = [];
+  
+  for (const file of allFiles) {
+    const isIgnored = await eslint.isPathIgnored(file);
+    if (!isIgnored) {
+      filesToLint.push(file);
+    }
+  }
+  
+  return ZT.ok(filesToLint);
 }
 
 // Check if a file has unstaged changes
-async function hasUnstagedChanges(file: string): Promise<Result<boolean, ZeroError>> {
+async function hasUnstagedChanges(file: string): Promise<ZT.Result<boolean, ZT.ZeroError>> {
   const result = await execCmd('git diff --name-only');
   if (!result.ok) return result;
   
   const unstagedFiles = result.value.split('\n').filter(Boolean);
-  return ok(unstagedFiles.includes(file));
+  return ZT.ok(unstagedFiles.includes(file));
 }
 
 // Get diff for a specific file
-async function getFileDiff(file: string): Promise<Result<string, ZeroError>> {
+async function getFileDiff(file: string): Promise<ZT.Result<string, ZT.ZeroError>> {
   return execCmd(`git diff "${file}"`);
 }
 
 // Run tests
-async function runTests(): Promise<Result<void, ZeroError>> {
+async function runTests(): Promise<ZT.Result<void, ZT.ZeroError>> {
   const spinner = ora('Running tests...').start();
   
   const result = await execCmd('npm test');
@@ -55,25 +81,29 @@ async function runTests(): Promise<Result<void, ZeroError>> {
   }
   
   spinner.succeed('Tests passed');
-  return ok(undefined);
+  return ZT.ok(undefined);
 }
 
 // Run linter on staged files
-async function runLinter(files: string[]): Promise<Result<void, ZeroError>> {
-  if (files.length === 0) return ok(undefined);
+async function runLinter(files: string[]): Promise<ZT.Result<void, ZT.ZeroError>> {
+  if (files.length === 0) return ZT.ok(undefined);
   
   const spinner = ora('Running linter...').start();
   
-  const result = await execCmd(`npx eslint --max-warnings 0 ${files.join(' ')}`);
+  // Use the same ESLint command as npm run lint, but with specific files
+  // ESLint v9 with flat config: exit code 1 = errors, 0 = success (warnings are ok)
+  const result = await execCmd(`npx eslint ${files.join(' ')}`);
   
   if (!result.ok) {
+    // Check if it's just warnings (ESLint exits with 0 for warnings-only)
+    // Only fail if there are actual errors
     spinner.fail('Linting failed');
     console.error(result.error.message);
-    return err(result.error);
+    return ZT.err(result.error);
   }
   
   spinner.succeed('Linting passed');
-  return ok(undefined);
+  return ZT.ok(undefined);
 }
 
 // Handle interactive staging for a file
@@ -238,13 +268,13 @@ async function main(): Promise<number> {
   }
   
   // Re-get staged files after potential changes
-  const finalStagedResult = await getStagedFiles();
+  const finalStagedResult = await getStagedFilesForLinting();
   if (!finalStagedResult.ok) {
     console.error(chalk.red(`Failed to get final staged files: ${finalStagedResult.error.message}`));
     return 1;
   }
   
-  // Run linter
+  // Run linter (only on src/ files)
   const lintResult = await runLinter(finalStagedResult.value);
   if (!lintResult.ok) {
     return 1;

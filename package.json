@@ -72,7 +72,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts --coverage",
     "test:all": "npm run test && npm run test:integration",
     "test:watch": "vitest watch",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "lint": "eslint",
     "githooks": "tsx scripts/githooks/setup-hooks.ts",
     "prepare": "husky",
     "bench": "tsx scripts/benchmarks/run-all.ts"

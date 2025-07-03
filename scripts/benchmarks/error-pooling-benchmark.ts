@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, Result, ZeroError } from '../../src'
+import { ZT } from '../../src'
 
 const ITERATIONS = 1_000_000
 
@@ -24,14 +24,14 @@ ${c.cyan}╔══════════════════════�
 `)
 
 // Strategy 1: Current approach - new error every time
-function currentApproach(i: number): Result<number> {
-  if (i % 2 === 0) return err(new ZeroError('FAIL', 'fail ' + i))
-  return ok(i)
+function currentApproach(i: number): ZT.Result<number> {
+  if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', 'fail ' + i))
+  return ZT.ok(i)
 }
 
 // Strategy 2: Pre-allocated error pool
 class ErrorPool {
-  private pool: ZeroError[] = []
+  private pool: ZT.ZeroError[] = []
   private index = 0
   private size: number
 
@@ -39,11 +39,11 @@ class ErrorPool {
     this.size = size
     // Pre-allocate errors
     for (let i = 0; i < size; i++) {
-      this.pool.push(new ZeroError('FAIL', ''))
+      this.pool.push(new ZT.ZeroError('FAIL', ''))
     }
   }
 
-  getError(message: string): ZeroError {
+  getError(message: string): ZT.ZeroError {
     const error = this.pool[this.index]
     error.message = message
     this.index = (this.index + 1) % this.size
@@ -53,35 +53,35 @@ class ErrorPool {
 
 const errorPool = new ErrorPool(1000)
 
-function pooledApproach(i: number): Result<number> {
-  if (i % 2 === 0) return err(errorPool.getError('fail ' + i))
-  return ok(i)
+function pooledApproach(i: number): ZT.Result<number> {
+  if (i % 2 === 0) return ZT.err(errorPool.getError('fail ' + i))
+  return ZT.ok(i)
 }
 
 // Strategy 3: Singleton errors for common cases
 const COMMON_ERRORS = {
-  VALIDATION_FAILED: new ZeroError('VALIDATION_FAILED', 'Validation failed'),
-  NOT_FOUND: new ZeroError('NOT_FOUND', 'Not found'),
-  UNAUTHORIZED: new ZeroError('UNAUTHORIZED', 'Unauthorized'),
-  SERVER_ERROR: new ZeroError('SERVER_ERROR', 'Server error'),
+  VALIDATION_FAILED: new ZT.ZeroError('VALIDATION_FAILED', 'Validation failed'),
+  NOT_FOUND: new ZT.ZeroError('NOT_FOUND', 'Not found'),
+  UNAUTHORIZED: new ZT.ZeroError('UNAUTHORIZED', 'Unauthorized'),
+  SERVER_ERROR: new ZT.ZeroError('SERVER_ERROR', 'Server error'),
 }
 
-function singletonApproach(i: number): Result<number> {
-  if (i % 4 === 0) return err(COMMON_ERRORS.VALIDATION_FAILED)
-  if (i % 4 === 1) return err(COMMON_ERRORS.NOT_FOUND)
-  if (i % 4 === 2) return err(COMMON_ERRORS.UNAUTHORIZED)
-  return ok(i)
+function singletonApproach(i: number): ZT.Result<number> {
+  if (i % 4 === 0) return ZT.err(COMMON_ERRORS.VALIDATION_FAILED)
+  if (i % 4 === 1) return ZT.err(COMMON_ERRORS.NOT_FOUND)
+  if (i % 4 === 2) return ZT.err(COMMON_ERRORS.UNAUTHORIZED)
+  return ZT.ok(i)
 }
 
 // Strategy 4: Lazy error creation
-const lazyErr = <T>(code: string, message: string): Result<T> => ({
+const lazyErr = <T>(code: string, message: string): ZT.Result<T> => ({
   ok: false,
-  error: new ZeroError(code, message)
+  error: new ZT.ZeroError(code, message)
 })
 
-function lazyApproach(i: number): Result<number> {
+function lazyApproach(i: number): ZT.Result<number> {
   if (i % 2 === 0) return lazyErr('FAIL', 'fail ' + i)
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Strategy 5: Struct-based errors (no class instantiation)
@@ -118,11 +118,11 @@ class MutableError extends Error {
 
 const mutableError = new MutableError()
 
-function mutableApproach(i: number): Result<number> {
+function mutableApproach(i: number): ZT.Result<number> {
   if (i % 2 === 0) {
-    return err(mutableError.reset('FAIL', 'fail ' + i))
+    return ZT.err(mutableError.reset('FAIL', 'fail ' + i))
   }
-  return ok(i)
+  return ZT.ok(i)
 }
 
 // Run benchmarks
@@ -184,9 +184,9 @@ ${'─'.repeat(70)}
 const memBefore = process.memoryUsage().heapUsed
 
 // Create many errors with current approach
-const currentErrors: Result<number>[] = []
+const currentErrors: ZT.Result<number>[] = []
 for (let i = 0; i < 10000; i++) {
-  currentErrors.push(err(new ZeroError('TEST', 'message ' + i)))
+  currentErrors.push(ZT.err(new ZT.ZeroError('TEST', 'message ' + i)))
 }
 const memAfterCurrent = process.memoryUsage().heapUsed
 

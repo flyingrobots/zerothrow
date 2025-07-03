@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ZT } from '../../src/index.js';
 
 // Real-world Database Transaction Integration Test
 interface DbUser {
@@ -28,10 +28,10 @@ class DatabaseClient {
   private maxConnections: number = 5;
   private activeConnections: number = 0;
 
-  async getConnection(): Promise<Result<DbConnection, ZeroError>> {
+  async getConnection(): Promise<ZT.Result<DbConnection, ZT.Error>> {
     if (this.activeConnections >= this.maxConnections) {
-      return err(
-        new ZeroError('POOL_EXHAUSTED', 'No available database connections', {
+      return ZT.err(
+        new ZT.Error('POOL_EXHAUSTED', 'No available database connections', {
           context: {
             maxConnections: this.maxConnections,
             activeConnections: this.activeConnections,
@@ -40,7 +40,7 @@ class DatabaseClient {
       );
     }
 
-    return tryR(
+    return ZT.tryR(
       async () => {
         this.activeConnections++;
         const mockConnection: DbConnection = {
@@ -58,7 +58,7 @@ class DatabaseClient {
         return mockConnection;
       },
       (e) =>
-        wrap(e, 'CONNECTION_ERROR', 'Failed to acquire database connection')
+        ZT.wrap(e, 'CONNECTION_ERROR', 'Failed to acquire database connection')
     );
   }
 
@@ -66,7 +66,7 @@ class DatabaseClient {
     fromUserId: string,
     toUserId: string,
     amount: number
-  ): Promise<Result<void, ZeroError>> {
+  ): Promise<ZT.Result<void, ZT.Error>> {
     const connResult = await this.getConnection();
     if (!connResult.ok) {
       return connResult;
@@ -77,9 +77,9 @@ class DatabaseClient {
 
     try {
       // Begin transaction
-      const txnResult = await tryR(
+      const txnResult = await ZT.tryR(
         () => conn.beginTransaction(),
-        (e) => wrap(e, 'TRANSACTION_START_ERROR', 'Failed to begin transaction')
+        (e) => ZT.wrap(e, 'TRANSACTION_START_ERROR', 'Failed to begin transaction')
       );
 
       if (!txnResult.ok) {
@@ -90,13 +90,13 @@ class DatabaseClient {
       transaction = txnResult.value;
 
       // Get sender's current balance
-      const senderResult = await tryR(
+      const senderResult = await ZT.tryR(
         () =>
           conn.query<DbUser>('SELECT * FROM users WHERE id = ? FOR UPDATE', [
             fromUserId,
           ]),
         (e) =>
-          wrap(e, 'QUERY_ERROR', 'Failed to fetch sender', {
+          ZT.wrap(e, 'QUERY_ERROR', 'Failed to fetch sender', {
             userId: fromUserId,
           })
       );
@@ -113,8 +113,8 @@ class DatabaseClient {
       if (sender.balance < amount) {
         await transaction.rollback();
         conn.release();
-        return err(
-          new ZeroError(
+        return ZT.err(
+          new ZT.Error(
             'INSUFFICIENT_BALANCE',
             'Sender has insufficient balance',
             {
@@ -129,14 +129,14 @@ class DatabaseClient {
       }
 
       // Update sender balance
-      const updateSenderResult = await tryR(
+      const updateSenderResult = await ZT.tryR(
         () =>
           conn.query(
             'UPDATE users SET balance = balance - ?, updatedAt = NOW() WHERE id = ?',
             [amount, fromUserId]
           ),
         (e) =>
-          wrap(e, 'UPDATE_ERROR', 'Failed to update sender balance', {
+          ZT.wrap(e, 'UPDATE_ERROR', 'Failed to update sender balance', {
             userId: fromUserId,
           })
       );
@@ -148,14 +148,14 @@ class DatabaseClient {
       }
 
       // Update receiver balance
-      const updateReceiverResult = await tryR(
+      const updateReceiverResult = await ZT.tryR(
         () =>
           conn.query(
             'UPDATE users SET balance = balance + ?, updatedAt = NOW() WHERE id = ?',
             [amount, toUserId]
           ),
         (e) =>
-          wrap(e, 'UPDATE_ERROR', 'Failed to update receiver balance', {
+          ZT.wrap(e, 'UPDATE_ERROR', 'Failed to update receiver balance', {
             userId: toUserId,
           })
       );
@@ -167,13 +167,13 @@ class DatabaseClient {
       }
 
       // Insert transaction record
-      const recordResult = await tryR(
+      const recordResult = await ZT.tryR(
         () =>
           conn.query(
             'INSERT INTO transactions (fromUserId, toUserId, amount, status, createdAt) VALUES (?, ?, ?, ?, NOW())',
             [fromUserId, toUserId, amount, 'completed']
           ),
-        (e) => wrap(e, 'INSERT_ERROR', 'Failed to record transaction')
+        (e) => ZT.wrap(e, 'INSERT_ERROR', 'Failed to record transaction')
       );
 
       if (!recordResult.ok) {
@@ -183,9 +183,9 @@ class DatabaseClient {
       }
 
       // Commit transaction
-      const commitResult = await tryR(
+      const commitResult = await ZT.tryR(
         () => transaction!.commit(),
-        (e) => wrap(e, 'COMMIT_ERROR', 'Failed to commit transaction')
+        (e) => ZT.wrap(e, 'COMMIT_ERROR', 'Failed to commit transaction')
       );
 
       conn.release();
@@ -194,15 +194,15 @@ class DatabaseClient {
         return commitResult;
       }
 
-      return ok(undefined);
+      return ZT.ok(undefined);
     } catch (error) {
       // This catch should never execute if all code uses tryR properly
       if (transaction) {
         await transaction.rollback();
       }
       conn.release();
-      return err(
-        wrap(error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
+      return ZT.err(
+        ZT.wrap(error, 'UNEXPECTED_ERROR', 'Unexpected error in transfer')
       );
     }
   }
@@ -210,7 +210,7 @@ class DatabaseClient {
   async getUserWithRetry(
     userId: string,
     maxRetries: number = 3
-  ): Promise<Result<DbUser, ZeroError>> {
+  ): Promise<ZT.Result<DbUser, ZT.Error>> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const connResult = await this.getConnection();
       if (!connResult.ok) {
@@ -222,10 +222,10 @@ class DatabaseClient {
       }
 
       const conn = connResult.value;
-      const queryResult = await tryR(
+      const queryResult = await ZT.tryR(
         () => conn.query<DbUser>('SELECT * FROM users WHERE id = ?', [userId]),
         (e) =>
-          wrap(e, 'QUERY_ERROR', `Query failed on attempt ${attempt}`, {
+          ZT.wrap(e, 'QUERY_ERROR', `Query failed on attempt ${attempt}`, {
             userId,
             attempt,
           })
@@ -242,8 +242,8 @@ class DatabaseClient {
       }
     }
 
-    return err(
-      new ZeroError('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
+    return ZT.err(
+      new ZT.Error('RETRY_EXHAUSTED', 'Failed to get user after all retries', {
         userId,
         maxRetries,
       })
@@ -279,7 +279,7 @@ describe('Database Transaction Integration Tests', () => {
     };
 
     // Mock getConnection to return our mock connection
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ok(mockConn));
+    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
 
     const result = await db.transferBalance('user1', 'user2', 500);
 
@@ -302,7 +302,7 @@ describe('Database Transaction Integration Tests', () => {
       release: vi.fn(),
     };
 
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ok(mockConn));
+    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
 
     const result = await db.transferBalance('user1', 'user2', 500);
 
@@ -352,7 +352,7 @@ describe('Database Transaction Integration Tests', () => {
       release: vi.fn(),
     };
 
-    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ok(mockConn));
+    vi.spyOn(db as any, 'getConnection').mockResolvedValueOnce(ZT.ok(mockConn));
 
     const result = await db.transferBalance('user1', 'user2', 500);
 
@@ -374,12 +374,12 @@ describe('Database Transaction Integration Tests', () => {
 
     vi.spyOn(db as any, 'getConnection')
       .mockResolvedValueOnce(
-        err(new ZeroError('CONNECTION_ERROR', 'Connection failed'))
+        ZT.err(new ZT.Error('CONNECTION_ERROR', 'Connection failed'))
       )
       .mockResolvedValueOnce(
-        err(new ZeroError('CONNECTION_ERROR', 'Connection failed'))
+        ZT.err(new ZT.Error('CONNECTION_ERROR', 'Connection failed'))
       )
-      .mockResolvedValueOnce(ok(mockConn));
+      .mockResolvedValueOnce(ZT.ok(mockConn));
 
     const result = await db.getUserWithRetry('user1', 3);
 

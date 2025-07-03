@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
-import { Result, ok, err, ZeroError, makeCombinable, tryR } from '../../src/index';
-import { readFile, readFileC } from '../lib/shared';
+import { ZT } from '../../src/index';
+import { readFile } from '../lib/shared';
 import chalk from 'chalk';
 
 interface CoverageMetric {
@@ -61,25 +61,29 @@ function parseArgs(): CoverageCheckConfig {
 }
 
 // Read and parse coverage summary
-async function readCoverageSummary(path: string): Promise<Result<CoverageSummary, ZeroError>> {
-  return (await readFileC(path))
-    .mapErr(() => new ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
-      path,
-      hint: 'Run tests with coverage first: npm test -- --coverage'
+function readCoverageSummary(path: string): ZT.Promise<CoverageSummary> {
+  return ZT.promise(readFile(path))
+    .mapErr(() => new ZT.Error('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
+      context: {
+        path,
+        hint: 'Run tests with coverage first: npm test -- --coverage'
+      }
     }))
     .andThen(content =>
-      tryR(
+      ZT.tryR(
         () => JSON.parse(content) as CoverageSummary,
-        e => new ZeroError('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
-          path,
-          error: (e as Error).message
+        e => new ZT.Error('INVALID_COVERAGE_FORMAT', 'Invalid coverage summary format', {
+          context: {
+            path,
+            error: (e as Error).message
+          }
         })
       )
     );
 }
 
 // Check coverage against threshold
-function checkCoverage(summary: CoverageSummary, threshold: number): Result<void, ZeroError> {
+function checkCoverage(summary: CoverageSummary, threshold: number): ZT.Result<void> {
   const metrics = ['lines', 'statements', 'functions', 'branches'] as const;
   const results: Array<{ metric: string; pct: number; passed: boolean }> = [];
   let allPassed = true;
@@ -111,23 +115,25 @@ function checkCoverage(summary: CoverageSummary, threshold: number): Result<void
     console.error(chalk.yellow('2. Check the coverage/lcov-report/index.html file'));
     
     const failedMetrics = results.filter(r => !r.passed);
-    return err(new ZeroError('COVERAGE_THRESHOLD_NOT_MET', 'Coverage below threshold', {
-      threshold,
-      failedMetrics
+    return ZT.err(new ZT.Error('COVERAGE_THRESHOLD_NOT_MET', 'Coverage below threshold', {
+      context: {
+        threshold,
+        failedMetrics
+      }
     }));
   }
   
   console.log(chalk.green(`✅ All coverage metrics meet the >${threshold}% threshold`));
-  return ok(undefined);
+  return ZT.ok(undefined);
 }
 
 // Export for programmatic use
-export async function checkCoverageThreshold(
+export function checkCoverageThreshold(
   config: Partial<CoverageCheckConfig> = {}
-): Promise<Result<void, ZeroError>> {
+): ZT.Promise<void> {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
-  return makeCombinable(await readCoverageSummary(finalConfig.summaryPath))
+  return readCoverageSummary(finalConfig.summaryPath)
     .andThen(summary => checkCoverage(summary, finalConfig.threshold));
 }
 

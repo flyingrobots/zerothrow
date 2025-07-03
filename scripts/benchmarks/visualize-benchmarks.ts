@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { ok, err, wrap, Result, ZeroError } from '../../src'
+import { ZT } from '../../src'
 
 // Terminal colors
 const colors = {
@@ -155,9 +155,9 @@ async function benchmarkSimple(): Promise<BenchResult> {
     }
   }
   
-  function resultPattern(i: number): Result<number> {
-    if (i % 2 === 0) return err(new ZeroError('FAIL', 'fail'))
-    return ok(i)
+  function resultPattern(i: number): ZT.Result<number> {
+    if (i % 2 === 0) return ZT.err(new ZT.ZeroError('FAIL', 'fail'))
+    return ZT.ok(i)
   }
   
   const t0 = performance.now()
@@ -195,14 +195,14 @@ async function benchmarkNested(): Promise<BenchResult> {
     }
   }
   
-  function nestedResult(i: number): Result<number> {
+  function nestedResult(i: number): ZT.Result<number> {
     const r1 = i % 10 === 0 
-      ? err(new ZeroError('DEEP', 'deep')) 
-      : ok(i * 2)
+      ? ZT.err(new ZT.ZeroError('DEEP', 'deep')) 
+      : ZT.ok(i * 2)
     
     if (!r1.ok) {
-      const r2 = err(wrap(r1.error, 'WRAPPED', 'wrapped'))
-      const r3 = err(wrap(r2.error, 'DOUBLE', 'double'))
+      const r2 = ZT.err(ZT.wrap(r1.error, 'WRAPPED', 'wrapped'))
+      const r3 = ZT.err(ZT.wrap(r2.error, 'DOUBLE', 'double'))
       return r3
     }
     
@@ -235,8 +235,8 @@ async function benchmarkContext(): Promise<BenchResult> {
     }
   }
   
-  function resultWithContext(userId: string): Result<void> {
-    return err(new ZeroError('USER_NOT_FOUND', 'User not found', {
+  function resultWithContext(userId: string): ZT.Result<void> {
+    return ZT.err(new ZT.ZeroError('USER_NOT_FOUND', 'User not found', {
       context: { userId, timestamp: Date.now() }
     }))
   }

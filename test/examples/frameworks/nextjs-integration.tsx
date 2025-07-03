@@ -2,7 +2,7 @@
 
 import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
 import { NextRequest, NextResponse } from 'next/server';
-import { GetServerSideProps, GetStaticProps } from 'next';
+import { GetServerSideProps, GetStaticProps as _GetStaticProps } from 'next';
 import { useEffect, useState } from 'react';
 
 // ============================================
@@ -117,16 +117,16 @@ function ErrorPage({ error }: { error: ZeroError }) {
 // app/components/UserDashboard.tsx
 'use client';
 
-export function UserDashboard({ userId }: { userId: string }) {
+export function UserDashboard({ userId: _userId }: { userId: string }) {
   const [result, setResult] = useState<Result<UserData, ZeroError> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUserData(userId).then(result => {
+    fetchUserData(_userId).then(result => {
       setResult(result);
       setLoading(false);
     });
-  }, [userId]);
+  }, [_userId]);
 
   if (loading) return <LoadingSpinner />;
   if (!result) return null;
@@ -139,10 +139,10 @@ export function UserDashboard({ userId }: { userId: string }) {
 }
 
 // Client-side fetch with Result
-async function fetchUserData(userId: string): Promise<Result<UserData, ZeroError>> {
+async function fetchUserData(_userId: string): Promise<Result<UserData, ZeroError>> {
   return tryR(
     async () => {
-      const response = await fetch(`/api/users/${userId}`);
+      const response = await fetch(`/api/users/${_userId}`);
       
       if (!response.ok) {
         const error = await response.json();
@@ -154,7 +154,7 @@ async function fetchUserData(userId: string): Promise<Result<UserData, ZeroError
     (error) => new ZeroError(
       'FETCH_ERROR',
       'Failed to fetch user data',
-      { userId, cause: error }
+      { userId: _userId, cause: error }
     )
   );
 }
@@ -398,24 +398,24 @@ export default function Error({
 // ============================================
 
 // Parallel data fetching in server components
-async function DashboardPage() {
+async function _DashboardPage() {
   // Fetch all data in parallel
-  const [userResult, statsResult, notificationsResult] = await Promise.all([
+  const [_userResult, _statsResult, _notificationsResult] = await Promise.all([
     getUser(),
     getUserStats(),
     getUserNotifications(),
   ]);
 
   // Handle critical vs optional data
-  if (!userResult.ok) {
-    return <ErrorPage error={userResult.error} />;
+  if (!_userResult.ok) {
+    return <ErrorPage error={_userResult.error} />;
   }
 
   return (
-    <DashboardLayout user={userResult.value}>
-      {statsResult.ok && <StatsWidget stats={statsResult.value} />}
-      {notificationsResult.ok && (
-        <NotificationsList notifications={notificationsResult.value} />
+    <DashboardLayout user={_userResult.value}>
+      {_statsResult.ok && <StatsWidget stats={_statsResult.value} />}
+      {_notificationsResult.ok && (
+        <NotificationsList notifications={_notificationsResult.value} />
       )}
     </DashboardLayout>
   );
@@ -493,7 +493,7 @@ async function getUserById(id: string): Promise<Result<User, ZeroError>> {
   });
 }
 
-async function getUserPosts(userId: string): Promise<Result<Post[], ZeroError>> {
+async function getUserPosts(_userId: string): Promise<Result<Post[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok([
     { id: '1', title: 'First Post', content: 'Content' }
@@ -577,18 +577,18 @@ function ErrorDisplay({ error, onRetry }: { error: ZeroError; onRetry: () => voi
   );
 }
 
-function DashboardContent({ data }: { data: UserData }) {
+function DashboardContent({ data: _data }: { data: UserData }) {
   return <div>Dashboard</div>;
 }
 
-function DashboardLayout({ user, children }: { user: User; children: React.ReactNode }) {
+function DashboardLayout({ user: _user, children }: { user: User; children: React.ReactNode }) {
   return <div>{children}</div>;
 }
 
-function StatsWidget({ stats }: { stats: any }) {
+function StatsWidget({ stats: _stats }: { stats: any }) {
   return <div>Stats</div>;
 }
 
-function NotificationsList({ notifications }: { notifications: any[] }) {
+function NotificationsList({ notifications: _notifications }: { notifications: any[] }) {
   return <div>Notifications</div>;
 }

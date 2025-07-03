@@ -9,7 +9,7 @@ const mockFetchUser = vi.fn();
 
 // Test component that uses useAsyncResult
 function TestComponent() {
-  const { result, loading, execute, data, error } = useAsyncResult(
+  const { result: _result, loading, execute, data, error } = useAsyncResult(
     async () => mockFetchUser()
   );
 

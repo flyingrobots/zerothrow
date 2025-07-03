@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { 
   isNewErrorCall, 
-  extractErrorMessage, 
-  buildFixes 
+  extractErrorMessage
 } from '../../../src/eslint/no-throw/fix-builder.js';
 import { TSESTree } from '@typescript-eslint/utils';
 

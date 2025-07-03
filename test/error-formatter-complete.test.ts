@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { ErrorFormatter } from '../src/dev/error-formatter.js';
-import { ZeroError } from '../src/error.js';
+import { ZT } from '../src/index.js';
 
 describe('ErrorFormatter complete coverage', () => {
   it('handles errors without stack traces', () => {
     const formatter = new ErrorFormatter({ stackTrace: true, colors: false, timestamp: false });
     
     // Create an error without a stack
-    const error = new ZeroError('TEST_ERROR', 'Test message');
+    const error = new ZT.Error('TEST_ERROR', 'Test message');
     Object.defineProperty(error, 'stack', {
       value: undefined,
       writable: true,
@@ -25,7 +25,7 @@ describe('ErrorFormatter complete coverage', () => {
   it('handles errors with empty stack string', () => {
     const formatter = new ErrorFormatter({ stackTrace: true, colors: false, timestamp: false });
     
-    const error = new ZeroError('TEST_ERROR', 'Test message');
+    const error = new ZT.Error('TEST_ERROR', 'Test message');
     error.stack = '';
     
     const result = formatter.formatZeroError(error);
@@ -38,7 +38,7 @@ describe('ErrorFormatter complete coverage', () => {
   it('applies colors to stack trace lines when colors enabled', () => {
     const formatter = new ErrorFormatter({ stackTrace: true, colors: true });
     
-    const error = new ZeroError('TEST_ERROR', 'Test message');
+    const error = new ZT.Error('TEST_ERROR', 'Test message');
     error.stack = 'Error: Test message\n    at someFunction (file.js:10:5)\n    at anotherFunction (file.js:20:10)';
     
     const result = formatter.formatZeroError(error);
@@ -51,7 +51,7 @@ describe('ErrorFormatter complete coverage', () => {
   it('formats error context without colors when disabled', () => {
     const formatter = new ErrorFormatter({ colors: false, details: true });
     
-    const error = new ZeroError('TEST_ERROR', 'Test message', {
+    const error = new ZT.Error('TEST_ERROR', 'Test message', {
       context: { userId: 123, action: 'delete' }
     });
     
@@ -66,7 +66,7 @@ describe('ErrorFormatter complete coverage', () => {
     const formatter = new ErrorFormatter({ colors: true, details: true });
     
     const cause = new Error('Original error');
-    const error = new ZeroError('WRAPPED_ERROR', 'Wrapped message');
+    const error = new ZT.Error('WRAPPED_ERROR', 'Wrapped message');
     error.cause = cause;
     
     const result = formatter.formatZeroError(error);
@@ -107,7 +107,7 @@ describe('ErrorFormatter complete coverage', () => {
       timestamp: true
     });
     
-    const error = new ZeroError('TEST', 'Message', {
+    const error = new ZT.Error('TEST', 'Message', {
       context: { data: 'value' }
     });
     
@@ -130,7 +130,7 @@ describe('ErrorFormatter complete coverage', () => {
     const context: any = { name: 'test' };
     context.circular = context; // Create circular reference
     
-    const error = new ZeroError('CIRCULAR', 'Circular error', { context });
+    const error = new ZT.Error('CIRCULAR', 'Circular error', { context });
     
     // JSON.stringify will throw on circular references, so the formatter should handle it
     expect(() => formatter.formatZeroError(error)).toThrow('Converting circular structure to JSON');
@@ -140,7 +140,7 @@ describe('ErrorFormatter complete coverage', () => {
     const formatter = new ErrorFormatter({ colors: false });
     
     const longMessage = 'A'.repeat(1000);
-    const error = new ZeroError('LONG', longMessage);
+    const error = new ZT.Error('LONG', longMessage);
     
     const result = formatter.formatZeroError(error);
     
@@ -151,7 +151,7 @@ describe('ErrorFormatter complete coverage', () => {
   it('handles null and undefined in error context', () => {
     const formatter = new ErrorFormatter({ details: true });
     
-    const error = new ZeroError('NULL_CONTEXT', 'Message', {
+    const error = new ZT.Error('NULL_CONTEXT', 'Message', {
       context: {
         nullValue: null,
         undefinedValue: undefined,
@@ -168,7 +168,7 @@ describe('ErrorFormatter complete coverage', () => {
   it('handles edge case where stack exists initially but is checked again', () => {
     const formatter = new ErrorFormatter({ stackTrace: true, colors: false });
     
-    const error = new ZeroError('EDGE_CASE', 'Edge case error');
+    const error = new ZT.Error('EDGE_CASE', 'Edge case error');
     // This covers the branch where error.stack is checked twice (line 88 and 96)
     error.stack = 'Error: Edge case error\n    at test (file.js:1:1)';
     

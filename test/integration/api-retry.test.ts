@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { tryR, wrap, err, ok, Result, ZeroError } from '../../src/index.js';
+import { ZT } from '../../src/index.js';
 
 // Real-world API client integration test
 interface User {
@@ -22,7 +22,7 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  async fetchUser(userId: string): Promise<Result<User, ZeroError>> {
+  async fetchUser(userId: string): Promise<ZT.Result<User, ZT.Error>> {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       const result = await this.attemptFetch(userId, attempt);
 
@@ -34,8 +34,8 @@ class ApiClient {
       const isRetryable = this.isRetryableError(error);
 
       if (!isRetryable || attempt === this.maxRetries) {
-        return err(
-          wrap(
+        return ZT.err(
+          ZT.wrap(
             error,
             'API_FETCH_FAILED',
             `Failed to fetch user after ${attempt} attempts`,
@@ -52,20 +52,20 @@ class ApiClient {
       await this.delay(this.retryDelay * attempt);
     }
 
-    return err(new ZeroError('RETRY_EXHAUSTED', 'All retry attempts failed'));
+    return ZT.err(new ZT.Error('RETRY_EXHAUSTED', 'All retry attempts failed'));
   }
 
   private async attemptFetch(
     userId: string,
     attempt: number
-  ): Promise<Result<User, ZeroError>> {
+  ): Promise<ZT.Result<User, ZT.Error>> {
     try {
       const response = await fetch(`${this.baseUrl}/users/${userId}`);
 
       if (!response.ok) {
         // Return HTTP error directly without wrapping as NETWORK_ERROR
-        return err(
-          new ZeroError(
+        return ZT.err(
+          new ZT.Error(
             'HTTP_ERROR',
             `HTTP ${response.status}: ${response.statusText}`,
             {
@@ -79,11 +79,11 @@ class ApiClient {
       }
 
       const data: ApiResponse<User> = await response.json();
-      return ok(data.data);
+      return ZT.ok(data.data);
     } catch (e) {
       // Only network/connection errors get wrapped as NETWORK_ERROR
-      return err(
-        wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
+      return ZT.err(
+        ZT.wrap(e, 'NETWORK_ERROR', `Network error on attempt ${attempt}`, {
           userId,
           attempt,
           originalError: (e as Error).message,
@@ -92,7 +92,7 @@ class ApiClient {
     }
   }
 
-  private isRetryableError(error: ZeroError): boolean {
+  private isRetryableError(error: ZT.Error): boolean {
     // Only retry on specific network errors, not HTTP errors
     return error.code === 'NETWORK_ERROR' && !error.message.includes('HTTP');
   }

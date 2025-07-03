@@ -1,4 +1,4 @@
-import { Result, ok, err, ZeroError, tryR, wrap } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
 
 // Comprehensive async/await patterns with ZeroThrow
 
@@ -271,8 +271,7 @@ export class CircuitBreaker<T> {
   async execute(): Promise<Result<T, ZeroError>> {
     const {
       failureThreshold = 5,
-      resetTimeout = 60000,
-      testRequestInterval = 5000
+      resetTimeout = 60000
     } = this.options;
 
     // Check if circuit is open
@@ -377,7 +376,7 @@ export class AsyncQueue<T, R> {
 }
 
 // Helper functions (mock implementations)
-async function validateEmailUniqueness(email: string): Promise<Result<void, ZeroError>> {
+async function validateEmailUniqueness(_email: string): Promise<Result<void, ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok(undefined);
 }
@@ -387,7 +386,7 @@ async function hashPassword(password: string): Promise<Result<string, ZeroError>
   return ok(`hashed_${password}`);
 }
 
-async function createUser(email: string, passwordHash: string): Promise<Result<{ id: string }, ZeroError>> {
+async function createUser(_email: string, _passwordHash: string): Promise<Result<{ id: string }, ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok({ id: `user_${Date.now()}` });
 }
@@ -402,22 +401,22 @@ async function fetchUser(userId: string): Promise<Result<any, ZeroError>> {
   return ok({ id: userId, name: 'John Doe' });
 }
 
-async function fetchUserPosts(userId: string): Promise<Result<any[], ZeroError>> {
+async function fetchUserPosts(_userId: string): Promise<Result<any[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 150));
   return ok([{ id: 1, title: 'Post 1' }]);
 }
 
-async function fetchUserFollowers(userId: string): Promise<Result<any[], ZeroError>> {
+async function fetchUserFollowers(_userId: string): Promise<Result<any[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 200));
   return ok([{ id: 2, name: 'Follower 1' }]);
 }
 
-async function fetchAccountInfo(userId: string): Promise<Result<any, ZeroError>> {
+async function fetchAccountInfo(_userId: string): Promise<Result<any, ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok({ balance: 1000 });
 }
 
-async function fetchNotifications(userId: string): Promise<Result<any[], ZeroError>> {
+async function fetchNotifications(_userId: string): Promise<Result<any[], ZeroError>> {
   await new Promise(resolve => setTimeout(resolve, 100));
   return ok([{ id: 1, message: 'New message' }]);
 }

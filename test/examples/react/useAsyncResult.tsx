@@ -40,7 +40,7 @@ export function useAsyncResult<T>(
 
 // Example usage
 export function UserProfile({ userId }: { userId: string }) {
-  const { result, loading, execute, data, error } = useAsyncResult(
+  const { result: _result, loading, execute, data, error } = useAsyncResult(
     async () => fetchUser(userId)
   );
 

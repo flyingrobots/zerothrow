@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { Result, ok, err, ZeroError } from '../../src/index';
+import { ZT } from '../../src/index';
 import { execCmd, readFile } from '../lib/shared';
 import chalk from 'chalk';
 import { existsSync } from 'fs';
@@ -28,20 +28,20 @@ async function extractErrors(
   logFile: string,
   pattern: RegExp,
   maxLines: number
-): Promise<Result<string[], ZeroError>> {
+): Promise<ZT.Result<string[], ZT.ZeroError>> {
   if (!existsSync(logFile)) {
-    return ok([]);
+    return ZT.ok([]);
   }
   
   const grepCmd = `grep -E "${pattern.source}" ${logFile} | tail -${maxLines}`;
   const result = await execCmd(grepCmd);
   
   if (!result.ok) {
-    return ok([]); // No matches is not an error
+    return ZT.ok([]); // No matches is not an error
   }
   
   const lines = result.value.split('\n').filter(line => line.trim());
-  return ok(lines);
+  return ZT.ok(lines);
 }
 
 // Format a single test result
@@ -68,7 +68,7 @@ function getDebuggingTip(testName: string): string {
 export async function generateTestReport(
   results: TestResult[],
   options: ReportOptions = {}
-): Promise<Result<string, ZeroError>> {
+): Promise<ZT.Result<string, ZT.ZeroError>> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const lines: string[] = [];
   
@@ -120,14 +120,14 @@ export async function generateTestReport(
       lines.push(chalk.yellow(`  - ${test.name}: ${getDebuggingTip(test.name)}`));
     });
     
-    return err(new ZeroError('TESTS_FAILED', 'Some tests failed', {
+    return ZT.err(new ZT.ZeroError('TESTS_FAILED', 'Some tests failed', {
       failedCount: failedTests.length,
       failedTests: failedTests.map(t => t.name)
     }));
   }
   
   lines.push(chalk.green('✅ All tests passed successfully! 🎉'));
-  return ok(lines.join('\n'));
+  return ZT.ok(lines.join('\n'));
 }
 
 // Parse command line arguments

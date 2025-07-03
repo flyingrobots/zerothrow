@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach as _beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from './express-api.js';
 

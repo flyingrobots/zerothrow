@@ -3,13 +3,12 @@ import {
   zerothrowWinstonFormat,
   createWinstonLogger,
 } from '../src/loggers/winston.js';
-import { ZeroError } from '../src/error.js';
-import { ok, err } from '../src/result.js';
+import { ZT } from '../src/index.js';
 
 describe('Winston formatter', () => {
   describe('transform function', () => {
     it('formats ZeroError instances', () => {
-      const error = new ZeroError('DATABASE_ERROR', 'Connection failed', {
+      const error = new ZT.Error('DATABASE_ERROR', 'Connection failed', {
         context: { host: 'localhost', port: 5432 },
       });
 
@@ -37,7 +36,7 @@ describe('Winston formatter', () => {
       process.env.LOG_LEVEL = 'debug';
 
       try {
-        const error = new ZeroError('DEBUG_ERROR', 'Debug test');
+        const error = new ZT.Error('DEBUG_ERROR', 'Debug test');
         const info = {
           level: 'error',
           message: 'Error in debug mode',
@@ -58,7 +57,7 @@ describe('Winston formatter', () => {
 
     it('handles symbol error codes', () => {
       const symbolCode = Symbol('CUSTOM_ERROR');
-      const error = new ZeroError(symbolCode, 'Custom error');
+      const error = new ZT.Error(symbolCode, 'Custom error');
 
       const info = {
         level: 'error',
@@ -75,7 +74,7 @@ describe('Winston formatter', () => {
     });
 
     it('formats Ok results', () => {
-      const result = ok({ success: true });
+      const result = ZT.ok({ success: true });
 
       const info = {
         level: 'info',
@@ -94,7 +93,7 @@ describe('Winston formatter', () => {
     });
 
     it('formats Ok results with default message when none provided', () => {
-      const result = ok({ data: 'test' });
+      const result = ZT.ok({ data: 'test' });
 
       const info = {
         level: 'info',
@@ -108,8 +107,8 @@ describe('Winston formatter', () => {
     });
 
     it('formats Err results with ZeroError', () => {
-      const error = new ZeroError('AUTH_FAILED', 'Invalid credentials');
-      const result = err(error);
+      const error = new ZT.Error('AUTH_FAILED', 'Invalid credentials');
+      const result = ZT.err(error);
 
       const info = {
         level: 'error',
@@ -132,7 +131,7 @@ describe('Winston formatter', () => {
 
     it('formats Err results with regular Error', () => {
       const error = new Error('Generic error');
-      const result = err(error);
+      const result = ZT.err(error);
 
       const info = {
         level: 'error',
@@ -156,11 +155,11 @@ describe('Winston formatter', () => {
       const originalInfo = {
         level: 'error',
         message: 'Original message',
-        error: new ZeroError('TEST_ERROR', 'Test error'),
+        error: new ZT.Error('TEST_ERROR', 'Test error'),
       };
 
       // Create a deep copy to compare later
-      const infoCopy = JSON.parse(JSON.stringify(originalInfo));
+      const _infoCopy = JSON.parse(JSON.stringify(originalInfo));
 
       const transformed = zerothrowWinstonFormat.transform(originalInfo);
 
@@ -175,7 +174,7 @@ describe('Winston formatter', () => {
     });
 
     it('formats Err results with non-Error values', () => {
-      const result = err('string error');
+      const result = ZT.err('string error');
 
       const info = {
         level: 'error',
@@ -197,7 +196,7 @@ describe('Winston formatter', () => {
 
     it('uses info.message for non-ZeroError errors', () => {
       const error = new Error('Generic error');
-      const result = err(error);
+      const result = ZT.err(error);
 
       const info = {
         level: 'error',
@@ -212,8 +211,8 @@ describe('Winston formatter', () => {
 
     it('formats Err results with ZeroError having symbol code', () => {
       const symbolCode = Symbol('SYMBOL_ERROR');
-      const error = new ZeroError(symbolCode, 'Symbol error test');
-      const result = err(error);
+      const error = new ZT.Error(symbolCode, 'Symbol error test');
+      const result = ZT.err(error);
 
       const info = {
         level: 'error',
@@ -238,7 +237,7 @@ describe('Winston formatter', () => {
         createLogger: vi.fn().mockReturnValue('logger'),
       };
 
-      const logger = createWinstonLogger(mockWinston);
+      const _logger = createWinstonLogger(mockWinston);
 
       expect(mockWinston.createLogger).toHaveBeenCalledWith({
         format: 'combined',
@@ -266,7 +265,7 @@ describe('Winston formatter', () => {
         format: 'simple',
       };
 
-      const logger = createWinstonLogger(mockWinston, options);
+      const _logger = createWinstonLogger(mockWinston, options);
 
       expect(mockWinston.createLogger).toHaveBeenCalledWith({
         level: 'debug',

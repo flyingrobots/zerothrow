@@ -18,12 +18,6 @@ export {
   collectAsync,
   firstSuccess,
 } from './combinators.js';
-export {
-  type ZTResult,
-  type ZTPromise,
-  type ZTPromiseCombinable,
-  ztPromise,
-  ztOk,
-  ztErr,
-  isZTResult,
-} from './types.js';
+// Export the ZT namespace
+import * as ZT from './zt.js';
+export { ZT };

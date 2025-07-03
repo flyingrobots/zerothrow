@@ -3,8 +3,7 @@ import {
   ErrorFormatter,
   createErrorFormatter,
 } from '../src/dev/error-formatter.js';
-import { ZeroError } from '../src/error.js';
-import { ok, err } from '../src/result.js';
+import { ZT } from '../src/index.js';
 
 describe('ErrorFormatter', () => {
   let consoleErrorSpy: any;
@@ -18,7 +17,7 @@ describe('ErrorFormatter', () => {
   describe('formatZeroError', () => {
     it('formats error with colors when enabled', () => {
       const formatter = new ErrorFormatter({ colors: true });
-      const error = new ZeroError('API_ERROR', 'Request failed', {
+      const error = new ZT.Error('API_ERROR', 'Request failed', {
         context: { endpoint: '/api/users', statusCode: 404 },
       });
 
@@ -37,7 +36,7 @@ describe('ErrorFormatter', () => {
 
     it('formats error without colors when disabled', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const error = new ZeroError('API_ERROR', 'Request failed');
+      const error = new ZT.Error('API_ERROR', 'Request failed');
 
       const formatted = formatter.formatZeroError(error);
 
@@ -49,7 +48,7 @@ describe('ErrorFormatter', () => {
     it('handles symbol error codes', () => {
       const formatter = new ErrorFormatter({ colors: false });
       const symbolCode = Symbol('CUSTOM_ERROR');
-      const error = new ZeroError(symbolCode, 'Custom error');
+      const error = new ZT.Error(symbolCode, 'Custom error');
 
       const formatted = formatter.formatZeroError(error);
 
@@ -58,7 +57,7 @@ describe('ErrorFormatter', () => {
 
     it('includes statusCode from context', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const error = new ZeroError('HTTP_ERROR', 'Not found', {
+      const error = new ZT.Error('HTTP_ERROR', 'Not found', {
         context: { statusCode: 404, path: '/users/123' },
       });
 
@@ -72,7 +71,7 @@ describe('ErrorFormatter', () => {
         colors: false,
         stackTrace: false,
       });
-      const error = new ZeroError('TEST_ERROR', 'Test message');
+      const error = new ZT.Error('TEST_ERROR', 'Test message');
 
       const formatted = formatter.formatZeroError(error);
 
@@ -82,7 +81,7 @@ describe('ErrorFormatter', () => {
 
     it('includes stack trace with colors when both are enabled', () => {
       const formatter = new ErrorFormatter({ colors: true, stackTrace: true });
-      const error = new ZeroError('STACK_ERROR', 'Stack test');
+      const error = new ZT.Error('STACK_ERROR', 'Stack test');
 
       const formatted = formatter.formatZeroError(error);
 
@@ -94,7 +93,7 @@ describe('ErrorFormatter', () => {
 
     it('respects details option', () => {
       const formatter = new ErrorFormatter({ colors: false, details: false });
-      const error = new ZeroError('TEST_ERROR', 'Test message', {
+      const error = new ZT.Error('TEST_ERROR', 'Test message', {
         context: { data: 'should not appear' },
       });
 
@@ -106,7 +105,7 @@ describe('ErrorFormatter', () => {
 
     it('respects timestamp option', () => {
       const formatter = new ErrorFormatter({ colors: false, timestamp: false });
-      const error = new ZeroError('TEST_ERROR', 'Test message');
+      const error = new ZT.Error('TEST_ERROR', 'Test message');
 
       const formatted = formatter.formatZeroError(error);
 
@@ -117,7 +116,7 @@ describe('ErrorFormatter', () => {
   describe('formatResult', () => {
     it('formats Ok result', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const result = ok({ id: 1 });
+      const result = ZT.ok({ id: 1 });
 
       const formatted = formatter.formatResult(result);
 
@@ -129,7 +128,7 @@ describe('ErrorFormatter', () => {
 
     it('formats Ok result with colors', () => {
       const formatter = new ErrorFormatter({ colors: true });
-      const result = ok({ id: 1 });
+      const result = ZT.ok({ id: 1 });
 
       const formatted = formatter.formatResult(result);
 
@@ -140,8 +139,8 @@ describe('ErrorFormatter', () => {
 
     it('formats Err result with ZeroError', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const error = new ZeroError('VALIDATION_ERROR', 'Invalid input');
-      const result = err(error);
+      const error = new ZT.Error('VALIDATION_ERROR', 'Invalid input');
+      const result = ZT.err(error);
 
       const formatted = formatter.formatResult(result);
 
@@ -151,7 +150,7 @@ describe('ErrorFormatter', () => {
     it('formats Err result with regular Error', () => {
       const formatter = new ErrorFormatter({ colors: false });
       const error = new Error('Generic error');
-      const result = err(error);
+      const result = ZT.err(error);
 
       const formatted = formatter.formatResult(result);
 
@@ -161,7 +160,7 @@ describe('ErrorFormatter', () => {
     it('formats Err result with regular Error with colors', () => {
       const formatter = new ErrorFormatter({ colors: true });
       const error = new Error('Generic error');
-      const result = err(error);
+      const result = ZT.err(error);
 
       const formatted = formatter.formatResult(result);
 
@@ -173,7 +172,7 @@ describe('ErrorFormatter', () => {
   describe('console helpers', () => {
     it('logError logs formatted error to console.error', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const error = new ZeroError('TEST_ERROR', 'Test message');
+      const error = new ZT.Error('TEST_ERROR', 'Test message');
 
       formatter.logError(error);
 
@@ -184,7 +183,7 @@ describe('ErrorFormatter', () => {
 
     it('logResult logs formatted result to console.log', () => {
       const formatter = new ErrorFormatter({ colors: false });
-      const result = ok('success');
+      const result = ZT.ok('success');
 
       formatter.logResult(result);
 
@@ -204,7 +203,7 @@ describe('ErrorFormatter', () => {
         timestamp: false,
       });
 
-      const error = new ZeroError('TEST', 'Test', {
+      const error = new ZT.Error('TEST', 'Test', {
         context: { data: 'test' },
       });
 

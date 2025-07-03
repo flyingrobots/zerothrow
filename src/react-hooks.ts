@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { type Result } from './result.js';
-import { ZeroError } from './error.js';
+import { ZT } from './index.js';
 
-export interface UseResultState<T, E extends Error = ZeroError> {
+export interface UseResultState<T, E extends Error = ZT.Error> {
   data: T | null;
   error: E | null;
   loading: boolean;
@@ -13,8 +12,8 @@ export interface UseResultState<T, E extends Error = ZeroError> {
 /**
  * React hook for handling async operations with Result types
  */
-export function useResult<T, E extends Error = ZeroError>(
-  fn: () => Promise<Result<T, E>>,
+export function useResult<T, E extends Error = ZT.Error>(
+  fn: () => Promise<ZT.Result<T, E>>,
   deps: React.DependencyList = []
 ): UseResultState<T, E> {
   const [data, setData] = useState<T | null>(null);
