@@ -271,24 +271,51 @@ describe('Database Transaction Integration Tests', () => {
   });
 
   it('should successfully transfer balance between users', async () => {
-    // Perform transfer
-    const result = await db.transferBalance('user1', 'user2', 300);
-
-    // Verify successful result
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.transactionId).toBeGreaterThan(0);
-    }
-
-    // Verify actual balance changes
-    const user1After = await db.getUser('user1');
-    const user2After = await db.getUser('user2');
-    console.log('User1 balance after:', user1After?.balance);
-    console.log('User2 balance after:', user2After?.balance);
+    // SHINING EXAMPLE: Using ZT combinators for elegant flow
+    const transferResult = await db.transferBalance('user1', 'user2', 300);
     
-    expect(Number(user1After?.balance)).toBe(700);
-    expect(Number(user2After?.balance)).toBe(800);
-
+    // First check: transfer succeeded and we got a transaction ID
+    expect(transferResult.ok).toBe(true);
+    if (!transferResult.ok) {
+      console.error('Transfer failed:', transferResult.error);
+      return;
+    }
+    
+    const { transactionId } = transferResult.value;
+    expect(transactionId).toBeGreaterThan(0);
+    
+    // Now use combinators to verify the final state
+    const verificationResult = await transferResult
+      .andThen(async ({ transactionId }) => {
+        // Get both users' final states
+        const user1Result = await db.getUserWithRetry('user1', 1);
+        const user2Result = await db.getUserWithRetry('user2', 1);
+        
+        // Combine results
+        if (!user1Result.ok) return user1Result;
+        if (!user2Result.ok) return user2Result;
+        
+        return ZT.ok({
+          user1: user1Result.value,
+          user2: user2Result.value,
+          transactionId
+        });
+      });
+    
+    expect(verificationResult.ok).toBe(true);
+    if (!verificationResult.ok) return;
+    
+    const { user1, user2 } = verificationResult.value;
+    
+    // Log for debugging
+    console.log('Transfer successful!');
+    console.log('User1 balance:', user1.balance);
+    console.log('User2 balance:', user2.balance);
+    
+    // Verify balances changed correctly
+    expect(Number(user1.balance)).toBe(700); // 1000 - 300
+    expect(Number(user2.balance)).toBe(800); // 500 + 300
+    
     // Verify transaction was recorded
     const txCount = await db.getTransactionCount();
     expect(txCount).toBe(1);
@@ -345,29 +372,57 @@ describe('Database Transaction Integration Tests', () => {
   });
 
   it('should handle concurrent transfers with proper isolation', async () => {
-    // Run transfers that won't deadlock (same direction)
-    const transfers = await Promise.all([
-      db.transferBalance('user1', 'user2', 100),
-      db.transferBalance('user1', 'user2', 100),
-      db.transferBalance('user1', 'user2', 50),
-    ]);
+    // SHINING EXAMPLE: Handling concurrent operations with ZT patterns
+    const concurrentTransfers = [
+      () => db.transferBalance('user1', 'user2', 100),
+      () => db.transferBalance('user1', 'user2', 100),
+      () => db.transferBalance('user1', 'user2', 50),
+    ];
 
-    // Count successful transfers
-    const successCount = transfers.filter(r => r.ok).length;
-    expect(successCount).toBeGreaterThan(0);
+    // Execute transfers concurrently and collect results
+    const transferResults = await Promise.all(
+      concurrentTransfers.map(transfer => transfer())
+    );
 
-    // Check final balances
-    const user1Final = await db.getUser('user1');
-    const user2Final = await db.getUser('user2');
-    const finalTxCount = await db.getTransactionCount();
+    // Use ZT patterns to analyze results
+    const analysis = transferResults
+      .reduce((acc, result) => {
+        if (result.ok) {
+          acc.successful++;
+          acc.txIds.push(result.value.transactionId);
+        } else {
+          acc.failed++;
+          acc.errors.push(result.error);
+        }
+        return acc;
+      }, { successful: 0, failed: 0, txIds: [] as number[], errors: [] as ZeroThrow.ZeroError[] });
+
+    console.log(`Concurrent transfers: ${analysis.successful} succeeded, ${analysis.failed} failed`);
     
-    // All transfers are from user1 to user2 (250 total if all succeed)
-    // But with concurrent access, some may fail due to conflicts
-    if (successCount === 3) {
-      expect(Number(user1Final?.balance)).toBe(750);
-      expect(Number(user2Final?.balance)).toBe(750);
+    // At least one should succeed
+    expect(analysis.successful).toBeGreaterThan(0);
+    
+    // Verify final state
+    const user1Result = await db.getUserWithRetry('user1', 1);
+    const user2Result = await db.getUserWithRetry('user2', 1);
+    
+    expect(user1Result.ok).toBe(true);
+    expect(user2Result.ok).toBe(true);
+    
+    if (user1Result.ok && user2Result.ok) {
+      const user1Balance = Number(user1Result.value.balance);
+      const user2Balance = Number(user2Result.value.balance);
+      const total = user1Balance + user2Balance;
+      
+      console.log(`Final balances: user1=${user1Balance}, user2=${user2Balance}, total=${total}`);
+      
+      // Total balance should be conserved
+      expect(total).toBe(1500);
+      
+      // Transaction count should match successful transfers
+      const txCount = await db.getTransactionCount();
+      expect(txCount).toBe(analysis.successful);
     }
-    expect(finalTxCount).toBe(successCount);
   });
 
   it('should respect connection pool limits', async () => {
