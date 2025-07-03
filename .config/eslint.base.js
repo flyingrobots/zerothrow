@@ -29,7 +29,7 @@ export default [
   
   // Main source files - STRICT rules
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', 'packages/*/src/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -59,7 +59,7 @@ export default [
   
   // Test files - more relaxed rules
   {
-    files: ['test/**/*.{ts,tsx}'],
+    files: ['test/**/*.{ts,tsx}', 'packages/*/test/**/*.{ts,tsx}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

@@ -12,14 +12,14 @@ export default mergeConfig(
       }
     },
     test: {
-      include: ['packages/core/test/**/*.test.ts', 'packages/core/test/**/*.test.tsx'],
+      include: ['packages/core/test/**/*.test.ts'],
       exclude: [
-        'packages/core/test/examples/**/*.test.ts',
-        'packages/core/test/examples/**/*.test.tsx',
+        'packages/core/test/examples/**',
         '**/node_modules/**',
         '**/dist/**',
         '**/build/**',
         'packages/core/test/**/*performance*.test.ts',
+        'packages/core/test/integration/**'
       ],
       reporters: process.env.CI ? ['verbose', 'github-actions'] : ['verbose'],
       logHeapUsage: true,

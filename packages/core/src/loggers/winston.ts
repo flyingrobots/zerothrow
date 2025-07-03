@@ -61,7 +61,7 @@ export const zerothrowWinstonFormat = {
           status: 'ok',
           value: result.value,
         };
-        transformed.formattedMessage = `[OK] ${info.message || 'Operation succeeded'}`;
+        transformed['formattedMessage'] = `[OK] ${info.message || 'Operation succeeded'}`;
       } else {
         transformed.zerothrow = {
           type: 'Result',
@@ -92,7 +92,7 @@ export const zerothrowWinstonFormat = {
           result.error instanceof ZeroThrow.ZeroError
             ? result.error.message
             : info.message || 'Operation failed';
-        transformed.formattedMessage = `[ERR] ${errorMessage}`;
+        transformed['formattedMessage'] = `[ERR] ${errorMessage}`;
       }
       // Leave original result untouched for downstream formats
     }

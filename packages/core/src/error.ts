@@ -21,7 +21,7 @@ export class ZeroError<C extends ErrorContext = ErrorContext> extends Error {
   ) {
     super(message, { cause: opts.cause });
     this.code = code;
-    this.context = opts.context;
+    this.context = opts.context as C;
     this.name = 'ZeroError';
     Object.setPrototypeOf(this, new.target.prototype); // fix prototype when transpiled
   }
@@ -29,7 +29,7 @@ export class ZeroError<C extends ErrorContext = ErrorContext> extends Error {
   /**
    * Override toString to include full error chain with context
    */
-  toString(): string {
+  override toString(): string {
     let result = `${this.name} [${String(this.code)}]: ${this.message}`;
 
     // Add context if present

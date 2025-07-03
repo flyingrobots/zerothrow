@@ -55,6 +55,9 @@ export function wrap<C extends ErrorContext = ErrorContext>(
   // Use cause's message if msg not provided
   const message = msg ?? cause.message;
 
-  return new ZeroError(errorCode, message, { cause, context: ctx });
+  return new ZeroError(errorCode, message, { 
+    cause, 
+    ...(ctx !== undefined && { context: ctx })
+  });
 }
 
