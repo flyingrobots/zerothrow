@@ -19,19 +19,22 @@ export function analyzeImports(
 
   const hasErrImport =
     zerothrowImport?.specifiers.some(
-      (spec) => spec.type === 'ImportSpecifier' && spec.imported.name === 'err'
+      (spec) => spec.type === 'ImportSpecifier' && 
+        (spec.imported.type === 'Identifier' ? spec.imported.name : spec.imported.value) === 'err'
     ) ?? false;
 
   const hasZeroErrorImport =
     zerothrowImport?.specifiers.some(
       (spec) =>
-        spec.type === 'ImportSpecifier' && spec.imported.name === 'ZeroError'
+        spec.type === 'ImportSpecifier' && 
+        (spec.imported.type === 'Identifier' ? spec.imported.name : spec.imported.value) === 'ZeroError'
     ) ?? false;
 
   const hasResultImport =
     zerothrowImport?.specifiers.some(
       (spec) =>
-        spec.type === 'ImportSpecifier' && spec.imported.name === 'Result'
+        spec.type === 'ImportSpecifier' && 
+        (spec.imported.type === 'Identifier' ? spec.imported.name : spec.imported.value) === 'Result'
     ) ?? false;
 
   return {
@@ -59,10 +62,11 @@ export function buildImportText(
         spec.type === 'ImportSpecifier'
     )
     .map((spec) => {
-      if (spec.local && spec.local.name !== spec.imported.name) {
-        return `${spec.imported.name} as ${spec.local.name}`;
+      const importedName = spec.imported.type === 'Identifier' ? spec.imported.name : spec.imported.value;
+      if (spec.local && spec.local.name !== importedName) {
+        return `${importedName} as ${spec.local.name}`;
       }
-      return spec.imported.name;
+      return importedName;
     });
 
   const allImports = Array.from(

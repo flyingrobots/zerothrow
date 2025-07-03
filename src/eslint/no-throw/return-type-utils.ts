@@ -1,4 +1,4 @@
-import { TSESTree, TSESLint } from '@typescript-eslint/utils';
+import { TSESTree, TSESLint, AST_NODE_TYPES } from '@typescript-eslint/utils';
 
 export type FunctionNode =
   | TSESTree.FunctionDeclaration
@@ -13,21 +13,22 @@ export function findParentFunction(node: TSESTree.Node): FunctionNode | null {
 
   while (parent) {
     if (
-      parent.type === 'FunctionDeclaration' ||
-      parent.type === 'FunctionExpression' ||
-      parent.type === 'ArrowFunctionExpression'
+      parent.type === AST_NODE_TYPES.FunctionDeclaration ||
+      parent.type === AST_NODE_TYPES.FunctionExpression ||
+      parent.type === AST_NODE_TYPES.ArrowFunctionExpression
     ) {
       return parent;
     }
 
-    if (parent.type === 'MethodDefinition' && parent.value) {
+    if (parent.type === AST_NODE_TYPES.MethodDefinition && parent.value) {
       const func = parent.value;
       if (
-        func.type === 'FunctionExpression' ||
-        func.type === 'ArrowFunctionExpression'
+        func.type === AST_NODE_TYPES.FunctionExpression ||
+        func.type === AST_NODE_TYPES.ArrowFunctionExpression
       ) {
         return func;
       }
+      // TSEmptyBodyFunctionExpression doesn't have a body, so no throw statements
     }
 
     parent = parent.parent;
