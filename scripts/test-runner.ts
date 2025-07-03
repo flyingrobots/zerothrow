@@ -27,27 +27,41 @@ async function runTests(options: TestRunnerOptions = {}): Promise<ZeroThrow.Resu
 
   // Check if we need Docker for integration tests
   if (includeIntegration) {
-    const dockerStatus = await checkDockerStatus();
-    if (!dockerStatus.ok) {
-      return dockerStatus;
-    }
-
-    if (!dockerStatus.value.running) {
-      console.log(chalk.yellow('⚠️  Docker is not running. Integration tests require Docker.'));
+    const isCI = process.env.CI === 'true';
+    
+    if (isCI) {
+      // In CI, we use GitHub Actions services instead of Docker
+      console.log(chalk.blue('🔧 Running in CI - using GitHub Actions PostgreSQL service'));
+      console.log(chalk.gray('   PostgreSQL available at localhost:5432\n'));
       
-      if (platform() === 'darwin') {
-        const spinner = ora('Starting Docker Desktop...').start();
-        const startResult = await startDocker();
-        if (!startResult.ok) {
-          spinner.fail('Failed to start Docker');
-          console.log(chalk.red('\n❌ Integration tests cannot run without Docker.'));
-          console.log(chalk.gray('   Run unit tests only with: npm run test:unit'));
-          return startResult;
+      // Set environment variables for test utilities to use CI services
+      process.env.ZEROTHROW_CI_MODE = 'true';
+      process.env.ZEROTHROW_PG_HOST = 'localhost';
+      process.env.ZEROTHROW_PG_PORT = '5432';
+    } else {
+      // Local development needs Docker
+      const dockerStatus = await checkDockerStatus();
+      if (!dockerStatus.ok) {
+        return dockerStatus;
+      }
+
+      if (!dockerStatus.value.running) {
+        console.log(chalk.yellow('⚠️  Docker is not running. Integration tests require Docker.'));
+        
+        if (platform() === 'darwin') {
+          const spinner = ora('Starting Docker Desktop...').start();
+          const startResult = await startDocker();
+          if (!startResult.ok) {
+            spinner.fail('Failed to start Docker');
+            console.log(chalk.red('\n❌ Integration tests cannot run without Docker.'));
+            console.log(chalk.gray('   Run unit tests only with: npm run test:unit'));
+            return startResult;
+          }
+          spinner.succeed('Docker started successfully');
+        } else {
+          console.log(chalk.red('Please start Docker manually and try again.'));
+          return ZT.err(new ZeroThrow.ZeroError('DOCKER_NOT_RUNNING', 'Docker is required for integration tests'));
         }
-        spinner.succeed('Docker started successfully');
-      } else {
-        console.log(chalk.red('Please start Docker manually and try again.'));
-        return ZT.err(new ZeroThrow.ZeroError('DOCKER_NOT_RUNNING', 'Docker is required for integration tests'));
       }
     }
 

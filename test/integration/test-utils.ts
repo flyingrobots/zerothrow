@@ -16,6 +16,16 @@ export interface TestEnvironment {
 
 
 export function createTestEnvironment(): TestEnvironment {
+  // In CI mode, we don't need to create Docker artifacts
+  if (process.env.ZEROTHROW_CI_MODE === 'true') {
+    return {
+      containerId: 'ci-postgres',
+      networkName: 'ci-network',
+      port: parseInt(process.env.ZEROTHROW_PG_PORT || '5432', 10),
+      composeFile: process.platform === 'win32' ? 'NUL' : '/dev/null' // Won't be used
+    };
+  }
+  
   // Generate unique identifiers
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(7);
@@ -46,6 +56,12 @@ export function createTestEnvironment(): TestEnvironment {
 }
 
 export async function startTestDatabase(env: TestEnvironment): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  // In CI mode, PostgreSQL is already running as a GitHub Actions service
+  if (process.env.ZEROTHROW_CI_MODE === 'true') {
+    console.log('Using CI PostgreSQL service at localhost:5432');
+    return ZT.ok(undefined);
+  }
+  
   // Clean up any existing containers first
   const _cleanupResult = ZT.try(() => 
     execSync(`docker compose -f ${env.composeFile} down -v`, {
@@ -101,6 +117,11 @@ export async function startTestDatabase(env: TestEnvironment): Promise<ZeroThrow
 }
 
 export async function stopTestDatabase(env: TestEnvironment): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  // In CI mode, we don't manage the PostgreSQL service
+  if (process.env.ZEROTHROW_CI_MODE === 'true') {
+    return ZT.ok(undefined);
+  }
+  
   // Stop and remove containers
   const stopResult = ZT.try(() =>
     execSync(`docker compose -f ${env.composeFile} down -v`, {
@@ -129,6 +150,19 @@ export async function stopTestDatabase(env: TestEnvironment): Promise<ZeroThrow.
 }
 
 export function getTestDatabaseConfig(env: TestEnvironment) {
+  // In CI mode, use the GitHub Actions PostgreSQL service
+  if (process.env.ZEROTHROW_CI_MODE === 'true') {
+    return {
+      host: process.env.ZEROTHROW_PG_HOST || 'localhost',
+      port: parseInt(process.env.ZEROTHROW_PG_PORT || '5432', 10),
+      database: 'testdb',
+      user: 'testuser',
+      password: 'testpass',
+      max: 5,
+    };
+  }
+  
+  // Local development uses dynamic ports
   return {
     host: 'localhost',
     port: env.port,

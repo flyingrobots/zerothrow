@@ -43,6 +43,21 @@ jobs:
         node: ['18.x', '20.x']
       fail-fast: false
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
     - uses: actions/checkout@v4
 
@@ -60,7 +75,6 @@ jobs:
 
     - name: Run integration tests
       run: npm run test:integration
-      continue-on-error: ${{ matrix.os == 'windows-latest' }} # Windows Docker issues
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
