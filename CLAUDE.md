@@ -1,26 +1,109 @@
-# CURRENT MISSION – **OPERATION DOGFOOD**
+# CURRENT MISSION – **OPERATION "ZERO-THROW RESILIENCE"**
 
-> [!info] **CURRENT STATUS:** About to start *SUB-MISSION ALPHA*
+> [!info] **CURRENT STATUS:** Phase 0 - Updating OPORD
 
 > [!important] **Promotion Clause:** Nail every checkbox and ship a green PR on the first try — you graduate from Private to **Corporal Claude**. Otherwise: KP duty with a lint brush.
 
-## Objective
+## OPORD — OPERATION "ZERO-THROW RESILIENCE"
 
-Replace every Bash script with TypeScript powered by **ZeroThrow**.
+**Ref ID:** OP-ZTR-002 · **Issued:** 2025-07-03
 
-> [!new] **SUB-MISSION ALPHA**
+### 1. Situation
+1. **API Surface Debt** – Mixed naming (tryR, promise(), etc.) hurts DX.
+2. **Monorepo Prep** – Future packages (eslint-plugin, react, cli) demand workspaces.
+3. **Resilience Gap** – All existing retry libs rely on throw/catch, negating ZeroThrow's speed edge.
 
-### SUB-MISSION ALPHA: ***ZT SURFACE LIFT***
+### 2. Mission
 
-**Adjust API surface** for enhanced DX.   
-*See Battle Plan for details.*
+By +5.5 hours, refactor the codebase so that:
+- **ZT object** is lean (try/ok/err) yet publish-ready.
+- **ZeroThrow namespace** remains full-featured and tree-shakable.
+- **packages/core** is isolated inside a monorepo workspace.
+- **Zero-Throw Resilience API** (retry, timeout, circuit breaker, fallback) exists with zero throws and fluent builder syntax.
+- **CI, lint, tests, and coverage** all pass on Ubuntu, macOS, Windows.
 
-> [!new] **SUB-MISSION BRAVO**
+### 3. Execution
 
-### SUB-MISSION BRAVO: ***MONO PREP***
+#### Phase 0 – Brief & Checklist Update (15 min)
+- [x] Update CLAUDE.md to reflect this OPORD
+- [x] List new discovery items (DB test bug, build fix, type clarity)
+- [x] Add SITREP table for each phase
 
-**Reorganize repo artifacts** to prepare for eventual transition into a multi-package monorepo
-*See Battle Plan for details.*
+#### Phase 1 – Fast Fixes (≈50 min)
+| Task | Description | Timebox | Status |
+|------|-------------|---------|---------|
+| 1.1 | Build Fix – resolve current compile error in combinators.ts:136 | 5 min | ✅ |
+| 1.2 | Type Clarity – rename template params, remove OK/ERR/AnyError | 15 min | ✅ |
+| 1.3 | DB Test Bug – change DECIMAL to INTEGER, fix promise chains | 30 min | ✅ |
+
+#### Phase 2 – Monorepo Skeleton (45 min)
+- [ ] 2-A: Create root `.config/` and move shared eslint, vitest, tsconfig.base
+- [ ] 2-B: Move `src/**` → `packages/core/src`, `test/**` → `packages/core/test`
+- [ ] 2-C: Add root workspaces (package.json, turbo or pnpm)
+- [ ] 2-D: Green build (`turbo run build && test && lint`)
+
+#### Phase 3 – ZT Surface Lift (1 hr)
+| New Name | Old | Work |
+|----------|-----|------|
+| ZeroThrow.attempt | tryR* | Overload sync/async/iterable; deprecate old exports |
+| ZeroThrow.wrap | promise() | Enhancer for Async |
+| ZeroThrow.fromAsync | async() | Sugar for promise producers |
+| ZeroThrow.Async | Promise iface | Rename to avoid global collision |
+| ZT object | n/a | `{ try: attempt, ok, err }` only |
+| ESLint guard | — | no-restricted-imports on deprecated names |
+
+#### Phase 4 – Docker & CI Infra (30 min)
+- [ ] Replace pre-push docker-compose.prepush.yml with scripts/ci/docker-build.ts
+- [ ] Move Docker artifacts to /tmp
+- [ ] Fix port allocation conflicts
+- [ ] Ensure vite/vitest configs extend .config paths
+
+#### Phase 5 – Zero-Throw Resilience (2 hr)
+| Module | Deliverable |
+|--------|-------------|
+| src/resilience/types.ts | ResilienceStrategy, ResilienceContext |
+| src/resilience/strategies/retry.ts | RetryStrategy (constant/linear/expo + jitter) |
+| src/resilience/pipeline.ts | ResiliencePipelineBuilder & ResiliencePipeline |
+| src/resilience/strategies/*.ts | Stubs for CircuitBreaker, Timeout, Fallback |
+| Tests | Unit tests for Retry and Pipeline with maxAttempts=3 |
+| ZT Extension | Expose `ZT.resilience = ResiliencePipelineBuilder` |
+
+#### Phase 6 – New Helpers & Tests (2 hr)
+- [ ] Add ZeroThrow.Async.unwrapOrElse
+- [ ] Rewrite flaky tests to use ResiliencePipeline (DB, network, etc.)
+- [ ] Maintain ≥ 90% coverage
+
+#### Phase 7 – Final Dress Rehearsal & PR (30 min)
+- [ ] Run Phase 4-1 full CI dress rehearsal
+- [ ] Grep sweep: no `throw` outside error.ts
+- [ ] Update CHANGELOG.md (0.1.0-alpha)
+- [ ] Open PR feat/zero-throw-resilience
+
+### 4. Sustainment
+- **Tooling:** Turbo or pnpm workspaces, ESLint v9, Vitest 1.5, tsup for package build
+- **Docs:** Add docs/guides/resilience.md and update README quick-start
+- **Benchmarks:** Add retry benchmark versus p-retry
+
+### 5. Command & Signal
+- **Reporting cadence:** Tick checkboxes in CLAUDE.md after each phase; post SITREP log
+- **Promotion clause:** Corporal stripes awarded when PR lands green with zero deprecated usage
+- **Abort criteria:** Any phase exceeding timebox by 2× triggers Commander review before proceeding
+
+> **"No throws, no mercy. Resilience is a feature, not an afterthought."** — Cmdr Chat
+
+---
+
+## Discovery Items
+
+1. **Build Error:** Type error in combinators.ts:136 - `ok()` returns combinable Result but `collect()` expects generic type E
+2. **DB Test Issues:** 
+   - Tests using DECIMAL type (returns as string from PostgreSQL)
+   - Broken promise chain - trying to use combinators on already-awaited Result
+   - Tests were "fudged" with parseFloat/toBeCloseTo
+3. **Type Clarity:** Template params in enhance function unclear - T vs TValue vs Result<T>
+4. **Docker Artifacts:** Creating files in working directory instead of /tmp
+5. **Port Conflicts:** Only 67 ports available (5433-5500), causing test concurrency issues
+6. **Retry Library Issue:** ALL existing retry libraries (p-retry, cockatiel, polly-js) use throw/catch internally
 
 ---
 
@@ -668,3 +751,145 @@ Append your SITREP here, dated and timestamped in the following format:
 > **Status:** ALL TECH DEBT ELIMINATED - READY FOR FINAL COMMIT
 > 
 > **NO THROWS, NO MERCY!** 🎖️
+
+> [!info]- SITREP 2025-07-03 12:30 UTC
+> 
+> **MAJOR DX ENHANCEMENTS DEPLOYED** 🚀
+> 
+> **Situation Report from Commander:**
+> - Two massive DX upgrades completed overnight
+> - Uncommitted work exists (--no-verify push to preserve progress)
+> - Integration test infrastructure needs Docker readiness wrapper
+> 
+> **DX Enhancement #1: Result is now a Combinator by Default**
+> - All Result types now have chainable methods built-in
+> - .map(), .andThen(), .mapErr(), .orElse(), .unwrapOr()
+> - Eliminates need for separate makeCombinable() calls
+> - Canonical ZeroThrow code is now WAY more elegant
+> 
+> **DX Enhancement #2: Docker Helper Library Created**
+> - Created `scripts/lib/docker.ts` with comprehensive Docker management
+> - Detects if running within Docker container
+> - Detects if Docker is installed/started
+> - Can start Docker Desktop automatically (macOS)
+> - Handles disk space issues and permission errors
+> - Designed to get system into state capable of running integration tests
+> 
+> **Current Issues Identified:**
+> 
+> **(A) Docker Test Wrapper Required:**
+> - Integration tests need wrapper script using docker.ts
+> - Pre-push hook needs Docker readiness check
+> - Post-install hook needed to ensure Docker is available for development
+> 
+> **(B) Artifact Accumulation:**
+> - Docker.ts generating files with random names in working directory
+> - Should use temporary system directory (/tmp) instead
+> 
+> **(C) Test Rewrite in Progress:**
+> - ALL tests being rewritten to showcase elegant combinator patterns
+> - Previous parallel agent attempts causing system slowdowns
+> - Multiple restarts required due to context/system issues
+> - Conservative approach needed this time
+> 
+> **Status:** AWAITING ASSESSMENT AND ORDERS
+
+> [!info]- SITREP 2025-07-03 12:45 UTC
+> 
+> **CURRENT OPERATIONAL ASSESSMENT** 📋
+> 
+> **Build Status:**
+> - Build: ❌ BROKEN (type error in combinators.ts:136)
+> - Error: Generic type constraint mismatch in collect() function
+> - Root cause: Result now includes combinators by default, type signatures need update
+> 
+> **Git Status:**
+> - Branch: dogfood
+> - Deleted: src/types.ts (old ZT type aliases)
+> - Modified: 3 test files (integration tests being rewritten)
+> - Last push: --no-verify (uncommitted work exists)
+> 
+> **SUB-MISSION ALPHA Progress:**
+> - P0-P4: ✅ COMPLETE (API surface lifted)
+> - P5: ⏳ IN PROGRESS (test rewrites for combinator patterns)
+> - P6: ❌ PENDING (CI & Lint configuration)
+> - P7: ❌ PENDING (PR & Debrief)
+> 
+> **Immediate Priorities:**
+> 1. Fix type error in combinators.ts to restore green build
+> 2. Create Docker wrapper script for integration tests
+> 3. Fix artifact generation location in docker.ts
+> 4. Complete test rewrites with combinator patterns
+> 5. Add post-install hook for Docker setup
+> 
+> **Technical Notes:**
+> - Result types now have built-in combinators (major DX win)
+> - Docker helper provides cross-platform Docker management
+> - Test rewrites will serve as canonical examples of ZeroThrow usage
+> - Conservative approach needed to avoid system overload
+> 
+> **Status:** AWAITING ORDERS TO PROCEED WITH PRIORITIES
+> 
+> **HOO-RAH!** 🎖️
+
+> [!info]- SITREP 2025-07-03 13:30 UTC
+> 
+> **OPERATION "ZERO-THROW RESILIENCE" - PHASE 0 COMPLETE** ✅
+> 
+> **Phase 0 Actions Taken:**
+> 1. Updated CLAUDE.md with new OPORD OP-ZTR-002
+> 2. Added comprehensive discovery items documenting all known issues
+> 3. Created phase tracking tables with checkboxes
+> 4. Established SITREP tracking for each phase
+> 
+> **Current Mission Status:**
+> - Previous SUB-MISSION ALPHA incorporated into new Phase 3
+> - Monorepo prep elevated to Phase 2 
+> - Zero-Throw Resilience API added as Phase 5 (game changer!)
+> 
+> **Phase 1 Ready to Execute:**
+> - Task 1.1: Build fix (5 min)
+> - Task 1.2: Type clarity (15 min) 
+> - Task 1.3: DB test fix (30 min)
+> 
+> **Technical Innovation:**
+> We're creating the FIRST resilience library with ZERO performance penalty!
+> 
+> **Status:** PHASE 0 COMPLETE - PROCEEDING TO PHASE 1
+> 
+> **HOO-RAH!** 🎖️
+
+> [!info]- SITREP 2025-07-03 14:00 UTC
+> 
+> **PHASE 1 COMPLETE WITH DISCOVERIES** ✅
+> 
+> **Phase 1 Actions Taken:**
+> 1. **Task 1.1:** Fixed build error in combinators.ts:136 - used `_ok()` instead of `ok()` ✅
+> 2. **Task 1.2:** Renamed template params for clarity - TValue/TError instead of T/E ✅
+> 3. **Task 1.3:** Changed DB schema to use INTEGER, fixed broken promise chains ✅
+> 
+> **Discoveries During Phase 1:**
+> 1. **DB Test Issues:**
+>    - Tests not properly isolated despite TRUNCATE in beforeEach
+>    - Sequential tests still showing data from previous runs
+>    - Docker container logs show unhandled foreign key violations
+>    - "database testuser does not exist" is normal PostgreSQL behavior (not an error)
+> 
+> 2. **API Enhancement Needed:**
+>    - User suggestion: Make `andThen` on resolved Results work like Promises
+>    - Currently trying to use combinators on awaited Results fails
+>    - Should either be a compiler error OR do the expected thing
+> 
+> 3. **Docker Integration:**
+>    - Docker auto-start feature works great! 🎉
+>    - Need to check result of stopTestDatabase
+>    - Integration tests need better cleanup between runs
+> 
+> **Technical Notes:**
+> - Build is GREEN ✅
+> - DB tests partially working but need isolation fixes
+> - Type clarity improved across core-exports.ts
+> 
+> **Status:** PHASE 1 COMPLETE - READY FOR PHASE 2
+> 
+> **HOO-RAH!** 🎖️

@@ -1,4 +1,4 @@
-import { type Result, type Ok, type Err, ok, err, _ok, _err } from './result.js';
+import { type Result, type Ok, type Err, err, _ok, _err } from './result.js';
 import { ZeroError } from './error.js';
 
 /**
@@ -133,7 +133,7 @@ export function collect<T, E extends Error = ZeroError>(
     values[index++] = result.value;
   }
 
-  return ok(values);
+  return _ok(values) as Result<T[], E>;
 }
 
 /**

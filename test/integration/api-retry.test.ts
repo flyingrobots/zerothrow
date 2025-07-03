@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { ZT, ZeroThrow } from '../../src/index.js';
+import http from 'http';
+import { AddressInfo } from 'net';
 
-// Real-world API client integration test
+// Real-world API client integration test with actual HTTP server
 interface User {
   id: string;
   name: string;
@@ -103,68 +105,108 @@ class ApiClient {
 }
 
 describe('API Retry Integration Tests', () => {
-  let mockFetch: ReturnType<typeof vi.fn>;
-  const originalFetch = global.fetch;
+  let server: http.Server;
+  let serverUrl: string;
+  let requestCount = 0;
+  let shouldFail = false;
+  let failureCount = 0;
 
-  beforeEach(() => {
-    mockFetch = vi.fn();
-    global.fetch = mockFetch;
+  beforeAll(async () => {
+    // Create a real HTTP server for testing
+    server = http.createServer((req, res) => {
+      requestCount++;
+      
+      if (req.url?.startsWith('/users/')) {
+        const userId = req.url.split('/')[2];
+        
+        // Simulate network failures for testing retry logic
+        if (shouldFail && failureCount > 0) {
+          failureCount--;
+          // Abruptly close connection to simulate network error
+          req.socket.destroy();
+          return;
+        }
+        
+        // Special handling for specific user IDs
+        if (userId === 'user-404') {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'User not found' }));
+          return;
+        }
+        
+        // Success response
+        const user = {
+          id: userId,
+          name: 'John Doe',
+          email: 'john@example.com',
+        };
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ data: user, timestamp: Date.now() }));
+      } else {
+        res.writeHead(404);
+        res.end();
+      }
+    });
+    
+    // Start server on random port
+    await new Promise<void>((resolve) => {
+      server.listen(0, () => {
+        const port = (server.address() as AddressInfo).port;
+        serverUrl = `http://localhost:${port}`;
+        resolve();
+      });
+    });
   });
 
-  afterEach(() => {
-    global.fetch = originalFetch;
+  afterAll(async () => {
+    // Close the server
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   });
 
   it('should successfully fetch user on first attempt', async () => {
-    const user = {
-      id: 'user-123',
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data: user, timestamp: Date.now() }),
-    });
-
-    const api = new ApiClient('https://api.example.com');
+    requestCount = 0;
+    shouldFail = false;
+    
+    const api = new ApiClient(serverUrl);
     const result = await api.fetchUser('user-123');
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(user);
+      expect(result.value.id).toBe('user-123');
+      expect(result.value.name).toBe('John Doe');
+      expect(result.value.email).toBe('john@example.com');
     }
+    expect(requestCount).toBe(1);
   });
 
   it('should retry on network errors and eventually succeed', async () => {
-    const user = {
-      id: 'user-123',
-      name: 'John Doe',
-      email: 'john@example.com',
-    };
-
-    // Fail twice, then succeed
-    mockFetch
-      .mockRejectedValueOnce(new Error('Network timeout'))
-      .mockRejectedValueOnce(new Error('Connection refused'))
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ data: user, timestamp: Date.now() }),
-      });
-
-    const api = new ApiClient('https://api.example.com');
+    requestCount = 0;
+    shouldFail = true;
+    failureCount = 2; // Fail first 2 attempts
+    
+    const api = new ApiClient(serverUrl);
     const result = await api.fetchUser('user-123');
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(user);
+      expect(result.value.id).toBe('user-123');
+      expect(result.value.name).toBe('John Doe');
     }
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(requestCount).toBe(3); // 2 failures + 1 success
   });
 
   it('should fail after max retries with detailed context', async () => {
-    mockFetch.mockRejectedValue(new Error('Network timeout'));
-
-    const api = new ApiClient('https://api.example.com');
+    requestCount = 0;
+    shouldFail = true;
+    failureCount = 10; // Fail all attempts
+    
+    const api = new ApiClient(serverUrl);
     const result = await api.fetchUser('user-123');
 
     expect(result.ok).toBe(false);
@@ -176,19 +218,21 @@ describe('API Retry Integration Tests', () => {
         lastError: 'NETWORK_ERROR',
       });
     }
+    expect(requestCount).toBe(3); // Max 3 retries
   });
 
   it('should not retry non-retryable errors', async () => {
-    const api = new ApiClient('https://api.example.com');
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      statusText: 'Not Found',
-    });
-
+    requestCount = 0;
+    shouldFail = false;
+    
+    const api = new ApiClient(serverUrl);
     const result = await api.fetchUser('user-404');
 
     expect(result.ok).toBe(false);
-    expect(mockFetch).toHaveBeenCalledTimes(1); // No retries
+    if (!result.ok) {
+      expect(result.error.code).toBe('API_FETCH_FAILED');
+      expect(result.error.cause?.code).toBe('HTTP_ERROR');
+    }
+    expect(requestCount).toBe(1); // No retries for 404
   });
 });

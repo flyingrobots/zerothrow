@@ -44,13 +44,13 @@ export type ErrorCode = _ErrorCode;
 export type ErrorContext = _ErrorContext;
 
 // NEW: Async type to replace Promise interface
-export interface Async<T, E extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<T, E> & _ResultCombinable<T, E>> {
-  andThen<U>(fn: (value: T) => Result<U, E>): Async<U, E>;
-  map<U>(fn: (value: T) => U): Async<U, E>;
-  mapErr<F extends globalThis.Error>(fn: (error: E) => F): Async<T, F>;
-  orElse(fallback: () => Result<T, E>): Async<T, E>;
-  unwrapOr(fallback: T): globalThis.Promise<T>;
-  unwrapOrThrow(): globalThis.Promise<T>;
+export interface Async<TValue, TError extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<TValue, TError> & _ResultCombinable<TValue, TError>> {
+  andThen<UValue>(fn: (value: TValue) => Result<UValue, TError>): Async<UValue, TError>;
+  map<UValue>(fn: (value: TValue) => UValue): Async<UValue, TError>;
+  mapErr<FError extends globalThis.Error>(fn: (error: TError) => FError): Async<TValue, FError>;
+  orElse(fallback: () => Result<TValue, TError>): Async<TValue, TError>;
+  unwrapOr(fallback: TValue): globalThis.Promise<TValue>;
+  unwrapOrThrow(): globalThis.Promise<TValue>;
 }
 
 // ==========================================
@@ -144,32 +144,32 @@ export { attempt as try };
 export { _wrap as wrap };
 
 // NEW: enhance function for promise enhancement (replaces promise())
-export function enhance<T, E extends globalThis.Error = _ZeroError>(
-  promise: globalThis.Promise<Result<T, E>>
-): Async<T, E> {
-  const enhanced = promise.then(_makeCombinable) as Async<T, E>;
+export function enhance<TValue, TError extends globalThis.Error = _ZeroError>(
+  promise: globalThis.Promise<Result<TValue, TError>>
+): Async<TValue, TError> {
+  const enhanced = promise.then(_makeCombinable) as Async<TValue, TError>;
   
-  enhanced.andThen = function<U>(fn: (value: T) => Result<U, E>): Async<U, E> {
+  enhanced.andThen = function<UValue>(fn: (value: TValue) => Result<UValue, TError>): Async<UValue, TError> {
     return enhance(this.then(result => result.andThen(fn)));
   };
   
-  enhanced.map = function<U>(fn: (value: T) => U): Async<U, E> {
+  enhanced.map = function<UValue>(fn: (value: TValue) => UValue): Async<UValue, TError> {
     return enhance(this.then(result => result.map(fn)));
   };
   
-  enhanced.mapErr = function<F extends globalThis.Error>(fn: (error: E) => F): Async<T, F> {
-    return enhance(this.then(result => result.mapErr(fn))) as Async<T, F>;
+  enhanced.mapErr = function<FError extends globalThis.Error>(fn: (error: TError) => FError): Async<TValue, FError> {
+    return enhance(this.then(result => result.mapErr(fn))) as Async<TValue, FError>;
   };
   
-  enhanced.orElse = function(fallback: () => Result<T, E>): Async<T, E> {
+  enhanced.orElse = function(fallback: () => Result<TValue, TError>): Async<TValue, TError> {
     return enhance(this.then(result => result.orElse(fallback)));
   };
   
-  enhanced.unwrapOr = function(fallback: T): globalThis.Promise<T> {
+  enhanced.unwrapOr = function(fallback: TValue): globalThis.Promise<TValue> {
     return this.then(result => result.unwrapOr(fallback));
   };
   
-  enhanced.unwrapOrThrow = function(): globalThis.Promise<T> {
+  enhanced.unwrapOrThrow = function(): globalThis.Promise<TValue> {
     return this.then(result => result.unwrapOrThrow());
   };
   
@@ -177,9 +177,9 @@ export function enhance<T, E extends globalThis.Error = _ZeroError>(
 }
 
 // NEW: fromAsync helper (replaces async())
-export function fromAsync<T, E extends globalThis.Error = _ZeroError>(
-  fn: () => globalThis.Promise<Result<T, E>>
-): Async<T, E> {
+export function fromAsync<TValue, TError extends globalThis.Error = _ZeroError>(
+  fn: () => globalThis.Promise<Result<TValue, TError>>
+): Async<TValue, TError> {
   return enhance(fn());
 }
 
