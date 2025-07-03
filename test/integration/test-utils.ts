@@ -70,7 +70,7 @@ export async function startTestDatabase(env: TestEnvironment): Promise<ZeroThrow
   while (retries > 0) {
     const pgReadyResult = ZT.try(() =>
       execSync(
-        `docker exec ${env.containerId}_postgres pg_isready -U testuser`,
+        `docker exec ${env.containerId}_postgres pg_isready -U testuser -d testdb`,
         { stdio: 'pipe' }
       )
     );
