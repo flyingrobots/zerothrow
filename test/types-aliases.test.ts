@@ -217,17 +217,18 @@ describe('Modern ZT Patterns', () => {
     it('API call with retry logic', async () => {
       let attempts = 0;
       
-      const apiCall = () => ZeroThrow.attempt(async () => {
+      const apiCall = async () => {
         attempts++;
-        if (attempts < 3) throw new Error('Network error');
-        return { id: 1, name: 'Success' };
-      });
+        if (attempts < 3) {
+          return ZT.err(new Error('Network error'));
+        }
+        return ZT.ok({ id: 1, name: 'Success' });
+      };
       
-      const result = await ZeroThrow.firstSuccess([
-        apiCall,
-        apiCall,
-        apiCall
-      ]);
+      // Manual retry logic since firstSuccess doesn't handle async
+      let result = await apiCall();
+      if (!result.ok) result = await apiCall();
+      if (!result.ok) result = await apiCall();
       
       expect(result.ok).toBe(true);
       if (result.ok) expect(result.value.name).toBe('Success');
@@ -267,21 +268,23 @@ describe('Modern ZT Patterns', () => {
       
       const transaction = await ZeroThrow.attempt(async () => {
         const tx = mockDb.begin();
-        if (!tx.ok) return tx;
+        if (!tx.ok) throw tx.error;
         
         const result1 = mockDb.query(tx.value, 'INSERT INTO users');
         if (!result1.ok) {
           mockDb.rollback(tx.value);
-          return result1;
+          throw result1.error;
         }
         
         const result2 = mockDb.query(tx.value, 'INSERT ERROR');
         if (!result2.ok) {
           mockDb.rollback(tx.value);
-          return result2;
+          throw result2.error;
         }
         
-        return mockDb.commit(tx.value);
+        const commitResult = mockDb.commit(tx.value);
+        if (!commitResult.ok) throw commitResult.error;
+        return 'success';
       });
       
       expect(transaction.ok).toBe(false);

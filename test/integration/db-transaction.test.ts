@@ -231,20 +231,34 @@ describe.sequential('Database Transaction Integration Tests', () => {
     // Create isolated test environment
     testEnv = createTestEnvironment();
     
-    try {
-      // Start PostgreSQL container with unique names
-      await startTestDatabase(testEnv);
-      
-      // Connect to the database
-      db = new DatabaseClient(getTestDatabaseConfig(testEnv));
-      await db.initialize();
-    } catch (error) {
-      console.error('Failed to start PostgreSQL:', error);
-      // Clean up on failure
-      if (testEnv) {
-        await stopTestDatabase(testEnv);
+    // Start PostgreSQL container with unique names
+    const startResult = await startTestDatabase(testEnv);
+    if (!startResult.ok) {
+      console.error('Failed to start PostgreSQL:', startResult.error);
+      throw new Error(startResult.error.message);
+    }
+    
+    // Connect to the database
+    db = new DatabaseClient(getTestDatabaseConfig(testEnv));
+    
+    // Ensure database is ready by trying to connect
+    let connectRetries = 5;
+    while (connectRetries > 0) {
+      const initResult = await ZT.try(() => db.initialize());
+      if (initResult.ok) {
+        console.log('Database initialized successfully');
+        break;
       }
-      throw error;
+      
+      connectRetries--;
+      if (connectRetries === 0) {
+        console.error('Database initialization failed:', initResult.error);
+        // Clean up on failure
+        await stopTestDatabase(testEnv);
+        throw new Error('Failed to initialize database');
+      }
+      console.log(`Database not ready, retrying... (${connectRetries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }, 30000);
 
@@ -255,7 +269,10 @@ describe.sequential('Database Transaction Integration Tests', () => {
     }
     // Stop and clean up isolated environment
     if (testEnv) {
-      await stopTestDatabase(testEnv);
+      const stopResult = await stopTestDatabase(testEnv);
+      if (!stopResult.ok) {
+        console.error('Warning: Failed to stop test database:', stopResult.error);
+      }
     }
   }, 30000);
 

@@ -84,7 +84,14 @@ export function attempt<T>(
     
     // If it's a promise, handle async
     if (result && typeof result === 'object' && 'then' in result) {
-      return attemptAsync(fnOrOps as () => Promise<T>, mapError);
+      // Don't call fn again, use the existing promise
+      return (result as Promise<T>).then(
+        (value) => ok(value),
+        (error) => {
+          const base = _normalise(error);
+          return err(mapError ? mapError(base) : base);
+        }
+      );
     }
     
     // Sync result
@@ -96,19 +103,6 @@ export function attempt<T>(
   }
 }
 
-// Internal: async implementation
-function attemptAsync<T>(
-  fn: () => Promise<T>,
-  map?: (e: unknown) => _ZeroError
-): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> {
-  return Promise.resolve(fn()).then(
-    (value) => ok(value),
-    (error) => {
-      const base = _normalise(error);
-      return err(map ? map(base) : base);
-    }
-  );
-}
 
 // Internal: batch implementation
 async function attemptBatch<T>(
@@ -202,7 +196,7 @@ export function isResult<T = unknown, E extends globalThis.Error = _ZeroError>(
     return false;
   }
   
-  const v = value as any;
+  const v = value as { ok: boolean; value?: unknown; error?: unknown };
   if (v.ok === true) {
     return 'value' in v;
   } else {

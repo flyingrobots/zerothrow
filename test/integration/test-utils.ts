@@ -1,7 +1,11 @@
 import { execSync } from 'child_process';
 import { writeFileSync, readFileSync, unlinkSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 import { ZT, ZeroThrow } from '../../src/index.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export interface TestEnvironment {
   containerId: string;
@@ -29,7 +33,8 @@ export function createTestEnvironment(): TestEnvironment {
     .replace(/\${NETWORK_NAME}/g, networkName)
     .replace(/\${PG_PORT}/g, port.toString());
   
-  const composeFile = join(__dirname, `docker-compose.${containerId}.yml`);
+  // Use OS temp directory for compose files - automatically cleaned up by OS
+  const composeFile = join(tmpdir(), `docker-compose.${containerId}.yml`);
   writeFileSync(composeFile, composeContent);
   
   return {
@@ -40,48 +45,87 @@ export function createTestEnvironment(): TestEnvironment {
   };
 }
 
-export async function startTestDatabase(env: TestEnvironment): Promise<void> {
-  try {
+export async function startTestDatabase(env: TestEnvironment): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  // Clean up any existing containers first
+  const cleanupResult = ZT.try(() => 
+    execSync(`docker compose -f ${env.composeFile} down -v`, {
+      stdio: 'pipe'
+    })
+  );
+  // Ignore cleanup errors - containers might not exist
+  
+  const startResult = ZT.try(() =>
     execSync(`docker compose -f ${env.composeFile} up -d`, {
       stdio: process.env.DEBUG_TESTS ? 'inherit' : 'pipe'
-    });
+    })
+  );
+  
+  if (!startResult.ok) {
+    console.error(`Failed to start test database: ${startResult.error.message}`);
+    return startResult as ZeroThrow.Result<void, ZeroThrow.ZeroError>;
+  }
+  
+  // Wait for PostgreSQL to be ready
+  let retries = 30;
+  while (retries > 0) {
+    const pgReadyResult = ZT.try(() =>
+      execSync(
+        `docker exec ${env.containerId}_postgres pg_isready -U testuser`,
+        { stdio: 'pipe' }
+      )
+    );
     
-    // Wait for PostgreSQL to be ready
-    let retries = 30;
-    while (retries > 0) {
-      try {
+    if (pgReadyResult.ok) {
+      // pg_isready succeeded, now try to actually connect
+      const connectResult = ZT.try(() =>
         execSync(
-          `docker exec ${env.containerId}_postgres pg_isready -U testuser`,
+          `docker exec ${env.containerId}_postgres psql -U testuser -d testdb -c "SELECT 1"`,
           { stdio: 'pipe' }
-        );
-        break;
-      } catch {
-        retries--;
-        if (retries === 0) throw new Error('PostgreSQL failed to start');
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        )
+      );
+      
+      if (connectResult.ok) {
+        console.log('PostgreSQL is ready and accepting queries');
+        return ZT.ok(undefined);
       }
     }
-  } catch (error) {
-    console.error(`Failed to start test database: ${error}`);
-    throw error;
+    
+    retries--;
+    if (retries === 0) {
+      return ZT.err(new ZeroThrow.ZeroError('PG_START_FAILED', 'PostgreSQL failed to start'));
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
+  
+  return ZT.err(new ZeroThrow.ZeroError('PG_START_TIMEOUT', 'PostgreSQL startup timeout'));
 }
 
-export async function stopTestDatabase(env: TestEnvironment): Promise<void> {
-  try {
-    // Stop and remove containers
+export async function stopTestDatabase(env: TestEnvironment): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+  // Stop and remove containers
+  const stopResult = ZT.try(() =>
     execSync(`docker compose -f ${env.composeFile} down -v`, {
       stdio: process.env.DEBUG_TESTS ? 'inherit' : 'pipe'
-    });
-    
-    // Clean up compose file
+    })
+  );
+  
+  if (!stopResult.ok) {
+    console.error(`Failed to stop test database: ${stopResult.error.message}`);
+    // Don't return error - we want cleanup to be best effort
+  }
+  
+  // Clean up compose file
+  const cleanupResult = ZT.try(() => {
     if (existsSync(env.composeFile)) {
       unlinkSync(env.composeFile);
     }
-  } catch (error) {
-    console.error(`Failed to stop test database: ${error}`);
-    // Don't throw - we want cleanup to be best effort
+  });
+  
+  if (!cleanupResult.ok) {
+    console.error(`Failed to clean up compose file: ${cleanupResult.error.message}`);
+    // Don't return error - we want cleanup to be best effort
   }
+  
+  return ZT.ok(undefined);
 }
 
 export function getTestDatabaseConfig(env: TestEnvironment) {
