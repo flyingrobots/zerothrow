@@ -13,8 +13,8 @@ function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.
     value !== null &&
     typeof value === 'object' &&
     'ok' in value &&
-    typeof (value as Record<string, unknown>).ok === 'boolean' &&
-    ((value as Record<string, unknown>).ok === true
+    typeof (value as Record<string, unknown>)['ok'] === 'boolean' &&
+    ((value as Record<string, unknown>)['ok'] === true
       ? 'value' in value
       : 'error' in value)
   );
@@ -29,8 +29,8 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         message: error.message,
         context: error.context,
         // Only include stack in debug mode or if explicitly enabled
-        ...(process?.env?.LOG_LEVEL === 'debug' ||
-        process?.env?.LOG_STACK === 'true'
+        ...(process?.env?.['LOG_LEVEL'] === 'debug' ||
+        process?.env?.['LOG_STACK'] === 'true'
           ? { stack: error.stack }
           : {}),
       };
@@ -42,8 +42,8 @@ export const zerothrowPinoSerializers: PinoSerializers = {
         type: error.constructor.name,
         message: error.message,
         // Only include stack in debug mode or if explicitly enabled
-        ...(process?.env?.LOG_LEVEL === 'debug' ||
-        process?.env?.LOG_STACK === 'true'
+        ...(process?.env?.['LOG_LEVEL'] === 'debug' ||
+        process?.env?.['LOG_STACK'] === 'true'
           ? { stack: error.stack }
           : {}),
       };
