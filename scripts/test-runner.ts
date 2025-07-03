@@ -30,7 +30,8 @@ async function runTests(options: TestRunnerOptions = {}): Promise<ZeroThrow.Resu
     const isCI = process.env.CI === 'true';
     
     if (isCI) {
-      // In CI, we use GitHub Actions services instead of Docker
+      // In CI, we use GitHub Actions services on Linux
+      // Integration tests are skipped on macOS/Windows CI
       console.log(chalk.blue('🔧 Running in CI - using GitHub Actions PostgreSQL service'));
       console.log(chalk.gray('   PostgreSQL available at localhost:5432\n'));
       
@@ -63,18 +64,18 @@ async function runTests(options: TestRunnerOptions = {}): Promise<ZeroThrow.Resu
           return ZT.err(new ZeroThrow.ZeroError('DOCKER_NOT_RUNNING', 'Docker is required for integration tests'));
         }
       }
-    }
-
-    // Clean up any leftover test containers
-    const cleanupSpinner = ora('Cleaning up test containers...').start();
-    const psResult = await execCmd('docker ps -a --filter "name=zt_test_" --format "{{.Names}}"');
-    if (psResult.ok && psResult.value.trim()) {
-      const containers = psResult.value.trim().split('\n');
-      for (const container of containers) {
-        await stopContainer(container);
+      
+      // Clean up any leftover test containers
+      const cleanupSpinner = ora('Cleaning up test containers...').start();
+      const psResult = await execCmd('docker ps -a --filter "name=zt_test_" --format "{{.Names}}"');
+      if (psResult.ok && psResult.value.trim()) {
+        const containers = psResult.value.trim().split('\n');
+        for (const container of containers) {
+          await stopContainer(container);
+        }
       }
+      cleanupSpinner.succeed('Test environment ready');
     }
-    cleanupSpinner.succeed('Test environment ready');
   }
 
   // Build test command

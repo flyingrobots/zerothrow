@@ -74,7 +74,12 @@ jobs:
       run: npm test -- --reporter=verbose
 
     - name: Run integration tests
+      if: runner.os == 'Linux'
       run: npm run test:integration
+      
+    - name: Skip integration tests (no Docker)
+      if: runner.os != 'Linux'
+      run: echo "Skipping integration tests on ${{ runner.os }} - Docker services not available"
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
