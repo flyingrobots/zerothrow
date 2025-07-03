@@ -87,7 +87,7 @@ class DatabaseClient {
     return ZeroThrow.enhance(
       ZT.try(() => this.pool.connect())
     )
-      .tap(client => console.log(`[DB] Got connection from pool for transfer ${fromUserId} -> ${toUserId}`))
+      .tap(_client => console.log(`[DB] Got connection from pool for transfer ${fromUserId} -> ${toUserId}`))
       .andThen(client => 
         ZeroThrow.enhance(
           Promise.resolve(this.executeTransaction(client, fromUserId, toUserId, amount))
