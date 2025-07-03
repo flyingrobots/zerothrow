@@ -126,6 +126,15 @@ By +5.5 hours, refactor the codebase so that:
 
 Just kidding, I love Bash, but for fun, we rewrote every bash script in our repo using TypeScript and ZeroThrow... So, when you reach for a bash script, instead, bust out ZeroThrow.
 
+### ⚖️ TSConfig Strictness Rules
+
+- `noPropertyAccessFromIndexSignature: true` is ENABLED by default.
+- It is DISABLED in packages that operate on dynamic records, such as:
+  - `logger/`
+  - `platform/`
+  - `env/`
+- This ensures precision in `core/` and DX flexibility elsewhere.
+
 ---
 
 # BATTLE PLAN
