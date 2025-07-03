@@ -1,4 +1,4 @@
-import { ZT } from '../index.js';
+import { ZeroThrow, ZT } from '../index.js';
 
 interface PinoSerializers {
   err?: (error: unknown) => unknown;
@@ -8,7 +8,7 @@ interface PinoSerializers {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is ZT.Result<unknown, ZT.AnyError> {
+function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.ZeroError> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -22,7 +22,7 @@ function isResult(value: unknown): value is ZT.Result<unknown, ZT.AnyError> {
 
 export const zerothrowPinoSerializers: PinoSerializers = {
   err: (error: unknown) => {
-    if (error instanceof ZT.Error) {
+    if (error instanceof ZeroThrow.ZeroError) {
       return {
         type: 'ZeroError',
         code: typeof error.code === 'symbol' ? String(error.code) : error.code,

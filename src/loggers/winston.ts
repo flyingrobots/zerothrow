@@ -1,4 +1,4 @@
-import { ZT } from '../index.js';
+import { ZeroThrow, ZT } from '../index.js';
 
 interface WinstonFormatInfo {
   level: string;
@@ -13,7 +13,7 @@ interface WinstonFormatInfo {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is ZT.Result<unknown, ZT.AnyError> {
+function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.ZeroError> {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -31,7 +31,7 @@ export const zerothrowWinstonFormat = {
     const transformed: WinstonFormatInfo = { ...info };
 
     // Format ZeroError instances
-    if (info.error instanceof ZT.Error) {
+    if (info.error instanceof ZeroThrow.ZeroError) {
       const codeStr =
         typeof info.error.code === 'symbol'
           ? String(info.error.code)
@@ -53,7 +53,7 @@ export const zerothrowWinstonFormat = {
 
     // Format Result types
     if (info.result && isResult(info.result)) {
-      const result = info.result as ZT.Result<unknown, ZT.AnyError>;
+      const result = info.result as ZeroThrow.Result<unknown, ZeroThrow.ZeroError>;
 
       if (result.ok) {
         transformed.zerothrow = {
@@ -68,7 +68,7 @@ export const zerothrowWinstonFormat = {
           status: 'err',
           error: (() => {
             const err: unknown = result.error;
-            if (err instanceof ZT.Error) {
+            if (err instanceof ZeroThrow.ZeroError) {
               return {
                 code:
                   typeof err.code === 'symbol'
@@ -89,7 +89,7 @@ export const zerothrowWinstonFormat = {
           })(),
         };
         const errorMessage =
-          result.error instanceof ZT.Error
+          result.error instanceof ZeroThrow.ZeroError
             ? result.error.message
             : info.message || 'Operation failed';
         transformed.formattedMessage = `[ERR] ${errorMessage}`;
