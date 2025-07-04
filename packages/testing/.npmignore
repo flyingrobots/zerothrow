@@ -1,0 +1,20 @@
+# Source files
+src/
+test/
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.turbo/
+
+# Development files
+*.tsbuildinfo
+*.log
+
+# Keep only dist and package files
+!dist/
+!README.md
+!LICENSE
+!CHANGELOG.md
+!package.json
