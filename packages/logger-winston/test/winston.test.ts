@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   zerothrowWinstonFormat,
   createWinstonLogger,
-} from '../src/loggers/winston.js';
-import { ZT, ZeroThrow } from '../src/index.js';
+} from '../src/winston.js';
+import { ZT, ZeroThrow } from '@zerothrow/core';
 
 describe('Winston formatter', () => {
   describe('transform function', () => {

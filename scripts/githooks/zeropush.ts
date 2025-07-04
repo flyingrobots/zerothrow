@@ -123,31 +123,31 @@ function runLocalTests(): ZeroThrow.Async<void> {
     },
     {
       name: 'unit tests',
-      command: 'npm test',
+      command: 'npm run test:all',
       logFile: 'unit-test.log',
       errorPattern: /(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)/,
-      helpText: ['💡 To debug: npm test -- --reporter=verbose']
+      helpText: ['💡 To debug: npm run test:all']
     },
     {
       name: 'integration tests',
-      command: 'npm run test:integration',
+      command: 'npm run test:integration:all',
       logFile: 'integration-test.log',
       errorPattern: /(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)/,
-      helpText: ['💡 To debug: npm run test:integration']
+      helpText: ['💡 To debug: npm run test:integration:all']
     },
     {
       name: 'lint checks',
-      command: 'npm run lint',
+      command: 'npm run lint:all',
       logFile: 'lint.log',
       displayErrors: true,
       helpText: [
-        '💡 To auto-fix: npm run lint -- --fix',
+        '💡 To auto-fix: npm run lint:all -- --fix',
         '💡 To check specific file: npx eslint path/to/file.ts'
       ]
     },
     {
       name: 'build check',
-      command: 'npm run build',
+      command: 'npm run build:all',
       logFile: 'build.log',
       helpText: [
         '💡 Common issues:',

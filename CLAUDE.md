@@ -3,29 +3,30 @@
 ## 🎯 IMMEDIATE ACTION REQUIRED
 
 **ALPHA RELEASE BLOCKED BY:**
-1. **24 files still using `tryR`** - MUST BE PURGED
-2. **Core package contaminated** with logger/react/eslint code
-3. **Unnecessary dependencies** in core package
+1. **CI failing** - Tests moved to packages but infrastructure incomplete
+2. **Core package contaminated** with logger/react/eslint code - IN PROGRESS
+3. **Package extraction incomplete** - Need to finish moving code and fix imports
 
-**YOUR NEXT MISSION:** Complete Phase 3, Tasks P4-P7
-- P4: Delete ALL `tryR` references (use `ZT.try` or `ZeroThrow.attempt`)
-- P5: Update all tests and examples
-- P6: Add ESLint rule to ban old names
-- P7: Create PR
+**YOUR NEXT MISSION:** Complete Phase 4 - Package Extraction
+- Extract code to proper packages
+- Fix all imports and dependencies
+- Get CI passing
+- Merge PR #10
 
 ---
 
 ## 📊 CURRENT STATUS
 
-**Branch:** `dogfood` → **Target:** `main`
+**Branch:** `feat/zt-surface-lift` → **Target:** `main`
+**PR:** #10 (pending CI fixes)
 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | 0 | ✅ COMPLETE | Operational readiness |
 | 1 | ✅ COMPLETE | Fast fixes (build, types, DB tests) |
 | 2 | ✅ COMPLETE | Monorepo skeleton |
-| **3** | **⏳ IN PROGRESS** | **ZT Surface Lift (P0-P3 done, P4-P7 TODO)** |
-| 4 | ⏳ PENDING | Docker & CI Infrastructure |
+| 3 | ✅ COMPLETE | ZT Surface Lift (all P0-P7 done) |
+| **4** | **⏳ IN PROGRESS** | **Package extraction & CI fixes** |
 | 5 | ⏳ PENDING | Zero-Throw Resilience API |
 | 6 | ⏳ PENDING | New helpers & tests |
 | 7 | ⏳ PENDING | Final dress rehearsal & PR |
@@ -75,20 +76,28 @@ ZeroThrow.collect()       // Batch operations
 - [x] P1: Created `core-exports.ts` with clean names
 - [x] P2: Created `zt-pocket-knife.ts` with lean API
 - [x] P3: Updated `index.ts` exports
+- [x] P4: PURGED `tryR` FROM ALL FILES
+- [x] P5: Updated tests & examples to use new API
+- [x] P6: Added ESLint rule to ban old names
+- [x] P7: Created PR #10
 
-### TODO (MISSION CRITICAL) 🚨
-- [ ] **P4: PURGE `tryR` FROM 24 FILES**
-  - Run: `grep -r "tryR" packages/` to find them
-  - Replace with `ZT.try()` or `ZeroThrow.attempt()`
-- [ ] **P5: Update tests & examples**
-  - All tests must use new API
-  - Update example code
-- [ ] **P6: Add ESLint rule**
-  - Ban imports of old names
-  - Add to `.config/eslint.config.js`
-- [ ] **P7: Create PR**
-  - Branch: `feat/zt-surface-lift`
-  - Target: `main`
+---
+
+## 📋 PHASE 4: PACKAGE EXTRACTION (Current Focus)
+
+**Status:** IN PROGRESS - Fixing CI by setting up package infrastructure
+
+### Tasks
+- [ ] **Create package structure**
+  - [x] Create package directories
+  - [x] Move tests to respective packages
+  - [x] Create package.json for each package
+  - [ ] Create src directories and move code
+  - [ ] Update imports and dependencies
+- [ ] **Fix CI**
+  - [ ] Update test scripts to run all package tests
+  - [ ] Update build scripts for all packages
+  - [ ] Ensure all tests pass in CI
 
 ---
 
@@ -209,8 +218,41 @@ npm run ci:local     # Full dress rehearsal
 
 ---
 
-> **"NO THROWS, NO MERCY!"** — Cmdr Chat
+## 📝 HOW TO UPDATE CLAUDE.md
 
-**LATEST SITREP:** See `docs/claude/battle-logs/battle-log-2025-07-03.md`
+When updating this file:
+1. **Keep IMMEDIATE ACTION REQUIRED section current** - Remove completed blockers
+2. **Update CURRENT STATUS table** - Mark phases complete, update current phase
+3. **Remove outdated information** - Delete completed TODOs, old instructions
+4. **Update mission objectives** - Keep YOUR NEXT MISSION current
+5. **Always include SITREP at bottom** - Replace existing one with current status
+
+---
+
+## 📊 SITREP (2025-07-03 19:30 PST)
+
+**SITUATION:**
+- Phase 3 COMPLETE - All `tryR` references purged, new API in place
+- PR #10 created but CI failing due to moved tests
+- Currently extracting packages to fix CI
+
+**COMPLETED TODAY:**
+- ✅ Purged all 24 `tryR` references 
+- ✅ Updated all tests/examples to new API
+- ✅ Added ESLint rule banning old names
+- ✅ Created PR #10
+- ✅ Moved tests to future package homes
+- ✅ Started package extraction
+
+**BLOCKERS:**
+- ❌ CI failing - tests looking for moved files
+- ❌ Package infrastructure incomplete
+
+**NEXT ACTIONS:**
+1. Finish moving source code to packages
+2. Update imports and dependencies
+3. Fix test/build scripts
+4. Get CI green
+5. Merge PR #10
 
 **HOO-RAH!** 🎖️

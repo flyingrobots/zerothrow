@@ -3,8 +3,8 @@ import {
   zerothrowPinoSerializers,
   createPinoConfig,
   createPinoLogger,
-} from '../src/loggers/pino.js';
-import { ZT, ZeroThrow } from '../src/index.js';
+} from '../src/pino.js';
+import { ZT, ZeroThrow } from '@zerothrow/core';
 
 describe('Pino serializers', () => {
   describe('err serializer', () => {

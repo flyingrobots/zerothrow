@@ -6,7 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import type { UseResultState } from '../src/react-hooks.js';
-import { ZT, ZeroThrow } from '../src/index.js';
+import { ZT, ZeroThrow } from '@zerothrow/core';
 
 describe('useResult types', () => {
   it('should have correct type definitions', () => {

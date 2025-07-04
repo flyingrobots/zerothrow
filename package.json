@@ -2,6 +2,9 @@
   "name": "@zerothrow/zerothrow",
   "version": "0.0.1-alpha",
   "description": "Rust‑style Result<T,E> & zero‑throw discipline for TypeScript",
+  "workspaces": [
+    "packages/*"
+  ],
   "keywords": [
     "result",
     "error-handling",
@@ -70,20 +73,17 @@
   ],
   "scripts": {
     "setup": "tsx scripts/setup.ts",
-    "build": "turbo run build",
-    "test": "turbo run test",
-    "test:unit": "turbo run test",
-    "test:integration": "turbo run test:integration",
-    "test:all": "turbo run test test:integration",
+    "build:all": "turbo run build",
+    "test:all": "turbo run test",
+    "test:integration:all": "turbo run test:integration",
     "test:watch": "turbo run test -- --watch",
-    "lint": "turbo run lint",
+    "lint:all": "turbo run lint",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "githooks": "tsx scripts/githooks/setup-hooks.ts",
     "prepare": "husky",
     "bench": "tsx scripts/benchmarks/run-all.ts",
-    "legacy:build": "tsup src/index.ts src/platform/index.ts src/eslint/index.ts src/react-entry.ts src/loggers/pino.ts src/loggers/winston.ts --format esm,cjs --dts --clean",
-    "legacy:test": "tsx scripts/test-runner.ts"
+    "ci:local": "npm run lint:all && npm run build:all && npm run test:all"
   },
   "peerDependencies": {
     "react": ">=16.8.0"

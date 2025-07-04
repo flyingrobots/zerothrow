@@ -1,0 +1,45 @@
+{
+  "name": "@zerothrow/logger-pino",
+  "version": "0.0.1-alpha",
+  "description": "Pino logger integration for ZeroThrow",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zerothrow/core": "^0.0.1-alpha"
+  },
+  "peerDependencies": {
+    "pino": "^8.0.0"
+  },
+  "devDependencies": {
+    "pino": "^8.16.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
+  },
+  "keywords": ["zerothrow", "pino", "logger", "error-handling"],
+  "author": "ZeroThrow Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/logger-pino"
+  }
+}

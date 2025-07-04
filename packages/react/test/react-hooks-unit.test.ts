@@ -3,7 +3,7 @@
  * Tests the hook implementation directly
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ZT, ZeroThrow } from '../src/index.js';
+import { ZT, ZeroThrow } from '@zerothrow/core';
 
 describe('useResult hook coverage', () => {
   let mockStates: any[] = [];

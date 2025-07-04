@@ -1,4 +1,4 @@
-import { ZeroThrow } from '../index.js';
+import { ZeroThrow } from '@zerothrow/core';
 
 interface PinoSerializers {
   err?: (error: unknown) => unknown;
@@ -8,7 +8,7 @@ interface PinoSerializers {
 /**
  * Type guard to check if a value is a Result type
  */
-function isResult(value: unknown): value is ZeroThrow.Result<unknown, ZeroThrow.ZeroError> {
+function isResult(value: unknown): value is ZeroThrow.Result<unknown, InstanceType<typeof ZeroThrow.ZeroError>> {
   return (
     value !== null &&
     typeof value === 'object' &&

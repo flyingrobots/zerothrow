@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ZeroThrow } from './index.js';
+import { ZeroThrow } from '@zerothrow/core';
 
-export interface UseResultState<T, E extends globalThis.Error = ZeroThrow.ZeroError> {
+export interface UseResultState<T, E extends globalThis.Error = InstanceType<typeof ZeroThrow.ZeroError>> {
   data: T | null;
   error: E | null;
   loading: boolean;
@@ -12,7 +12,7 @@ export interface UseResultState<T, E extends globalThis.Error = ZeroThrow.ZeroEr
 /**
  * React hook for handling async operations with Result types
  */
-export function useResult<T, E extends globalThis.Error = ZeroThrow.ZeroError>(
+export function useResult<T, E extends globalThis.Error = InstanceType<typeof ZeroThrow.ZeroError>>(
   fn: () => Promise<ZeroThrow.Result<T, E>>,
   deps: React.DependencyList = []
 ): UseResultState<T, E> {
