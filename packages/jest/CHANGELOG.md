@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2-alpha.0
+
+### Patch Changes
+
+- Bump all packages to alpha versions after accidental stable release
+  - Restores alpha versioning discipline
+  - All packages will now be versioned as X.Y.Z-alpha.N
+  - Previous stable versions have been deprecated on npm
+
+- Updated dependencies
+  - @zerothrow/core@0.0.3-alpha.0
+  - @zerothrow/expect@0.0.2-alpha.0
+
 ## 0.1.1
 
 ### Patch Changes

@@ -9,8 +9,6 @@
     "@zerothrow/vitest": "0.1.0"
   },
   "changesets": [
-    "expect-refactor",
-    "restore-alpha-discipline",
-    "test-packages-alpha"
+    "bump-to-alpha-versions"
   ]
 }
