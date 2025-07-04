@@ -23,7 +23,9 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci --workspaces --include-workspace-root
+      run: |
+        # Workaround for rollup optional dependency issue
+        npm install --workspaces --include-workspace-root
 
     - name: Run linter
       run: npm run lint
@@ -53,7 +55,9 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci --workspaces --include-workspace-root
+      run: |
+        # Workaround for rollup optional dependency issue
+        npm install --workspaces --include-workspace-root
 
     - name: Run unit tests
       run: npm test
@@ -116,7 +120,9 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci --workspaces --include-workspace-root
+      run: |
+        # Workaround for rollup optional dependency issue
+        npm install --workspaces --include-workspace-root
 
     - name: Run tests with coverage
       run: npm test
