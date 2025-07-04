@@ -3,7 +3,8 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: [
     'src/index.ts',
-    'src/platform/index.ts'
+    'src/platform/index.ts',
+    'src/dev/error-formatter.ts'
   ],
   format: ['esm', 'cjs'],
   dts: true,

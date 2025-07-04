@@ -116,6 +116,73 @@ ZeroThrow.collect()       // Batch operations
 
 ---
 
+## 📦 NPM RELEASE CHECKLIST (@zerothrow/core)
+
+### 1. Extract Non-Core Code
+- [ ] Move `react-hooks.ts` and `react-entry.ts` → `packages/react/src/`
+- [ ] Move `eslint/` directory and `eslint.ts` → `packages/eslint-plugin/src/`
+- [ ] Move `loggers/winston.ts` → `packages/logger-winston/src/`
+- [ ] Move `loggers/pino.ts` → `packages/logger-pino/src/`
+- [ ] Keep `platform/` in core (for Deno portability)
+- [ ] Move `vscode/snippets.json` → Documentation or separate package
+- [ ] Keep `dev/error-formatter.ts` as optional dev utility
+
+### 2. Clean Up package.json
+- [ ] Remove exports for `/react`, `/loggers/*`, `/eslint`
+- [ ] Keep `/platform` export
+- [ ] Remove react, pino, winston from peerDependencies
+- [ ] Update files array to exclude moved code
+- [ ] Keep zero runtime dependencies
+
+### 3. Core Structure
+Final structure should be:
+```
+packages/core/src/
+├── index.ts          # Main entry
+├── result.ts         # Core Result type
+├── error.ts          # ZeroError
+├── combinators.ts    # Combinators
+├── core-exports.ts   # ZeroThrow namespace
+├── zt-pocket-knife.ts # ZT shorthand
+├── platform/         # Platform abstraction
+│   └── index.ts
+└── dev/             # Optional dev tools
+    └── error-formatter.ts
+```
+
+### 4. Update Build Configuration
+- [ ] Update tsup.config.ts to only build core exports
+- [ ] Remove references to moved files
+- [ ] Ensure platform and dev exports work
+
+### 5. Documentation
+- [ ] Create packages/core/README.md with:
+  - Installation: `npm install @zerothrow/core`
+  - Basic usage examples
+  - Link to main documentation
+- [ ] Create CHANGELOG.md with v0.0.1-alpha notes
+
+### 6. Testing & Validation
+- [ ] Move non-core tests to respective packages
+- [ ] Run `npm pack` in packages/core
+- [ ] Inspect tarball contents
+- [ ] Test in fresh project
+
+### 7. Pre-publish Checklist
+- [ ] Version: 0.0.1-alpha
+- [ ] Add .npmignore
+- [ ] Verify LICENSE is included
+- [ ] Run final build
+- [ ] Check bundle size
+
+### 8. Publish
+```bash
+cd packages/core
+npm publish --access public --tag alpha
+```
+
+---
+
 ## 🏗️ ALPHA RELEASE PLAN
 
 ### Step 1: Extract Packages (After Phase 3)

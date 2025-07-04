@@ -52,8 +52,8 @@ export class ErrorFormatter {
     // Context
     if (error.context && 'statusCode' in error.context) {
       const statusLine = colors
-        ? `${COLORS.gray}Status Code: ${COLORS.yellow}${error.context.statusCode}${COLORS.reset}`
-        : `Status Code: ${error.context.statusCode}`;
+        ? `${COLORS.gray}Status Code: ${COLORS.yellow}${error.context['statusCode']}${COLORS.reset}`
+        : `Status Code: ${error.context['statusCode']}`;
       lines.push(statusLine);
     }
 

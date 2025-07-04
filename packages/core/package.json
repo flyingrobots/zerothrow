@@ -60,8 +60,11 @@
   },
   "license": "MIT",
   "author": "J. Kirby Ross",
-  "dependencies": {},
   "engines": {
     "node": ">=18.17.0"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {}
 }
