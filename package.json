@@ -82,7 +82,10 @@
     "prepush:test": "npx tsx scripts/githooks/zeropush.ts",
     "githooks": "tsx scripts/githooks/setup-hooks.ts",
     "prepare": "husky || true",
-    "bench": "tsx scripts/benchmarks/run-all.ts"
+    "bench": "tsx scripts/benchmarks/run-all.ts",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
@@ -93,6 +96,7 @@
     }
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.5",
     "@types/express": "^5.0.3",
     "@types/inquirer": "^9.0.8",
     "@types/node": "^24.0.10",
