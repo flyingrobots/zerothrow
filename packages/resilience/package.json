@@ -28,7 +28,7 @@
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint . --fix",
+    "lint": "eslint src test --max-warnings 0",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {},
