@@ -90,9 +90,9 @@ of the whole ecosystem, not just its own chapter.
 
 ---
 
-## 📊 LATEST SITREP (2025-01-04 15:00 PDT)
+## 📊 LATEST SITREP (2025-01-04 15:30 PDT)
 
-**STATUS:** RESILIENCE PACKAGE COMPLETE! 🎯 Ready for npm publish (after fixes).
+**STATUS:** CRITICAL DISCOVERABILITY FIXES PUSHED! 🚨 Resilience package ready + UX fixes applied.
 
 **MISSION ACCOMPLISHED:**
 - ✅ **STABLE VERSIONS PUBLISHED** - All packages now on stable semver
@@ -106,7 +106,11 @@ of the whole ecosystem, not just its own chapter.
 - **@zerothrow/jest v1.0.0** - Jest matchers (unintended 1.0, but we're keeping it)
 - **@zerothrow/vitest v1.0.0** - Vitest matchers
 - **@zerothrow/testing v1.0.0** - Unified test package
-- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish
+- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish (after UX fixes)
+
+**BRANCHES IN FLIGHT:**
+- **feat/resilience-api** - Complete resilience package ready for PR
+- **fix/discoverability-critical** - Emergency README fixes (PUSHED)
 
 **SECRETS STATUS:**
 - **GH_PAT:** ✅ Added to repo (enables extra features)
