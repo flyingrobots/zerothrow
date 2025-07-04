@@ -73,7 +73,7 @@ async function getFileDiff(file: string): Promise<ZeroThrow.Result<string, ZeroT
 async function runTests(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const spinner = ora('Running tests...').start();
   
-  const result = await execCmd('npm run legacy:test');
+  const result = await execCmd('npm run test');
   
   if (!result.ok) {
     spinner.fail('Tests failed');

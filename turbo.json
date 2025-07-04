@@ -1,34 +1,24 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*local"],
-  "tasks": {
+  "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".turbo/**"],
-      "cache": true
+      "outputs": ["dist/**", "lib/**"]
     },
     "test": {
       "dependsOn": ["build"],
-      "outputs": ["coverage/**"],
-      "cache": true,
-      "env": ["CI", "NODE_ENV"]
+      "outputs": []
     },
     "test:integration": {
       "dependsOn": ["build"],
-      "outputs": ["coverage/**"],
-      "cache": false,
-      "env": ["CI", "NODE_ENV", "ZEROTHROW_CI_MODE", "ZEROTHROW_PG_HOST", "ZEROTHROW_PG_PORT"]
+      "outputs": []
     },
     "lint": {
-      "outputs": [],
-      "cache": true
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
+      "outputs": []
     },
     "clean": {
-      "cache": false
+      "outputs": []
     }
-  }
+  },
+  "globalDependencies": [".npmrc", "package-lock.json", "turbo.json"]
 }

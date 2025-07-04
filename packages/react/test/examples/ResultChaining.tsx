@@ -167,7 +167,7 @@ export function CheckoutFlow() {
   };
 
   // Alternative approach using ZT.try for the entire flow
-  const processOrderWithTryR = async () => {
+  const processOrderWithZTTry = async () => {
     setProcessing(true);
     setResult(null);
 
@@ -237,7 +237,7 @@ export function CheckoutFlow() {
         </button>
         
         <button 
-          onClick={processOrderWithTryR} 
+          onClick={processOrderWithZTTry} 
           disabled={processing}
           className="btn-secondary"
         >
