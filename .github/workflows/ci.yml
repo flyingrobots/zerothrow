@@ -22,18 +22,17 @@ jobs:
         node-version: '20.x'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: |
-        # Workaround for rollup optional dependency issue in CI
-        # https://github.com/npm/cli/issues/4828
-        rm -f package-lock.json
-        npm install --workspaces --include-workspace-root
+    - name: Install dependencies  
+      run: npm ci --workspaces --include-workspace-root --force
 
     - name: Run linter
       run: npm run lint
 
     - name: Build project
-      run: npm run build
+      run: |
+        # Ensure rollup deps are installed for the build
+        cd packages/core && npm ci && cd ../..
+        npm run build
 
     - name: Check types
       run: npx tsc --noEmit
@@ -56,12 +55,8 @@ jobs:
         node-version: ${{ matrix.node }}
         cache: 'npm'
 
-    - name: Install dependencies
-      run: |
-        # Workaround for rollup optional dependency issue in CI
-        # https://github.com/npm/cli/issues/4828
-        rm -f package-lock.json
-        npm install --workspaces --include-workspace-root
+    - name: Install dependencies  
+      run: npm ci --workspaces --include-workspace-root --force
 
     - name: Run unit tests
       run: npm test
@@ -123,12 +118,8 @@ jobs:
         node-version: '20.x'
         cache: 'npm'
 
-    - name: Install dependencies
-      run: |
-        # Workaround for rollup optional dependency issue in CI
-        # https://github.com/npm/cli/issues/4828
-        rm -f package-lock.json
-        npm install --workspaces --include-workspace-root
+    - name: Install dependencies  
+      run: npm ci --workspaces --include-workspace-root --force
 
     - name: Run tests with coverage
       run: npm test
