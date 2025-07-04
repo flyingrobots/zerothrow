@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/expect",
-  "version": "0.0.1-alpha",
+  "version": "0.0.1",
   "description": "Shared test matcher logic for ZeroThrow Result types",
   "author": "ZeroThrow Contributors",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
