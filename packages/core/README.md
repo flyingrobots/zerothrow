@@ -61,11 +61,48 @@ The rest of the monorepo is still incubating and may change without minor-versio
 
 *Note: We're using this in production projects, but the broader ecosystem is still evolving.*
 
+## Companion Packages 🛠️
+
+Extend ZeroThrow with production-ready patterns:
+
+### [@zerothrow/resilience](../resilience) - Fault Tolerance Patterns
+```typescript
+import { Policy } from '@zerothrow/resilience';
+
+// Compose retry + circuit breaker + timeout
+const api = Policy.compose(
+  Policy.retry(3, { backoff: 'exponential' }),
+  Policy.circuitBreaker({ threshold: 5, duration: 60000 }),
+  Policy.timeout(5000)
+);
+
+const result = await api.execute(() => fetch('/api/data'));
+```
+
+**Features:**
+- 🔄 **Retry** with configurable backoff strategies
+- 🚦 **Circuit Breaker** to prevent cascading failures
+- ⏱️ **Timeout** enforcement for async operations
+- 🔗 **Policy composition** for complex scenarios
+- 📊 Zero runtime dependencies, ~11KB packed
+
+### [@zerothrow/jest](../jest) & [@zerothrow/vitest](../vitest) - Test Matchers
+```typescript
+expect(result).toBeOk();
+expect(result).toBeErr('VALIDATION_ERROR');
+expect(result).toHaveValue(42);
+```
+
+**More packages coming soon:** React hooks, ESLint plugin, logger integrations
+
 ## Monorepo Layout 🚧
 
 ```
 zerothrow/
 ├── @zerothrow/core          ← this package (alpha, usable)
+├── @zerothrow/resilience    ← retry, circuit breaker, timeout (alpha)
+├── @zerothrow/jest          ← test matchers (published)
+├── @zerothrow/vitest        ← test matchers (published)
 ├── @zerothrow/react         ← hooks for suspense & error-boundaries  
 ├── @zerothrow/eslint-plugin ← `no-throw` rule + autofix
 ├── @zerothrow/logger-pino   ← JSON serializers
