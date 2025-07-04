@@ -5,7 +5,7 @@
 We take security seriously at ZeroThrow. If you discover a security vulnerability, please follow these steps:
 
 1. **DO NOT** create a public GitHub issue
-2. Email security details to: james@zerothrow.dev
+2. Email security details to: james@flyingrobots.dev
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
