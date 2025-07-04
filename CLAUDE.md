@@ -1,21 +1,21 @@
 # OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-01-04 10:30 PDT)
+## 📊 LATEST SITREP (2025-01-04 13:15 PDT)
 
-**STATUS:** Vitest matchers merged! Test ecosystem refactored. Ready for resilience patterns.
+**STATUS:** Documentation/benchmarks nuked. Clean slate achieved. Ready for resilience patterns.
 
 **MISSION ACCOMPLISHED:**
-- ✅ **v0.0.2-alpha PUBLISHED** - DX improvements based on alpha feedback
-- ✅ **@zerothrow/jest CREATED** - Result-friendly test matchers (PR #16 merged)
-- ✅ **Changesets configured** - Independent versioning & automated releases
-- ✅ **Release workflow fixed** - PR #17 adds permissions + PAT support
+- ✅ **STABLE VERSIONS PUBLISHED** - All packages now on stable semver
+- ✅ **DOCS/BENCHMARKS DELETED** - Clean slate for rapid iteration
+- ✅ **tryR REFERENCES PURGED** - 252 references eliminated via deletion
+- ✅ **Test matchers complete** - Jest/Vitest/Testing packages published
 
-**RELEASES:**
-- **@zerothrow/core v0.0.2-alpha** - LIVE on npm!
-  - Added ZT.tryAsync() for cleaner async
-  - String overloads for ZT.err()
-  - Exported Result types
-- **@zerothrow/jest v0.0.1-alpha** - Ready to publish (pending workflow fix)
+**CURRENT RELEASES:**
+- **@zerothrow/core v0.1.0** - Stable release with all alpha features
+- **@zerothrow/expect v0.1.0** - Shared matcher logic
+- **@zerothrow/jest v1.0.0** - Jest matchers (unintended 1.0, but we're keeping it)
+- **@zerothrow/vitest v1.0.0** - Vitest matchers
+- **@zerothrow/testing v1.0.0** - Unified test package
 
 **SECRETS STATUS:**
 - **GH_PAT:** ✅ Added to repo (enables extra features)
