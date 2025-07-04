@@ -5,8 +5,9 @@
 <img src="./zt-penguin.png" alt="ZeroThrow penguin mascot" width="200" />
 
 ![No-Throw Discipline](https://img.shields.io/badge/no--throw_discipline-✅-success?style=for-the-badge)
-[![NPM Version](https://img.shields.io/npm/v/@zerothrow/zerothrow?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zerothrow/zerothrow)
+[![NPM Version](https://img.shields.io/npm/v/@zerothrow/core?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zerothrow/core)
 [![License](https://img.shields.io/github/license/zerothrow/zerothrow?style=for-the-badge)](LICENSE)
+![Alpha](https://img.shields.io/badge/status-alpha-orange?style=for-the-badge)
 
 **Stop throwing, start returning.**
 
@@ -14,6 +15,8 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 
 [The Result Mindset](#the-result-mindset) • [Composability](#composability) • [Interop](#interop-for-legacy-code)<br/>
 [Tooling](#tooling) • [Performance](#performance) • [Migration](#migration-guide)
+
+> 🚀 **v0.0.1-alpha released!** Core functionality is stable and ready for early adopters. [See roadmap](#roadmap)
 
 </div>
 
@@ -24,7 +27,7 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 With ZeroThrow, every function declares its success and failure types upfront:
 
 ```typescript
-import { ZT, ZeroThrow } from '@zerothrow/zerothrow'
+import { ZT, ZeroThrow } from '@zerothrow/core'
 
 // Write functions that return Result from the start
 function parseUser(input: unknown): ZeroThrow.Result<User, ParseError> {
@@ -175,15 +178,17 @@ if (!result.ok) {
 ### Installation
 
 ```bash
-npm install @zerothrow/zerothrow
+npm install @zerothrow/core@alpha
 ```
+
+> ⚠️ **Alpha Release**: API is stabilizing but may have minor changes before 1.0
 
 ### Basic Usage
 
 Start by writing functions that return Results:
 
 ```typescript
-import { ZT, ZeroThrow } from '@zerothrow/zerothrow'
+import { ZT, ZeroThrow } from '@zerothrow/core'
 
 // Define your domain errors
 class ValidationError extends ZeroThrow.ZeroError {
@@ -255,13 +260,13 @@ const result = await safeFetch('https://api.example.com/data')
 
 ## Tooling
 
-### 🚨 **ESLint Enforcement**
+### 🚨 **ESLint Enforcement** (Coming in Beta)
 
 Never accidentally write a `throw` statement again:
 
 ```javascript
 // .config/eslint.config.js
-import zerothrow from '@zerothrow/zerothrow/eslint'
+import zerothrow from '@zerothrow/eslint-plugin'
 
 export default [
   {
@@ -378,14 +383,14 @@ Result pattern performance vs exceptions:
 ### Step 1: Install and Configure
 
 ```bash
-npm install @zerothrow/zerothrow
+npm install @zerothrow/core@alpha
 ```
 
-Add the ESLint rule to catch throws:
+Add the ESLint rule to catch throws (coming in beta):
 
 ```javascript
 // .config/eslint.config.js
-import zerothrow from '@zerothrow/zerothrow/eslint'
+import zerothrow from '@zerothrow/eslint-plugin' // Coming in beta
 
 export default [
   {
@@ -489,7 +494,7 @@ if (!result.ok) {
 ### Form Validation
 
 ```typescript
-import { ZT, ZeroThrow } from '@zerothrow/zerothrow'
+import { ZT, ZeroThrow } from '@zerothrow/core'
 
 // Domain-specific error
 class ValidationError extends ZeroThrow.ZeroError {
@@ -578,7 +583,7 @@ class ApiClient {
 ## React Integration
 
 ```typescript
-import { useResult } from '@zerothrow/zerothrow/react'
+import { useResult } from '@zerothrow/react' // Coming in beta
 
 function UserProfile({ id }: { id: string }) {
   const userResult = useResult(() => api.getUser(id), [id])
@@ -618,6 +623,28 @@ function UserProfile({ id }: { id: string }) {
 - **Browsers**: All modern browsers
 - **React Native**: Full support
 - **Edge Workers**: Cloudflare Workers, Vercel Edge, etc.
+
+## Roadmap
+
+### 🎯 Current: Alpha (v0.0.1)
+- ✅ Core `Result<T,E>` type system
+- ✅ ZT pocket knife API
+- ✅ ZeroThrow advanced namespace
+- ✅ Zero runtime dependencies
+- ✅ Full TypeScript support
+
+### 🚀 Next: Beta (v0.1.0)
+- [ ] ESLint plugin (`@zerothrow/eslint-plugin`)
+- [ ] React hooks (`@zerothrow/react`)
+- [ ] Logger integrations (`@zerothrow/logger-winston`, `@zerothrow/logger-pino`)
+- [ ] Resilience API (retry, circuit breaker, timeout)
+- [ ] Performance benchmarks
+
+### 🏁 Future: v1.0
+- [ ] Stable API guarantee
+- [ ] Comprehensive documentation
+- [ ] Ecosystem packages
+- [ ] Migration tooling
 
 ## Contributing
 

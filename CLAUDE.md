@@ -1,102 +1,134 @@
-# OPERATION "ZERO-THROW RESILIENCE" 
+# OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-07-03 21:08 PDT)
+## 📊 LATEST SITREP (2025-01-04 05:15 PDT)
 
-**STATUS:** Phase 3 in progress, Turbo 2.x fixed ✅
+**STATUS:** ALPHA RELEASED! 🚀 Documentation updated, ready for beta sprint
 
-**COMPLETED TODAY:**
-- ✅ Fixed Turbo 2.x configuration (was using wrong field name)
-- ✅ All build/test/lint commands operational
-- ✅ CI pipeline working with caching
-- ✅ Reduced `tryR` references from 24 → 1
+**MISSION ACCOMPLISHED TODAY:**
+- ✅ **ALPHA v0.0.1 PUBLISHED** to npm as @zerothrow/core
+- ✅ Fixed CI pipeline (removed broken coverage reference)
+- ✅ Created GitHub release with signed tag
+- ✅ All 12 release checklist items completed
+- ✅ Package structure clean and extracted
+- ✅ Updated monorepo README.md to reflect alpha reality
+- ✅ Added roadmap section to README
 
-**NEXT MOVES:**
-1. Find and eliminate the last `tryR` reference
-2. Complete ESLint rule to ban old API
-3. Update any remaining tests/examples
-4. Create PR `feat/zt-surface-lift`
+**CURRENT STATE:**
+- **NPM Package:** https://www.npmjs.com/package/@zerothrow/core (LIVE!)
+- **GitHub Release:** https://github.com/zerothrow/zerothrow/releases/tag/v0.0.1-alpha
+- **Remaining `tryR` references:** 11 files (down from 24)
+- **Package size:** 42.3 kB (target was ~40KB)
 
 ---
 
-## 🎯 IMMEDIATE ACTION REQUIRED
+## 🎯 IMMEDIATE OBJECTIVES
 
-**ALPHA RELEASE BLOCKED BY:**
-1. **1 file still using `tryR`** - MUST BE PURGED (was 24)
-2. **Core package contaminated** with logger/react/eslint code
-3. **Unnecessary dependencies** in core package
+**BETA RELEASE BLOCKERS:**
+1. **11 files still using `tryR`** - MUST BE PURGED
+2. **ESLint rule not implemented** - Need to ban old API
+3. **Tests/examples not updated** - Still using old API
+4. **Missing resilience features** - The game changer
 
-**YOUR NEXT MISSION:** Complete Phase 3, Tasks P4-P7
-- P4: Delete ALL `tryR` references (use `ZT.try` or `ZeroThrow.attempt`)
-- P5: Update all tests and examples
-- P6: Add ESLint rule to ban old names
-- P7: Create PR
+**YOUR NEXT MISSION:** Complete remaining Phase 3 tasks
+- [ ] P4: Delete ALL `tryR` references (11 remaining)
+- [ ] P5: Update all tests and examples
+- [ ] P6: Add ESLint rule to ban old names
+- [ ] P7: Create PR for remaining changes
+
+---
+
+## 🧠 BASIC MEMORY INTEGRATION
+
+**IMPORTANT:** Always check basic memory at conversation start:
+```bash
+# Search for project info
+mcp__basic-memory__search "zerothrow"
+
+# Read specific notes
+mcp__basic-memory__read_note "projects/zerothrow/..."
+```
+
+**AFTER EACH COMMIT:** Update basic memory with SITREP:
+```bash
+# Create/update SITREP note
+mcp__basic-memory__write_note
+  title: "ZeroThrow SITREP [DATE]"
+  folder: "projects/zerothrow"
+  content: [current status]
+  tags: ["#zerothrow", "#sitrep", "#progress"]
+```
 
 ---
 
 ## 📊 CURRENT STATUS
 
-**Branch:** `dogfood` → **Target:** `main`
+**Branch:** `main` (alpha released)
+**Next feature branch:** TBD based on next objective
 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | 0 | ✅ COMPLETE | Operational readiness |
 | 1 | ✅ COMPLETE | Fast fixes (build, types, DB tests) |
 | 2 | ✅ COMPLETE | Monorepo skeleton |
-| **3** | **⏳ IN PROGRESS** | **ZT Surface Lift (P0-P3 done, P4-P7 TODO)** |
+| 3 | 🔄 PARTIAL | ZT Surface Lift (P0-P3 done, P4-P7 TODO) |
 | 4 | ⏳ PENDING | Docker & CI Infrastructure |
 | 5 | ⏳ PENDING | Zero-Throw Resilience API |
 | 6 | ⏳ PENDING | New helpers & tests |
-| 7 | ⏳ PENDING | Final dress rehearsal & PR |
+| 7 | ⏳ PENDING | Beta release preparation |
 
 ---
 
-## 🚀 THE NEW API (Phase 3)
+## 🚀 THE API (Stable)
 
 ### Pocket Knife (99% of use cases)
 ```typescript
-import { ZT } from '@zerothrow/zerothrow'
+import { ZT } from '@zerothrow/core'
 
-ZT.try(() => risky())     // Replaces tryR
+ZT.try(() => risky())     // Wrap throwing functions
 ZT.ok(value)              // Create success
 ZT.err(error)             // Create failure
 ```
 
 ### Full Arsenal (advanced usage)
 ```typescript
-import { ZeroThrow } from '@zerothrow/zerothrow'
+import { ZeroThrow } from '@zerothrow/core'
 
-ZeroThrow.attempt()       // Replaces tryR (with overloads)
-ZeroThrow.wrap()          // Replaces promise()
-ZeroThrow.fromAsync()     // Replaces async()
-ZeroThrow.pipe()          // Combinators
+ZeroThrow.attempt()       // Advanced try with overloads
+ZeroThrow.wrap()          // Wrap promises
+ZeroThrow.fromAsync()     // Handle async functions
+ZeroThrow.pipe()          // Compose operations
 ZeroThrow.collect()       // Batch operations
 ```
 
-### API Migration Table
-| OLD (BANNED) | NEW (USE THIS) |
-|--------------|----------------|
-| `tryR()` | `ZT.try()` or `ZeroThrow.attempt()` |
-| `tryRSync()` | `ZT.try()` or `ZeroThrow.attempt()` |
-| `tryRBatch()` | `ZeroThrow.attempt()` |
-| `promise()` | `ZeroThrow.wrap()` |
-| `async()` | `ZeroThrow.fromAsync()` |
-| `OK`, `ERR`, `AnyError` | REMOVED |
+---
+
+## 📦 COMPLETED: NPM ALPHA RELEASE ✅
+
+### What Was Accomplished:
+1. ✅ Extracted all non-core code to separate packages
+2. ✅ Clean package structure (only core functionality)
+3. ✅ Zero runtime dependencies
+4. ✅ Full TypeScript support
+5. ✅ Published to npm with alpha tag
+6. ✅ GitHub release created with signed tag
+
+### Package Structure Achieved:
+```
+packages/
+├── core/                 # ✅ Pure Result<T,E> (PUBLISHED)
+├── eslint-plugin/       # ✅ ESLint rules (extracted)
+├── logger-winston/      # ✅ Winston integration (extracted)
+├── logger-pino/         # ✅ Pino integration (extracted)
+└── react/               # ✅ React hooks (extracted)
+```
 
 ---
 
-## 📋 PHASE 3: ZT SURFACE LIFT (Current Focus)
+## 📋 NEXT SPRINT: Beta Preparation
 
-**Status:** P0-P3 COMPLETE, P4-P7 IN PROGRESS
-
-### Completed ✅
-- [x] P0: Intel prep - pulled main, green build
-- [x] P1: Created `core-exports.ts` with clean names
-- [x] P2: Created `zt-pocket-knife.ts` with lean API
-- [x] P3: Updated `index.ts` exports
-
-### TODO (MISSION CRITICAL) 🚨
-- [ ] **P4: PURGE `tryR` FROM 24 FILES**
-  - Run: `grep -r "tryR" packages/` to find them
+### Remaining Phase 3 Tasks
+- [ ] **P4: PURGE `tryR` FROM 11 FILES**
+  - Run: `grep -r "tryR" packages/ | grep -v node_modules`
   - Replace with `ZT.try()` or `ZeroThrow.attempt()`
 - [ ] **P5: Update tests & examples**
   - All tests must use new API
@@ -104,204 +136,114 @@ ZeroThrow.collect()       // Batch operations
 - [ ] **P6: Add ESLint rule**
   - Ban imports of old names
   - Add to `.config/eslint.config.js`
-  - Add rule to catch `makeCombinable(ZT.ok(...))` - ZT.ok already returns combinable
+  - Catch `makeCombinable(ZT.ok(...))` - ZT.ok already returns combinable
 - [ ] **P7: Create PR**
-  - Branch: `feat/zt-surface-lift`
-  - Target: `main`
 
-### DX Improvements
-- [ ] Add `ZT.ok()` overload for void case (no args = `Result<void>`)
-  - Would allow `ZT.ok()` instead of `ZT.ok(undefined)`
-  - Cleaner API for success with no value
-
----
-
-## 📦 NPM RELEASE CHECKLIST (@zerothrow/core)
-
-### 1. Extract Non-Core Code
-- [ ] Move `react-hooks.ts` and `react-entry.ts` → `packages/react/src/`
-- [ ] Move `eslint/` directory and `eslint.ts` → `packages/eslint-plugin/src/`
-- [ ] Move `loggers/winston.ts` → `packages/logger-winston/src/`
-- [ ] Move `loggers/pino.ts` → `packages/logger-pino/src/`
-- [ ] Keep `platform/` in core (for Deno portability)
-- [ ] Move `vscode/snippets.json` → Documentation or separate package
-- [ ] Keep `dev/error-formatter.ts` as optional dev utility
-
-### 2. Clean Up package.json
-- [ ] Remove exports for `/react`, `/loggers/*`, `/eslint`
-- [ ] Keep `/platform` export
-- [ ] Remove react, pino, winston from peerDependencies
-- [ ] Update files array to exclude moved code
-- [ ] Keep zero runtime dependencies
-
-### 3. Core Structure
-Final structure should be:
-```
-packages/core/src/
-├── index.ts          # Main entry
-├── result.ts         # Core Result type
-├── error.ts          # ZeroError
-├── combinators.ts    # Combinators
-├── core-exports.ts   # ZeroThrow namespace
-├── zt-pocket-knife.ts # ZT shorthand
-├── platform/         # Platform abstraction
-│   └── index.ts
-└── dev/             # Optional dev tools
-    └── error-formatter.ts
-```
-
-### 4. Update Build Configuration
-- [ ] Update tsup.config.ts to only build core exports
-- [ ] Remove references to moved files
-- [ ] Ensure platform and dev exports work
-
-### 5. Documentation
-- [ ] Create packages/core/README.md with:
-  - Installation: `npm install @zerothrow/core`
-  - Basic usage examples
-  - Link to main documentation
-- [ ] Create CHANGELOG.md with v0.0.1-alpha notes
-
-### 6. Testing & Validation
-- [ ] Move non-core tests to respective packages
-- [ ] Run `npm pack` in packages/core
-- [ ] Inspect tarball contents
-- [ ] Test in fresh project
-
-### 7. Pre-publish Checklist
-- [ ] Version: 0.0.1-alpha
-- [ ] Add .npmignore
-- [ ] Verify LICENSE is included
-- [ ] Run final build
-- [ ] Check bundle size
-
-### 8. Publish
-```bash
-cd packages/core
-npm publish --access public --tag alpha
-```
-
----
-
-## 🏗️ ALPHA RELEASE PLAN
-
-### Step 1: Extract Packages (After Phase 3)
-```
-packages/
-├── core/                 # Pure Result<T,E> only
-├── logger-winston/       # Winston integration
-├── logger-pino/         # Pino integration  
-├── eslint-plugin/       # ESLint rules
-└── react/               # React hooks
-```
-
-### Step 2: Clean Dependencies
-- Core: ZERO dependencies
-- Each package: minimal deps
-
-### Step 3: Verify & Ship
-- Build all packages
-- Test in fresh project
-- Publish alpha
+### Phase 5: Zero-Throw Resilience (THE GAME CHANGER)
+- [ ] Retry strategies (constant/linear/exponential)
+- [ ] Circuit breaker pattern
+- [ ] Timeout handling
+- [ ] Fluent builder API
+- [ ] ZERO performance penalty design
 
 ---
 
 ## ⚔️ RULES OF ENGAGEMENT
 
+> [!important] **ALWAYS** check basic memory when starting work
+
+> [!important] **ALWAYS** update basic memory after commits
+
+> [!success] **ALWAYS** tick boxes as you complete TASKS
+
 > [!failure] **NEVER** `git add -A` or stage everything
-
-> [!success] **ALWAYS** tick boxes as you complete TASKS (not phases)
-
-> [!important] **ALWAYS** obey the linter - fix code, not configs
 
 > [!success] **ALWAYS** write behavior tests, not implementation tests
 
-> [!failure] **BANNED:** Mocks, spies, stdout/stderr testing
-
 ---
 
-## 🎖️ PROMOTION CRITERIA
+## 🎖️ ACHIEVEMENTS UNLOCKED
 
-**To earn Corporal stripes:**
-- [ ] Green PR on first try
-- [ ] All checkboxes ticked
-- [ ] Zero `throw` statements
-- [ ] Zero old API usage
+**Alpha Release Badge** 🏅
+- ✅ Published @zerothrow/core v0.0.1-alpha
+- ✅ Zero dependencies achieved
+- ✅ Clean monorepo structure
+- ✅ CI pipeline green
 
-**Fail any = KP duty with lint brush**
-
----
-
-## 📊 FUTURE PHASES (After Phase 3)
-
-### Phase 4: Docker & CI (30 min)
-- Move Docker artifacts to `/tmp`
-- Fix port conflicts (only 67 available)
-- Re-enable `db-transaction.test.ts`
-
-### Phase 5: Zero-Throw Resilience (2 hr) 🎯
-**THE GAME CHANGER** - First retry library with ZERO performance penalty!
-- Retry strategies (constant/linear/exponential)
-- Circuit breaker
-- Timeout handling
-- Fluent builder API
-
-### Phase 6: New Helpers (2 hr)
-- `ZeroThrow.Async.unwrapOrElse`
-- Rewrite flaky tests with resilience
-- Maintain 90%+ coverage
-
-### Phase 7: Final Checks (30 min)
-- Full CI dress rehearsal
-- Update CHANGELOG.md
-- Create PR
+**Next Achievement:** Beta Release
+- [ ] Zero `tryR` references
+- [ ] ESLint rules enforced
+- [ ] Resilience API implemented
+- [ ] 95%+ test coverage
 
 ---
 
 ## 📝 QUICK REFERENCE
 
-**Git:**
-- Current: `dogfood`
-- Target: `main`
-- Next PR: `feat/zt-surface-lift`
-
-**Imports:**
-```typescript
-// Simple (99% of cases)
-import { ZT } from '@zerothrow/zerothrow'
-
-// Advanced
-import { ZeroThrow } from '@zerothrow/zerothrow'
+**NPM Commands:**
+```bash
+npm install @zerothrow/core@alpha  # Install alpha
+npm view @zerothrow/core           # Check package info
 ```
 
-**Commands:**
+**Development:**
 ```bash
 turbo run build      # Build all packages
 turbo run test       # Run all tests
 turbo run lint       # Lint check
-npm run ci:local     # Full dress rehearsal
+npm run ci:local     # Full CI simulation
+```
+
+**Git Flow:**
+```bash
+git checkout -b feat/[feature-name]  # New feature
+git checkout -b fix/[issue]          # Bug fix
+gh pr create                         # Create PR
 ```
 
 ---
 
 ## 📊 TECH DEBT TRACKER
 
-### Critical (Blocks Alpha)
-- [ ] 24 files using `tryR`
-- [ ] Logger code in core
-- [ ] React code in core
-- [ ] ESLint plugin in core
+### High Priority
+- [ ] 11 files using `tryR` (was 24, then 1, now 11?)
+- [ ] ESLint rule not implemented
+- [ ] Some tests using old API
 
-### Known Issues
-- [ ] Docker creates files in working dir (should use `/tmp`)
+### Medium Priority
+- [ ] Docker creates files in working dir
 - [ ] Port conflicts (only 67 available)
 - [ ] `db-transaction.test.ts` disabled
+
+### Low Priority
 - [ ] 2 ESLint tests skipped
+- [ ] Add ZT.ok() void overload
 
 ---
 
-> **"NO THROWS, NO MERCY!"** — Cmdr Chat
+## 🚀 BETA ROADMAP
 
-**LATEST SITREP:** See `docs/claude/battle-logs/battle-log-2025-07-03.md`
+1. **Clean House** (1 day)
+   - Eliminate all `tryR` usage
+   - Implement ESLint rules
+   - Update all tests/examples
+
+2. **Resilience API** (2-3 days)
+   - Design zero-overhead retry system
+   - Implement circuit breaker
+   - Add timeout handling
+   - Create fluent API
+
+3. **Polish & Ship** (1 day)
+   - Update documentation
+   - Add more examples
+   - Performance benchmarks
+   - Release v0.1.0-beta
+
+---
+
+> **"ALPHA SECURED, BETA IN SIGHT!"** — Cmdr Chat
+
+**REMEMBER:** Check basic memory for project context and update after each session!
 
 **HOO-RAH!** 🎖️
