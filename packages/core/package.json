@@ -10,20 +10,15 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./react": {
-      "types": "./dist/react-hooks.d.ts",
-      "import": "./dist/react-hooks.js",
-      "require": "./dist/react-hooks.cjs"
+    "./platform": {
+      "types": "./dist/platform/index.d.ts",
+      "import": "./dist/platform/index.js",
+      "require": "./dist/platform/index.cjs"
     },
-    "./loggers/pino": {
-      "types": "./dist/loggers/pino.d.ts",
-      "import": "./dist/loggers/pino.js",
-      "require": "./dist/loggers/pino.cjs"
-    },
-    "./loggers/winston": {
-      "types": "./dist/loggers/winston.d.ts",
-      "import": "./dist/loggers/winston.js",
-      "require": "./dist/loggers/winston.cjs"
+    "./dev": {
+      "types": "./dist/dev/error-formatter.d.ts",
+      "import": "./dist/dev/error-formatter.js",
+      "require": "./dist/dev/error-formatter.cjs"
     }
   },
   "main": "./dist/index.cjs",
@@ -31,31 +26,42 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "src"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run --config ../../vitest.config.ts",
-    "test:integration": "vitest run --config ../../vitest.integration.config.ts",
     "test:watch": "vitest --config ../../vitest.config.ts",
     "lint": "cd ../.. && eslint packages/core/src --max-warnings 0",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "result",
+    "error-handling",
+    "typescript",
+    "zero-throw",
+    "rust-style",
+    "functional",
+    "monad",
+    "either",
+    "fp",
+    "functional-programming"
+  ],
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "author": "J. Kirby Ross",
   "dependencies": {},
-  "peerDependencies": {
-    "react": ">=16.8.0",
-    "pino": ">=8.0.0",
-    "winston": ">=3.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "pino": {
-      "optional": true
-    },
-    "winston": {
-      "optional": true
-    }
+  "engines": {
+    "node": ">=18.17.0"
   }
 }

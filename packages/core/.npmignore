@@ -1,6 +1,6 @@
-# Source files
-src/
-test/
+# Source files (exclude from npm package)
+/src
+/test
 vitest.config.ts
 
 # Config files  
@@ -18,5 +18,8 @@ coverage/
 # Build artifacts not needed
 *.tsbuildinfo
 
-# Keep only dist folder
+# Keep only dist folder and docs
 !dist/
+!README.md
+!CHANGELOG.md
+!package.json
