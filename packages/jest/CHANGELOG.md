@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.0
+
+### Minor Changes
+
+- 67e96b8: Add @zerothrow/jest package with Result-friendly matchers
+
+  New matchers for testing Result types without throwing:
+  - `toBeOk()` - Assert Result is Ok
+  - `toBeOkWith(value)` - Assert Result is Ok with specific value
+  - `toBeErr()` - Assert Result is Err
+  - `toBeErrWith(error)` - Assert Result is Err with specific error/properties
+  - `toHaveErrorCode(code)` - Assert error has specific code
+  - `toHaveErrorMessage(message)` - Assert error has specific message (string or regex)
+
+  Works with both Jest and Vitest test runners.
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
