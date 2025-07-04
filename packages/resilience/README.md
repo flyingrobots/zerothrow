@@ -1,19 +1,43 @@
 # @zerothrow/resilience
 
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+![npm](https://img.shields.io/npm/v/@zerothrow/resilience)
+![types](https://img.shields.io/npm/types/@zerothrow/resilience)
+![size](https://packagephobia.com/badge?p=@zerothrow/resilience)
+
 Production-grade resilience patterns for TypeScript applications using ZeroThrow's Result type.
+
+> ⚠️ **Status:** Alpha (v0.1.0) – API may change until v1.0. [See roadmap](#roadmap)
+
+> **🧠 ZeroThrow Layers**  
+> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+> • **Result** – combinators (`map`, `andThen`, `match`)  
+> • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+> • **@zerothrow/**** – ecosystem packages (resilience, jest, etc)
+
+**[📚 Full Documentation](https://github.com/zerothrow/zerothrow/tree/main/docs) | [🗺️ Ecosystem Overview](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)**
 
 ## Features
 
 - 🚀 **Zero Exceptions** - All policies return `Result<T,E>`, never throw
 - 🎯 **Type-Safe** - Full TypeScript support with preserved error types  
 - 🔧 **Composable** - Combine policies for defense in depth
-- ⚡ **Zero Dependencies** - Only peer dependency is @zerothrow/core
+- ⚡ **No runtime deps** - Peer dependency: @zerothrow/core
 - 🧪 **Testable** - Includes TestClock for deterministic testing
+
+## Which Package Do I Need?
+
+> **Quick Guide:**
+> - You only want explicit error handling → `@zerothrow/core`
+> - You're calling flaky APIs or databases → add `@zerothrow/resilience` (this package)
+> - You write tests → add `@zerothrow/jest` or `@zerothrow/vitest`
+> - You use React → watch for `@zerothrow/react` (coming soon)
 
 ## Installation
 
 ```bash
 npm install @zerothrow/resilience @zerothrow/core
+# or: pnpm add @zerothrow/resilience @zerothrow/core
 ```
 
 ## Quick Start
@@ -100,6 +124,24 @@ if (!result.ok) {
   }
 }
 ```
+
+## Roadmap
+
+### v0.2.0 (Next)
+- **Bulkhead Policy** - Limit concurrent operations
+- **Hedge Policy** - Race multiple attempts for speed
+- **Fallback Policy** - Graceful degradation
+- **Policy metrics** - Success/failure rates, latencies
+
+### v0.3.0
+- **Adaptive policies** - Self-tuning based on metrics
+- **Policy persistence** - Save/restore circuit breaker state
+- **Integration examples** - Stripe, OpenAI, database patterns
+
+### v1.0.0
+- **Stable API** - No more breaking changes
+- **Performance benchmarks** - Prove zero overhead
+- **Production guide** - Best practices and patterns
 
 ## License
 
