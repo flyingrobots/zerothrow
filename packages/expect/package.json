@@ -1,0 +1,66 @@
+{
+  "name": "@zerothrow/expect",
+  "version": "0.0.1-alpha",
+  "description": "Shared test matcher logic for ZeroThrow Result types",
+  "author": "ZeroThrow Contributors",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "keywords": [
+    "zerothrow",
+    "test",
+    "matchers",
+    "expect",
+    "result",
+    "error-handling",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=16.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/expect"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "echo 'No tests for expect package - logic tested via jest/vitest packages'",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'Linting is run from monorepo root'",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@zerothrow/core": ">=0.0.2-alpha"
+  },
+  "devDependencies": {
+    "@zerothrow/core": "file:../core",
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

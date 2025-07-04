@@ -1,8 +1,8 @@
 # OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-01-04 06:00 PDT)
+## 📊 LATEST SITREP (2025-01-04 10:30 PDT)
 
-**STATUS:** ALPHA FEEDBACK RECEIVED! 🎯 Critical DX issues identified, executing fixes
+**STATUS:** Vitest matchers merged! Test ecosystem refactored. Ready for resilience patterns.
 
 **MISSION ACCOMPLISHED:**
 - ✅ **ALPHA v0.0.1 PUBLISHED** to npm as @zerothrow/core
@@ -31,12 +31,15 @@
 3. **Test matchers** - `expect(result).toBeOk()` for jest/vitest
 4. **Async combinators** - Reduce verbose nested handling
 
-**YOUR CURRENT MISSION:** Fix DX issues discovered in alpha
-- [x] Capture alpha feedback in basic memory
-- [ ] Add ZT.tryAsync for `Promise<Result<T,E>>`
-- [ ] Add string overloads to ZT.err
-- [ ] Create test matchers package
-- [ ] Update docs with async examples
+**LATEST ACHIEVEMENTS:**
+- ✅ Added ZT.tryAsync for `Promise<Result<T,E>>` 
+- ✅ Added string overloads to ZT.err
+- ✅ Created @zerothrow/jest matchers (published)
+- ✅ Created @zerothrow/vitest matchers (PR merged)
+- ✅ Refactored to @zerothrow/expect architecture
+- ✅ Added ECOSYSTEM.md with 34-package roadmap
+
+**NEXT MISSION:** Resilience patterns (retry, circuit breaker, timeout)
 
 **STILL PENDING (Lower Priority):**
 - [ ] Delete ALL `tryR` references (11 remaining)
@@ -172,11 +175,43 @@ packages/
 - [ ] Fluent builder API
 - [ ] ZERO performance penalty design
 
+#### Resilience API Design (`@zerothrow/resilience`)
+
+**Core Strategies (Polly-inspired):**
+1. **Retry** - Automatic retry with backoff strategies
+2. **Circuit Breaker** - Fail fast when service is down
+3. **Timeout** - Prevent hanging operations
+4. **Bulkhead** - Limit concurrent operations
+5. **Fallback** - Graceful degradation
+6. **Hedge** - Race multiple attempts for speed
+
+**Key Design Principles:**
+- Result-first: All strategies work with `Result<T,E>`
+- Zero-cost abstraction: No overhead when not retrying
+- Composable: Chain multiple strategies with Policy builder
+- Type-safe: Full error context preserved
+
+**Example API:**
+```typescript
+const policy = Policy
+  .timeout(5000)
+  .retry(3, { delay: 'exponential' })
+  .circuitBreaker({ threshold: 5 })
+  .fallback(() => ZT.ok(cachedData))
+  .build()
+
+const result = await policy.execute(() => 
+  fetch('/api/data').then(r => r.json())
+)
+```
+
 ---
 
 ## ⚔️ RULES OF ENGAGEMENT
 
 > [!important] **ALWAYS** check basic memory when starting work
+
+> [!failure] **ALWAYS FETCH WHEN STARTING NEW FEATURES, AND PUT EACH ONE IN THEIR OWN BRANCH OFF OF ORIGIN/MAIN. MICRO-COMMITS EVERY STEP OF THE WAY.**
 
 > [!important] **ALWAYS** update basic memory after commits
 

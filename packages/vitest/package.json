@@ -1,18 +1,30 @@
 {
-  "name": "@zerothrow/jest",
-  "version": "0.1.0",
-  "description": "Jest matchers for ZeroThrow Result types",
-  "author": "ZeroThrow",
-  "license": "MIT",
+  "name": "@zerothrow/vitest",
+  "version": "0.0.1-alpha",
+  "description": "Vitest matchers for ZeroThrow Result types",
+  "author": "ZeroThrow Contributors",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zerothrow/zerothrow.git",
-    "directory": "packages/jest"
-  },
   "bugs": {
     "url": "https://github.com/zerothrow/zerothrow/issues"
   },
+  "keywords": [
+    "zerothrow",
+    "vitest",
+    "test",
+    "matchers",
+    "result",
+    "error-handling",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=16.14"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/vitest"
+  },
+  "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -27,47 +39,30 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE",
-    "CHANGELOG.md"
+    "LICENSE"
   ],
-  "engines": {
-    "node": ">=16.14"
-  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src test --max-warnings 0"
+    "lint": "echo 'Linting is run from monorepo root'",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@jest/globals": ">=27.0.0",
     "@zerothrow/core": "0.0.2-alpha",
     "@zerothrow/expect": "0.0.1-alpha",
-    "jest": ">=27.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@jest/globals": {
-      "optional": true
-    }
+    "vitest": ">=0.30.0"
   },
   "devDependencies": {
-    "@jest/globals": "^29.7.0",
-    "@types/jest": "^29.5.12",
     "@zerothrow/core": "file:../core",
     "@zerothrow/expect": "file:../expect",
-    "jest": "^29.7.0"
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
   },
-  "keywords": [
-    "zerothrow",
-    "jest",
-    "matchers",
-    "testing",
-    "result",
-    "error-handling",
-    "typescript"
-  ],
   "publishConfig": {
     "access": "public"
   }

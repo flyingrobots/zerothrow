@@ -14,11 +14,50 @@
 Write functions that return `Result<T,E>` from the start. No hidden control flow. No stack unwinding. Just plain data, fully typed.
 
 [The Result Mindset](#the-result-mindset) • [Composability](#composability) • [Interop](#interop-for-legacy-code)<br/>
-[Tooling](#tooling) • [Performance](#performance) • [Migration](#migration-guide)
+[Package Ecosystem](#package-ecosystem) • [Performance](#performance) • [Migration](#migration-guide)
 
 > 🚀 **Now in alpha!** Core functionality is stable and ready for early adopters. [See roadmap](#roadmap)
 
 </div>
+
+---
+
+## Package Ecosystem
+
+### Phase 1: Alpha Core (Current Focus)
+| Package | Version | Description | Status |
+|---------|---------|-------------|--------|
+| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) | Core Result types and utilities | ✅ Stable |
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for Result types | ✅ Stable |
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for Result types | 🚧 In PR |
+| `@zerothrow/expect` | - | Shared test matcher logic | 📋 Next |
+| `@zerothrow/testing` | - | Unified test matchers (Jest + Vitest) | 📋 Next |
+| `@zerothrow/dev-kit` | - | Developer toolkit bundle | 📋 Planned |
+
+### Phase 2: Developer Experience (Coming Soon)
+| Package | Description | Status |
+|---------|-------------|--------|
+| `@zerothrow/eslint-plugin` | ESLint rules to enforce no-throw | 📋 Beta |
+| `@zerothrow/react` | React hooks for Result types | 📋 Beta |
+| `@zerothrow/logger-winston` | Winston logger integration | 📋 Beta |
+| `@zerothrow/logger-pino` | Pino logger integration | 📋 Beta |
+| `@zerothrow/cli` | Command-line tools | 📋 Planned |
+
+See our [full ecosystem roadmap](https://github.com/zerothrow/zerothrow/discussions) for Phase 3 (Integration Layer) and Phase 4 (Ecosystem Domination) packages including framework adapters, database integrations, and more!
+
+### Latest Features (v0.0.2-alpha)
+
+- **✨ `ZT.tryAsync()`** - Cleaner async error handling that returns `Promise<Result<T,E>>`
+- **✨ String error shortcuts** - `ZT.err('ERROR_CODE')` and `ZT.err('CODE', 'message')`
+- **✨ Test matchers** - Result-friendly assertions for Jest (Vitest coming soon!)
+- **✨ Exported types** - `Result`, `Ok`, `Err` types now available at package root
+
+### What's Next
+
+- **🔜 Vitest support** - Test matchers for Vitest users
+- **🔜 ESLint plugin** - Enforce no-throw discipline automatically
+- **🔜 React hooks** - `useResult` and other React integrations
+- **🔜 Resilience utilities** - Retry, circuit breaker, timeout patterns
 
 ---
 
@@ -179,6 +218,10 @@ if (!result.ok) {
 
 ```bash
 npm install @zerothrow/core@alpha
+
+# For testing
+npm install --save-dev @zerothrow/jest  # Jest users
+npm install --save-dev @zerothrow/vitest # Vitest users (coming soon)
 ```
 
 > ⚠️ **Alpha Release**: API is stabilizing but may have minor changes before 1.0
@@ -279,6 +322,39 @@ ZT.err(new ZeroThrow.ZeroError('API_ERROR', 'Failed', { status: 500 }))
 
 **Remember**: `ZT.try` is for code you don't control. For your own code, return Results directly!
 
+## Testing
+
+### Jest Matchers
+
+```typescript
+import '@zerothrow/jest'
+import { ZT } from '@zerothrow/core'
+
+test('user validation', () => {
+  const result = validateUser(input)
+  
+  // Result state matchers
+  expect(result).toBeOk()
+  expect(result).not.toBeErr()
+  
+  // Value matchers
+  expect(result).toBeOkWith({ name: 'Alice', age: 30 })
+  
+  // Error matchers
+  const error = ZT.err('VALIDATION_ERROR', 'Invalid input')
+  expect(error).toBeErr()
+  expect(error).toHaveErrorCode('VALIDATION_ERROR')
+  expect(error).toHaveErrorMessage('Invalid input')
+})
+```
+
+### Vitest Matchers (Coming Soon!)
+
+```typescript
+import '@zerothrow/vitest'
+// Same API as Jest matchers
+```
+
 ## Tooling
 
 ### 🚨 **ESLint Enforcement** (Coming in Beta)
@@ -353,7 +429,8 @@ interface Result<T, E> {
 const ZT = {
   ok<T>(value: T): Result<T, never>              // Create success
   err<E = ZeroError>(error: E): Result<never, E> // Create failure  
-  try<T>(fn: () => T): Result<T, ZeroError>      // Interop with throwing code (defaults to ZeroError)
+  try<T>(fn: () => T): Result<T, ZeroError>      // Interop with throwing code
+  tryAsync<T>(fn: () => Promise<T>): Promise<Result<T, ZeroError>> // Async interop (NEW!)
 }
 ```
 
@@ -647,14 +724,18 @@ function UserProfile({ id }: { id: string }) {
 
 ## Roadmap
 
-### 🎯 Current: Alpha (v0.0.1)
+### 🎯 Current: Alpha (v0.0.2)
 - ✅ Core `Result<T,E>` type system
 - ✅ ZT pocket knife API
 - ✅ ZeroThrow advanced namespace
 - ✅ Zero runtime dependencies
 - ✅ Full TypeScript support
+- ✅ Jest test matchers
+- ✅ `ZT.tryAsync()` for cleaner async handling
+- ✅ String overloads for `ZT.err()`
 
 ### 🚀 Next: Beta (v0.1.0)
+- [ ] Vitest test matchers
 - [ ] ESLint plugin (`@zerothrow/eslint-plugin`)
 - [ ] React hooks (`@zerothrow/react`)
 - [ ] Logger integrations (`@zerothrow/logger-winston`, `@zerothrow/logger-pino`)
