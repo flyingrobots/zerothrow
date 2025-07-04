@@ -15,7 +15,7 @@ jobs:
   # Wait for tests to pass first
   test:
     name: Tests must pass before release
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/ci.yml
     
   release:
     name: Release
