@@ -1,25 +1,29 @@
 # OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-01-04 06:00 PDT)
+## 📊 LATEST SITREP (2025-01-04 07:20 PDT)
 
-**STATUS:** ALPHA FEEDBACK RECEIVED! 🎯 Critical DX issues identified, executing fixes
+**STATUS:** v0.0.2-alpha PUBLISHED! 🎯 Automated releases configured
 
 **MISSION ACCOMPLISHED:**
-- ✅ **ALPHA v0.0.1 PUBLISHED** to npm as @zerothrow/core
-- ✅ Real developer tested in production - valuable feedback captured
-- ✅ Pain points identified and prioritized
+- ✅ **v0.0.2-alpha PUBLISHED** - DX improvements based on alpha feedback
+- ✅ **@zerothrow/jest CREATED** - Result-friendly test matchers (PR #16 merged)
+- ✅ **Changesets configured** - Independent versioning & automated releases
+- ✅ **Release workflow fixed** - PR #17 adds permissions + PAT support
 
-**🔥 CRITICAL ALPHA FEEDBACK:**
-1. **ZT.try with async is confusing** - Returns `Result<Promise<T>>` not `Promise<Result<T>>`
-2. **ZT.err only accepts Error objects** - Devs want `ZT.err('ERROR_CODE')`
-3. **Test helpers defaulting to throw** - Need Result-aware test matchers
-4. **Verbose async handling** - Missing async combinators
+**RELEASES:**
+- **@zerothrow/core v0.0.2-alpha** - LIVE on npm!
+  - Added ZT.tryAsync() for cleaner async
+  - String overloads for ZT.err()
+  - Exported Result types
+- **@zerothrow/jest v0.0.1-alpha** - Ready to publish (pending workflow fix)
+
+**SECRETS STATUS:**
+- **GH_PAT:** ✅ Added to repo (enables extra features)
+- **NPM_TOKEN:** ⚠️ Need to add for auto-publishing
 
 **CURRENT STATE:**
-- **NPM Package:** https://www.npmjs.com/package/@zerothrow/core (LIVE!)
-- **GitHub Release:** https://github.com/zerothrow/zerothrow/releases/tag/v0.0.1-alpha
-- **Remaining `tryR` references:** 11 files (down from 24)
-- **Package size:** 42.3 kB (target was ~40KB)
+- **Remaining `tryR` references:** 11 files
+- **Active PRs:** #17 (workflow permissions fix)
 
 ---
 
