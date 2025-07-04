@@ -77,9 +77,11 @@ const api = Policy.compose(
 );
 
 const result = await api.execute(() => fetch('/api/data'));
+// Always returns Result<T,E> - NEVER throws!
 ```
 
 **Features:**
+- 🚫 **Never throws** - All policies return `Result<T,E>`
 - 🔄 **Retry** with configurable backoff strategies
 - 🚦 **Circuit Breaker** to prevent cascading failures
 - ⏱️ **Timeout** enforcement for async operations

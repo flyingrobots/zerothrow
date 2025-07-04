@@ -28,6 +28,7 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
 | [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) | Core Result types and utilities | ✅ Stable |
+| [`@zerothrow/resilience`](packages/resilience) | - | Retry, circuit breaker, timeout - NO THROW! | 🚧 In PR |
 | [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for Result types | ✅ Stable |
 | [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for Result types | 🚧 In PR |
 | `@zerothrow/expect` | - | Shared test matcher logic | 📋 Next |
@@ -45,19 +46,20 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 
 See our [full ecosystem roadmap](https://github.com/zerothrow/zerothrow/discussions) for Phase 3 (Integration Layer) and Phase 4 (Ecosystem Domination) packages including framework adapters, database integrations, and more!
 
-### Latest Features (v0.0.2-alpha)
+### Latest Features
 
 - **✨ `ZT.tryAsync()`** - Cleaner async error handling that returns `Promise<Result<T,E>>`
 - **✨ String error shortcuts** - `ZT.err('ERROR_CODE')` and `ZT.err('CODE', 'message')`
 - **✨ Test matchers** - Result-friendly assertions for Jest (Vitest coming soon!)
 - **✨ Exported types** - `Result`, `Ok`, `Err` types now available at package root
+- **🆕 Resilience patterns** - Production-ready retry, circuit breaker, and timeout policies that NEVER throw!
 
 ### What's Next
 
 - **🔜 Vitest support** - Test matchers for Vitest users
 - **🔜 ESLint plugin** - Enforce no-throw discipline automatically
 - **🔜 React hooks** - `useResult` and other React integrations
-- **🔜 Resilience utilities** - Retry, circuit breaker, timeout patterns
+- **🔜 More integrations** - Logger adapters, framework bindings
 
 ---
 
