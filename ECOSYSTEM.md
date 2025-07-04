@@ -12,6 +12,7 @@
 ### 🛠️ Developer Toolkit
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
+| `@zerothrow/resilience` | - | Retry, circuit breaker, timeout patterns - NO THROW! | 🚧 In PR |
 | `@zerothrow/expect` | - | Shared test matcher logic | 🚧 In Development |
 | `@zerothrow/err-print` | - | Error formatting and display utilities | 📋 Planned |
 | `@zerothrow/testing` | - | Unified testing utilities | 📋 Planned |
@@ -79,6 +80,7 @@ graph TB
 
   %% Developer Tools
   subgraph "DEV TOOLKIT"
+    RESILIENCE["@zerothrow/resilience"]
     EXPECT["@zerothrow/expect"]
     PRINT["@zerothrow/err-print"]
     TESTING["@zerothrow/testing"]
@@ -139,6 +141,7 @@ graph TB
   end
 
   %% Connections
+  CORE --> RESILIENCE
   CORE --> EXPECT
   CORE --> PRINT
   CORE --> ESLINT

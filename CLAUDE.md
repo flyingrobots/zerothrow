@@ -243,6 +243,15 @@ const result = await policy.execute(() =>
 
 ---
 
+## 📦 PACKAGE RELEASE CHECKLIST
+
+**IMPORTANT:** Whenever we release ANY package, we MUST:
+1. ✅ Update the root-level README.md 
+2. ✅ Update ECOSYSTEM.md with the new package
+3. ✅ Update the core package's README if it's a companion package
+4. ✅ Create a GitHub release with changelog
+5. ✅ Update CLAUDE.md with release status
+
 ## 🎖️ ACHIEVEMENTS UNLOCKED
 
 **Alpha Release Badge** 🏅
@@ -254,7 +263,7 @@ const result = await policy.execute(() =>
 **Next Achievement:** Beta Release
 - [ ] Zero `tryR` references
 - [ ] ESLint rules enforced
-- [ ] Resilience API implemented
+- ✅ Resilience API implemented
 - [ ] 95%+ test coverage
 
 ---
