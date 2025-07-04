@@ -2,14 +2,23 @@
   "name": "@zerothrow/vitest",
   "version": "0.0.1-alpha",
   "description": "Vitest matchers for ZeroThrow Result types",
+  "author": "ZeroThrow Contributors",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
   "keywords": [
     "zerothrow",
     "vitest",
     "test",
     "matchers",
     "result",
-    "error-handling"
+    "error-handling",
+    "typescript"
   ],
+  "engines": {
+    "node": ">=16.14"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/zerothrow/zerothrow.git",
@@ -17,21 +26,30 @@
   },
   "license": "MIT",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "default": "./dist/index.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "echo 'Linting is run from monorepo root'"
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'Linting is run from monorepo root'",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "@zerothrow/core": "0.0.2-alpha",
