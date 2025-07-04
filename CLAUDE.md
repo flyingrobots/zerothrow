@@ -104,9 +104,15 @@ ZeroThrow.collect()       // Batch operations
 - [ ] **P6: Add ESLint rule**
   - Ban imports of old names
   - Add to `.config/eslint.config.js`
+  - Add rule to catch `makeCombinable(ZT.ok(...))` - ZT.ok already returns combinable
 - [ ] **P7: Create PR**
   - Branch: `feat/zt-surface-lift`
   - Target: `main`
+
+### DX Improvements
+- [ ] Add `ZT.ok()` overload for void case (no args = `Result<void>`)
+  - Would allow `ZT.ok()` instead of `ZT.ok(undefined)`
+  - Cleaner API for success with no value
 
 ---
 

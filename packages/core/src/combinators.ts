@@ -56,6 +56,12 @@ export interface ResultCombinable<T, E extends Error = ZeroError> {
    * Gets the value if successful, undefined if error
    */
   finally(fn: (value?: T) => void): Result<T, E> & ResultCombinable<T, E>;
+
+  /**
+   * Discard the value and return void
+   * Useful when you only care about success/failure, not the value
+   */
+  void(): Result<void, E> & ResultCombinable<void, E>;
 }
 
 /**
@@ -134,6 +140,11 @@ export function makeCombinable<T, E extends Error = ZeroError>(
     ): Result<T, E> & ResultCombinable<T, E> {
       fn(this.ok ? this.value : undefined);
       return makeCombinable(this);
+    },
+
+    void: function (this: Result<T, E>): Result<void, E> & ResultCombinable<void, E> {
+      if (!this.ok) return makeCombinable(this as Result<void, E>);
+      return makeCombinable(_ok(undefined));
     },
   });
 }

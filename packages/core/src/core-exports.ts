@@ -45,7 +45,7 @@ export type ErrorContext = _ErrorContext;
 
 // NEW: Async type to replace Promise interface
 export interface Async<TValue, TError extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<TValue, TError> & _ResultCombinable<TValue, TError>> {
-  andThen<UValue>(fn: (value: TValue) => Result<UValue, TError>): Async<UValue, TError>;
+  andThen<UValue>(fn: (value: TValue) => Result<UValue, TError> | Async<UValue, TError>): Async<UValue, TError>;
   map<UValue>(fn: (value: TValue) => UValue): Async<UValue, TError>;
   mapErr<FError extends globalThis.Error>(fn: (error: TError) => FError): Async<TValue, FError>;
   orElse(fallback: () => Result<TValue, TError>): Async<TValue, TError>;
@@ -54,6 +54,7 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
   tap(fn: (value: TValue) => void): Async<TValue, TError>;
   tapErr(fn: (error: TError) => void): Async<TValue, TError>;
   finally(fn: (value?: TValue) => void): Async<TValue, TError>;
+  void(): Async<void, TError>;
 }
 
 // ==========================================
@@ -146,8 +147,16 @@ export function enhance<TValue, TError extends globalThis.Error = _ZeroError>(
 ): Async<TValue, TError> {
   const enhanced = promise.then(_makeCombinable) as Async<TValue, TError>;
   
-  enhanced.andThen = function<UValue>(fn: (value: TValue) => Result<UValue, TError>): Async<UValue, TError> {
-    return enhance(this.then(result => result.andThen(fn)));
+  enhanced.andThen = function<UValue>(fn: (value: TValue) => Result<UValue, TError> | Async<UValue, TError>): Async<UValue, TError> {
+    return enhance(this.then(result => {
+      if (!result.ok) return result as Result<UValue, TError>;
+      const fnResult = fn(result.value);
+      // If it's already an Async, return it; otherwise wrap the Result
+      if (fnResult && typeof fnResult === 'object' && 'then' in fnResult) {
+        return fnResult as Async<UValue, TError>;
+      }
+      return fnResult as Result<UValue, TError>;
+    }));
   };
   
   enhanced.map = function<UValue>(fn: (value: TValue) => UValue): Async<UValue, TError> {
@@ -180,6 +189,10 @@ export function enhance<TValue, TError extends globalThis.Error = _ZeroError>(
   
   enhanced.finally = function(fn: (value?: TValue) => void): Async<TValue, TError> {
     return enhance(this.then(result => result.finally(fn)));
+  };
+  
+  enhanced.void = function(): Async<void, TError> {
+    return enhance(this.then(result => result.void()));
   };
   
   return enhanced;
