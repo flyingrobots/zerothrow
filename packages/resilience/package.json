@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Production-grade resilience patterns for ZeroThrow",
   "type": "module",
+  "sideEffects": false,
   "keywords": [
     "zerothrow",
     "result",
@@ -12,18 +13,21 @@
     "timeout",
     "fault-tolerance"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup",
@@ -50,10 +54,10 @@
   "author": "ZeroThrow Contributors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zerothapp/zerothrow.git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
     "directory": "packages/resilience"
   },
   "bugs": {
-    "url": "https://github.com/zerothapp/zerothrow/issues"
+    "url": "https://github.com/zerothrow/zerothrow/issues"
   }
 }

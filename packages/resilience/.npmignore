@@ -1,0 +1,20 @@
+# Source files
+src/
+test/
+
+# Config files
+tsconfig.json
+tsconfig.eslint.json
+tsup.config.ts
+vitest.config.ts
+
+# Design docs
+API.md
+DESIGN.md
+
+# Dev dependencies
+node_modules/
+.turbo/
+
+# Build artifacts not in dist
+*.tsbuildinfo
