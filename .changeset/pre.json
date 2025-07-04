@@ -1,0 +1,16 @@
+{
+  "mode": "pre",
+  "tag": "alpha",
+  "initialVersions": {
+    "@zerothrow/core": "0.0.2",
+    "@zerothrow/expect": "0.0.1",
+    "@zerothrow/jest": "0.1.1",
+    "@zerothrow/testing": "0.0.1",
+    "@zerothrow/vitest": "0.1.0"
+  },
+  "changesets": [
+    "expect-refactor",
+    "restore-alpha-discipline",
+    "test-packages-alpha"
+  ]
+}
