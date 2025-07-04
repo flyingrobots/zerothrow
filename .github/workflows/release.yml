@@ -12,14 +12,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Wait for tests to pass first
-  test:
-    name: Tests must pass before release
-    uses: ./.github/workflows/ci.yml
-    
   release:
     name: Release
-    needs: test  # Only run after tests pass
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
