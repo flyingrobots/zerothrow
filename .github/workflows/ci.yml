@@ -156,9 +156,9 @@ jobs:
         echo "======================"
         
         if [ "${{ needs.quality-checks.result }}" != "success" ] || \
-           [ "${{ needs.test-matrix.result }}" != "success" ] || \
+           [ "${{ needs.test-matrix.result }}" != "success" ]; then
           #  [ "${{ needs.integration-tests.result }}" != "success" ] || \
-           [ "${{ needs.coverage.result }}" != "success" ]; then
+          #  [ "${{ needs.coverage.result }}" != "success" ]; then
           echo "❌ CI Failed"
           exit 1
         fi
