@@ -16,7 +16,7 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 [The Result Mindset](#the-result-mindset) • [Composability](#composability) • [Interop](#interop-for-legacy-code)<br/>
 [Tooling](#tooling) • [Performance](#performance) • [Migration](#migration-guide)
 
-> 🚀 **v0.0.1-alpha released!** Core functionality is stable and ready for early adopters. [See roadmap](#roadmap)
+> 🚀 **Now in alpha!** Core functionality is stable and ready for early adopters. [See roadmap](#roadmap)
 
 </div>
 
