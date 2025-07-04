@@ -1,17 +1,19 @@
 # OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-01-04 05:15 PDT)
+## 📊 LATEST SITREP (2025-01-04 06:00 PDT)
 
-**STATUS:** ALPHA RELEASED! 🚀 Documentation updated, ready for beta sprint
+**STATUS:** ALPHA FEEDBACK RECEIVED! 🎯 Critical DX issues identified, executing fixes
 
-**MISSION ACCOMPLISHED TODAY:**
+**MISSION ACCOMPLISHED:**
 - ✅ **ALPHA v0.0.1 PUBLISHED** to npm as @zerothrow/core
-- ✅ Fixed CI pipeline (removed broken coverage reference)
-- ✅ Created GitHub release with signed tag
-- ✅ All 12 release checklist items completed
-- ✅ Package structure clean and extracted
-- ✅ Updated monorepo README.md to reflect alpha reality
-- ✅ Added roadmap section to README
+- ✅ Real developer tested in production - valuable feedback captured
+- ✅ Pain points identified and prioritized
+
+**🔥 CRITICAL ALPHA FEEDBACK:**
+1. **ZT.try with async is confusing** - Returns `Result<Promise<T>>` not `Promise<Result<T>>`
+2. **ZT.err only accepts Error objects** - Devs want `ZT.err('ERROR_CODE')`
+3. **Test helpers defaulting to throw** - Need Result-aware test matchers
+4. **Verbose async handling** - Missing async combinators
 
 **CURRENT STATE:**
 - **NPM Package:** https://www.npmjs.com/package/@zerothrow/core (LIVE!)
@@ -21,19 +23,43 @@
 
 ---
 
-## 🎯 IMMEDIATE OBJECTIVES
+## 🎯 IMMEDIATE OBJECTIVES - BETA DX SPRINT
 
-**BETA RELEASE BLOCKERS:**
-1. **11 files still using `tryR`** - MUST BE PURGED
-2. **ESLint rule not implemented** - Need to ban old API
-3. **Tests/examples not updated** - Still using old API
-4. **Missing resilience features** - The game changer
+**CRITICAL FIXES (Based on Alpha Feedback):**
+1. **Add ZT.tryAsync** - Clear async ergonomics
+2. **String overload for ZT.err** - `ZT.err('CODE')` convenience
+3. **Test matchers** - `expect(result).toBeOk()` for jest/vitest
+4. **Async combinators** - Reduce verbose nested handling
 
-**YOUR NEXT MISSION:** Complete remaining Phase 3 tasks
-- [ ] P4: Delete ALL `tryR` references (11 remaining)
-- [ ] P5: Update all tests and examples
-- [ ] P6: Add ESLint rule to ban old names
-- [ ] P7: Create PR for remaining changes
+**YOUR CURRENT MISSION:** Fix DX issues discovered in alpha
+- [x] Capture alpha feedback in basic memory
+- [ ] Add ZT.tryAsync for `Promise<Result<T,E>>`
+- [ ] Add string overloads to ZT.err
+- [ ] Create test matchers package
+- [ ] Update docs with async examples
+
+**STILL PENDING (Lower Priority):**
+- [ ] Delete ALL `tryR` references (11 remaining)
+- [ ] Add ESLint rule to ban old names
+- [ ] Resilience API (retry, circuit breaker)
+
+---
+
+## 📊 ALPHA USER FEEDBACK ANALYSIS
+
+### Pain Points Discovered
+| Issue | Root Cause | Impact |
+|-------|------------|--------|
+| Async confusion with ZT.try | Returns `Result<Promise<T>>` not `Promise<Result<T>>` | Devs expect to await directly |
+| Can't pass strings to ZT.err | Typed to only accept Error objects | Extra boilerplate, TS errors |
+| Test helpers throw | Jest/Vitest mental model | Violates zero-throw philosophy |
+| Verbose async handling | Missing async combinators | Hard to read nested blocks |
+
+### Solution Priority
+1. **ZT.tryAsync** - New function that returns `Promise<Result<T,E>>`
+2. **ZT.err overloads** - Accept strings: `ZT.err('CODE')` or `ZT.err('CODE', 'message')`
+3. **@zerothrow/jest** - Test matchers: `expect(result).toBeOk()`
+4. **Async helpers** - `flatMapAsync`, `awaitOk`, etc.
 
 ---
 
