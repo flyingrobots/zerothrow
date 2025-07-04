@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Example: Multi-step order processing with Result chaining
 interface OrderData {
@@ -165,12 +166,12 @@ export function CheckoutFlow() {
     setCurrentStep('');
   };
 
-  // Alternative approach using tryR for the entire flow
+  // Alternative approach using ZT.try for the entire flow
   const processOrderWithTryR = async () => {
     setProcessing(true);
     setResult(null);
 
-    const orderResult = await tryR(async () => {
+    const orderResult = await ZT.try(async () => {
       setCurrentStep('Processing order...');
       
       // Validate
@@ -240,7 +241,7 @@ export function CheckoutFlow() {
           disabled={processing}
           className="btn-secondary"
         >
-          Process Order (With tryR)
+          Process Order (With ZT.try)
         </button>
       </div>
 
@@ -298,8 +299,8 @@ const error = err(new ZeroError('NOT_FOUND', 'User not found'));`
 }`
     },
     {
-      title: 'Using tryR for Exception Handling',
-      code: `const result = await tryR(
+      title: 'Using ZT.try for Exception Handling',
+      code: `const result = await ZT.try(
   async () => {
     const data = await fetchData();
     return processData(data);
@@ -309,12 +310,13 @@ const error = err(new ZeroError('NOT_FOUND', 'User not found'));`
     },
     {
       title: 'Wrapping Errors',
-      code: `import { wrap } from '@zerothrow/zerothrow';
+      code: `import { ZeroThrow } from '@zerothrow/zerothrow';
+const { err } = ZeroThrow;
 
 try {
   await riskyOperation();
 } catch (error) {
-  return err(wrap(error, 'OPERATION_FAILED', 'Risky operation failed'));
+  return err(ZeroThrow.wrap(error, 'OPERATION_FAILED', 'Risky operation failed'));
 }`
     }
   ];

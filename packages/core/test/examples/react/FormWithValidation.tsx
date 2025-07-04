@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Result, ok, err, ZeroError as _ZeroError } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow } from '@zerothrow/zerothrow';
+const { ok, err } = ZeroThrow;
 
 // Validation types
 type ValidationError = {

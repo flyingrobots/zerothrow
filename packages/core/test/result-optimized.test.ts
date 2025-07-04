@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ZT, ZeroThrow } from '../src/index.js';
 
-describe('tryRSync', () => {
+describe('ZT.try sync', () => {
   it('should handle sync success', () => {
     const result = ZT.try(() => 42);
     expect(result.ok).toBe(true);
@@ -48,7 +48,7 @@ describe('tryRSync', () => {
   });
 });
 
-describe('tryRBatch', () => {
+describe('ZT.try batch', () => {
   it('should handle all successful operations', async () => {
     const fns = [() => 1, () => 2, async () => 3, () => 4];
 
@@ -120,7 +120,7 @@ describe('tryRBatch', () => {
   });
 });
 
-describe('optimized tryR', () => {
+describe('optimized ZT.try', () => {
   it('should return Result directly for synchronous functions', () => {
     const result = ZT.try(() => 42);
     expect(result).not.toBeInstanceOf(Promise);

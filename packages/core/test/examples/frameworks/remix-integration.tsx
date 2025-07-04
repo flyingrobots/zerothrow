@@ -1,6 +1,7 @@
 // Remix Integration Guide for ZeroThrow
 
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 import type { 
   LoaderFunctionArgs, 
   ActionFunctionArgs,
@@ -574,7 +575,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function parseRequestBody<T>(
   request: Request
 ): Promise<Result<T, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const contentType = request.headers.get('content-type');
       

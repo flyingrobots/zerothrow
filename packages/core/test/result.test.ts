@@ -13,11 +13,11 @@ describe('Result helpers', () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBe(e);
   });
-  it('tryR success', async () => {
+  it('ZT.try success', async () => {
     const r = await ZT.try(() => 1);
     expect(r.ok).toBe(true);
   });
-  it('tryR failure', async () => {
+  it('ZT.try failure', async () => {
     const r = await ZT.try(() => {
       throw new Error('bad');
     });
@@ -116,7 +116,7 @@ describe('wrap function', () => {
   });
 });
 
-describe('tryR advanced cases', () => {
+describe('ZT.try advanced cases', () => {
   it('handles errors with ZeroError-like properties', async () => {
     const errorLike = Object.assign(new Error('Error with code'), {
       code: 'CUSTOM_CODE',

@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client';
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Prisma integration with ZeroThrow error handling
 
@@ -28,7 +29,7 @@ interface Post {
 // User repository with Result-based error handling
 export class UserRepository {
   async findById(id: string): Promise<Result<User | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const user = await prisma.user.findUnique({
           where: { id }
@@ -40,7 +41,7 @@ export class UserRepository {
   }
 
   async findByEmail(email: string): Promise<Result<User | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const user = await prisma.user.findUnique({
           where: { email }
@@ -55,7 +56,7 @@ export class UserRepository {
     email: string;
     name: string;
   }): Promise<Result<User, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const user = await prisma.user.create({
           data
@@ -70,7 +71,7 @@ export class UserRepository {
     id: string,
     data: Partial<{ email: string; name: string }>
   ): Promise<Result<User, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const user = await prisma.user.update({
           where: { id },
@@ -83,7 +84,7 @@ export class UserRepository {
   }
 
   async delete(id: string): Promise<Result<User, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const user = await prisma.user.delete({
           where: { id }
@@ -99,7 +100,7 @@ export class UserRepository {
     take?: number;
     orderBy?: Prisma.UserOrderByWithRelationInput;
   }): Promise<Result<User[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const users = await prisma.user.findMany(params);
         return users;
@@ -167,7 +168,7 @@ export class PostRepository {
     authorId: string;
     published?: boolean;
   }): Promise<Result<Post, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const post = await prisma.post.create({
           data: {
@@ -186,7 +187,7 @@ export class PostRepository {
   }
 
   async findById(id: string): Promise<Result<Post | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const post = await prisma.post.findUnique({
           where: { id },
@@ -208,7 +209,7 @@ export class PostRepository {
       publishedOnly?: boolean;
     }
   ): Promise<Result<Post[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const posts = await prisma.post.findMany({
           where: {
@@ -226,7 +227,7 @@ export class PostRepository {
   }
 
   async publish(id: string): Promise<Result<Post, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const post = await prisma.post.update({
           where: { id },
@@ -254,7 +255,7 @@ export async function createUserWithPost(
   userData: { email: string; name: string },
   postData: { title: string; content: string }
 ): Promise<Result<{ user: User; post: Post }, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const result = await prisma.$transaction(async (tx) => {
         // Create user
@@ -304,7 +305,7 @@ export async function batchCreateUsers(
   for (let i = 0; i < usersData.length; i += batchSize) {
     const batch = usersData.slice(i, i + batchSize);
     
-    const result = await tryR(
+    const result = await ZT.try(
       async () => {
         const count = await prisma.user.createMany({
           data: batch,

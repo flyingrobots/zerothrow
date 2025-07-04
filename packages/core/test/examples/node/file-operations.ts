@@ -1,6 +1,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Result, ok, err, ZeroError, tryR, wrap as _wrap } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // File operations with ZeroThrow error handling
 
@@ -14,7 +15,7 @@ interface FileInfo {
 
 // Safe file reading with Result
 export async function readFile(filePath: string): Promise<Result<string, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const content = await fs.readFile(filePath, 'utf-8');
       return content;
@@ -32,7 +33,7 @@ export async function writeFile(
   filePath: string, 
   content: string
 ): Promise<Result<void, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       await fs.writeFile(filePath, content, 'utf-8');
     },
@@ -60,7 +61,7 @@ export async function deleteFile(filePath: string): Promise<Result<void, ZeroErr
     ));
   }
 
-  return tryR(
+  return ZT.try(
     async () => {
       await fs.unlink(filePath);
     },
@@ -74,7 +75,7 @@ export async function deleteFile(filePath: string): Promise<Result<void, ZeroErr
 
 // Check if file exists
 export async function fileExists(filePath: string): Promise<Result<boolean, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       try {
         await fs.access(filePath);
@@ -93,7 +94,7 @@ export async function fileExists(filePath: string): Promise<Result<boolean, Zero
 
 // Get file info
 export async function getFileInfo(filePath: string): Promise<Result<FileInfo, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const stats = await fs.stat(filePath);
       return {
@@ -114,7 +115,7 @@ export async function getFileInfo(filePath: string): Promise<Result<FileInfo, Ze
 
 // List directory contents
 export async function listDirectory(dirPath: string): Promise<Result<FileInfo[], ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const entries = await fs.readdir(dirPath);
       const fileInfos: FileInfo[] = [];
@@ -141,7 +142,7 @@ export async function listDirectory(dirPath: string): Promise<Result<FileInfo[],
 
 // Create directory with parents
 export async function createDirectory(dirPath: string): Promise<Result<void, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       await fs.mkdir(dirPath, { recursive: true });
     },
@@ -172,7 +173,7 @@ export async function copyFile(
     ));
   }
 
-  return tryR(
+  return ZT.try(
     async () => {
       await fs.copyFile(source, destination);
     },
@@ -191,7 +192,7 @@ export async function readJsonFile<T>(filePath: string): Promise<Result<T, ZeroE
     return err(contentResult.error);
   }
 
-  return tryR(
+  return ZT.try(
     () => JSON.parse(contentResult.value) as T,
     (error) => new ZeroError(
       'JSON_PARSE_ERROR',
@@ -206,7 +207,7 @@ export async function writeJsonFile<T>(
   data: T,
   pretty = true
 ): Promise<Result<void, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const content = pretty 
         ? JSON.stringify(data, null, 2)

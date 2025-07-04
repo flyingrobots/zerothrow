@@ -1,4 +1,5 @@
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Generic SQL database integration with ZeroThrow
 // This example can work with any SQL driver (pg, mysql2, sqlite3, etc.)
@@ -21,7 +22,7 @@ export abstract class BaseRepository<T> {
   ) {}
 
   async findById(id: string | number): Promise<Result<T | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const rows = await this.db.query<T>(
           `SELECT * FROM ${this.tableName} WHERE id = ?`,
@@ -39,7 +40,7 @@ export abstract class BaseRepository<T> {
     orderBy?: string;
     orderDirection?: 'ASC' | 'DESC';
   }): Promise<Result<T[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         let sql = `SELECT * FROM ${this.tableName}`;
         const params: any[] = [];
@@ -65,7 +66,7 @@ export abstract class BaseRepository<T> {
   }
 
   async findOne(conditions: Record<string, any>): Promise<Result<T | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const keys = Object.keys(conditions);
         const _placeholders = keys.map(() => '?').join(' AND ');
@@ -81,7 +82,7 @@ export abstract class BaseRepository<T> {
   }
 
   async create(data: Partial<T>): Promise<Result<T, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const keys = Object.keys(data);
         const values = Object.values(data);
@@ -109,7 +110,7 @@ export abstract class BaseRepository<T> {
     id: string | number,
     data: Partial<T>
   ): Promise<Result<T, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const keys = Object.keys(data);
         const values = Object.values(data);
@@ -130,7 +131,7 @@ export abstract class BaseRepository<T> {
   }
 
   async delete(id: string | number): Promise<Result<boolean, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const sql = `DELETE FROM ${this.tableName} WHERE id = ?`;
         const result = await this.db.execute(sql, [id]);
@@ -393,7 +394,7 @@ export class ConnectionPool {
     }
 
     if (this.connections.length < this.maxConnections) {
-      return tryR(
+      return ZT.try(
         async () => {
           const conn = await this.createConnection();
           this.connections.push(conn);
@@ -424,7 +425,7 @@ export class ConnectionPool {
     const errors: ZeroError[] = [];
 
     for (const conn of this.connections) {
-      const result = await tryR(
+      const result = await ZT.try(
         () => conn.close(),
         (error) => new ZeroError(
           'CLOSE_ERROR',
@@ -493,7 +494,7 @@ export async function example(db: DatabaseConnection) {
     .limit(10);
 
   const { sql, params } = query.build();
-  const topUsersResult = await tryR(
+  const topUsersResult = await ZT.try(
     () => db.query(sql, params),
     (error) => new ZeroError('QUERY_ERROR', 'Failed to get top users', { sql, params, cause: error })
   );

@@ -1,5 +1,6 @@
 import React, { Component, ReactNode, useEffect, useState } from 'react';
-import { Result, ok, err, ZeroError } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Error Boundary component that works with Result types
 interface ErrorBoundaryState {

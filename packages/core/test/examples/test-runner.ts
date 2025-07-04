@@ -4,7 +4,8 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { Result, ok, err, ZeroError, tryR } from '../../src/index.js';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -150,7 +151,7 @@ class ExampleTestRunner {
   }
 
   private async validateExample(example: ExampleConfig): Promise<Result<ValidationResult, ZeroError>> {
-    return tryR(() => {
+    return ZT.try(() => {
       const examplePath = join(this.examplesDir, example.directory);
       const issues: string[] = [];
 
@@ -219,7 +220,7 @@ class ExampleTestRunner {
     console.log(`\n🔍 Type checking ${example.description}...`);
     console.log('----------------------------------------');
 
-    return tryR(() => {
+    return ZT.try(() => {
       const examplePath = join(this.examplesDir, example.directory);
       
       // Run tsc --noEmit for type checking

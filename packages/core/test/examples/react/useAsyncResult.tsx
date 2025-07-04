@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Result, ok, err } from '@zerothrow/zerothrow';
-import { ZeroError } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 /**
  * Custom React hook for handling async operations with ZeroThrow Result type

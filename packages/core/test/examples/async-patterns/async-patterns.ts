@@ -1,10 +1,11 @@
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Comprehensive async/await patterns with ZeroThrow
 
 // Pattern 1: Basic async operation with Result
 export async function fetchUserData(userId: string): Promise<Result<any, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const response = await fetch(`/api/users/${userId}`);
       if (!response.ok) {

@@ -1,5 +1,6 @@
 import React, { useReducer, useCallback } from 'react';
-import { Result, ok as _ok, err as _err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ZeroError } = ZeroThrow;
 
 // State management with Result types
 type AsyncState<T> = 
@@ -67,8 +68,8 @@ export function UserSettingsManager({ userId }: { userId: string }) {
 
   const loadSettings = useCallback(async () => {
     await execute(async () => {
-      // Simulate API call with tryR
-      return tryR(async () => {
+      // Simulate API call with ZT.try
+      return ZT.try(async () => {
         const response = await fetch(`/api/users/${userId}/settings`);
         
         if (!response.ok) {
@@ -86,7 +87,7 @@ export function UserSettingsManager({ userId }: { userId: string }) {
 
   const updateSettings = useCallback(async (updates: Partial<UserSettings>) => {
     await execute(async () => {
-      return tryR(async () => {
+      return ZT.try(async () => {
         const response = await fetch(`/api/users/${userId}/settings`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ok, err, ZeroError } from '@zerothrow/zerothrow';
+import { ZeroThrow } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Mock the framework utilities we're testing
 describe('Framework Integration Patterns', () => {

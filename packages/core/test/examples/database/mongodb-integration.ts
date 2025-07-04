@@ -1,5 +1,6 @@
 import { MongoClient, Db, Collection, ObjectId, MongoError } from 'mongodb';
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // MongoDB integration with ZeroThrow error handling
 
@@ -47,7 +48,7 @@ export class MongoConnection {
   ) {}
 
   async connect(): Promise<Result<Db, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         this.client = new MongoClient(this.connectionString);
         await this.client.connect();
@@ -67,7 +68,7 @@ export class MongoConnection {
       return ok(undefined);
     }
 
-    return tryR(
+    return ZT.try(
       async () => {
         await this.client!.close();
         this.client = undefined;
@@ -104,7 +105,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async findById(id: string | ObjectId): Promise<Result<T | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const objectId = typeof id === 'string' ? new ObjectId(id) : id;
         const document = await this.collection.findOne({ _id: objectId } as any);
@@ -115,7 +116,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async findOne(filter: Partial<T>): Promise<Result<T | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const document = await this.collection.findOne(filter as any);
         return document;
@@ -133,7 +134,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
       projection?: Record<string, 0 | 1>;
     }
   ): Promise<Result<T[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         let cursor = this.collection.find(filter as any);
 
@@ -158,7 +159,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async create(data: Omit<T, '_id' | 'createdAt' | 'updatedAt'>): Promise<Result<T, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const now = new Date();
         const document = {
@@ -184,7 +185,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
     id: string | ObjectId,
     updates: Partial<Omit<T, '_id' | 'createdAt' | 'updatedAt'>>
   ): Promise<Result<T | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const objectId = typeof id === 'string' ? new ObjectId(id) : id;
         const result = await this.collection.findOneAndUpdate(
@@ -205,7 +206,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async delete(id: string | ObjectId): Promise<Result<boolean, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const objectId = typeof id === 'string' ? new ObjectId(id) : id;
         const result = await this.collection.deleteOne({ _id: objectId } as any);
@@ -216,7 +217,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async count(filter: Partial<T> = {}): Promise<Result<number, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const count = await this.collection.countDocuments(filter as any);
         return count;
@@ -226,7 +227,7 @@ export abstract class MongoRepository<T extends BaseDocument> {
   }
 
   async createMany(documents: Array<Omit<T, '_id' | 'createdAt' | 'updatedAt'>>): Promise<Result<T[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const now = new Date();
         const docsWithTimestamps = documents.map(doc => ({
@@ -319,7 +320,7 @@ export class UserRepository extends MongoRepository<User> {
     userId: string | ObjectId,
     settings: Partial<User['settings']>
   ): Promise<Result<User | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const objectId = typeof userId === 'string' ? new ObjectId(userId) : userId;
         const result = await this.collection.findOneAndUpdate(
@@ -343,7 +344,7 @@ export class UserRepository extends MongoRepository<User> {
     searchText: string,
     options?: { limit?: number; skip?: number }
   ): Promise<Result<User[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const cursor = this.collection.find({
           $or: [
@@ -384,7 +385,7 @@ export class ProductRepository extends MongoRepository<Product> {
       inStock?: boolean;
     }
   ): Promise<Result<Product[], ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const filter: any = { category };
 
@@ -408,7 +409,7 @@ export class ProductRepository extends MongoRepository<Product> {
     productId: string | ObjectId,
     quantityChange: number
   ): Promise<Result<Product | null, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const objectId = typeof productId === 'string' ? new ObjectId(productId) : productId;
         
@@ -440,7 +441,7 @@ export class ProductRepository extends MongoRepository<Product> {
     avgPrice: number;
     totalValue: number;
   }>, ZeroError>> {
-    return tryR(
+    return ZT.try(
       async () => {
         const pipeline = [
           {
@@ -482,7 +483,7 @@ export async function transferInventory(
 ): Promise<Result<void, ZeroError>> {
   const session = db.client.startSession();
 
-  return tryR(
+  return ZT.try(
     async () => {
       await session.withTransaction(async () => {
         const products = db.collection<Product>('products');
@@ -543,7 +544,7 @@ export class ProductService {
     // Start a session for transaction
     const session = this.db.client.startSession();
 
-    return tryR(
+    return ZT.try(
       async () => {
         let result: { product: Product; totalPrice: number } | null = null;
 

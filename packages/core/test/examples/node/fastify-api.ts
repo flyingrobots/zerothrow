@@ -1,5 +1,6 @@
 import Fastify, { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // Fastify API example with ZeroThrow
 
@@ -97,7 +98,7 @@ class TaskService {
   }
 
   async searchTasks(query: string): Promise<Result<Task[], ZeroError>> {
-    return tryR(() => {
+    return ZT.try(() => {
       const lowercaseQuery = query.toLowerCase();
       const results = Array.from(this.tasks.values()).filter(task =>
         task.title.toLowerCase().includes(lowercaseQuery) ||

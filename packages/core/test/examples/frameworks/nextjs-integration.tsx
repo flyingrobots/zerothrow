@@ -1,6 +1,7 @@
 // Next.js Integration Guide for ZeroThrow
 
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 import { NextRequest, NextResponse } from 'next/server';
 import { GetServerSideProps, GetStaticProps as _GetStaticProps } from 'next';
 import { useEffect, useState } from 'react';
@@ -51,7 +52,7 @@ export async function PUT(
 
 // Helper to parse request body with error handling
 async function parseRequestBody<T>(request: NextRequest): Promise<Result<T, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const body = await request.json();
       return body as T;
@@ -140,7 +141,7 @@ export function UserDashboard({ userId: _userId }: { userId: string }) {
 
 // Client-side fetch with Result
 async function fetchUserData(_userId: string): Promise<Result<UserData, ZeroError>> {
-  return tryR(
+  return ZT.try(
     async () => {
       const response = await fetch(`/api/users/${_userId}`);
       

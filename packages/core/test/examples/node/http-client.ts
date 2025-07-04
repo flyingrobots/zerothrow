@@ -1,4 +1,5 @@
-import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+const { ok, err, ZeroError } = ZeroThrow;
 
 // HTTP client with ZeroThrow error handling
 
@@ -71,7 +72,7 @@ export class HttpClient {
     url: string,
     options: Required<Omit<HttpRequestOptions, 'retries'>>
   ): Promise<Result<HttpResponse<T>, ZeroError>> {
-    return tryR(async () => {
+    return ZT.try(async () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), options.timeout);
 
