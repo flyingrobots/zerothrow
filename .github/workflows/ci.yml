@@ -23,16 +23,13 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies  
-      run: npm ci --workspaces --include-workspace-root --force
+      run: npm ci --ignore-scripts --workspaces --include-workspace-root
 
     - name: Run linter
       run: npm run lint
 
     - name: Build project
-      run: |
-        # Ensure rollup deps are installed for the build
-        cd packages/core && npm ci && cd ../..
-        npm run build
+      run: npm run build
 
     - name: Check types
       run: npx tsc --noEmit
@@ -56,13 +53,10 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies  
-      run: npm ci --workspaces --include-workspace-root --force
+      run: npm ci --ignore-scripts --workspaces --include-workspace-root
 
     - name: Run unit tests
-      run: |
-        # Ensure rollup deps are installed for the test build
-        cd packages/core && npm ci && cd ../..
-        npm test
+      run: npm test
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -122,13 +116,10 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies  
-      run: npm ci --workspaces --include-workspace-root --force
+      run: npm ci --ignore-scripts --workspaces --include-workspace-root
 
     - name: Run tests with coverage
-      run: |
-        # Ensure rollup deps are installed for the test build
-        cd packages/core && npm ci && cd ../..
-        npm test
+      run: npm test
 
     - name: Check coverage thresholds
       run: npx tsx scripts/ci/coverage-check.ts --threshold 90
