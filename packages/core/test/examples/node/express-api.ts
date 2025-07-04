@@ -20,13 +20,27 @@ interface CreateUserDto {
 class UserRepository {
   private users: Map<string, User> = new Map();
 
+  constructor() {
+    // Seed with test data
+    this.users.set('valid-id', {
+      id: 'valid-id',
+      name: 'Test User',
+      email: 'test@example.com'
+    });
+    this.users.set('existing-id', {
+      id: 'existing-id',
+      name: 'Existing User',
+      email: 'existing@example.com'
+    });
+  }
+
   async findById(id: string): Promise<Result<User, ZeroError>> {
     const user = this.users.get(id);
     if (!user) {
       return err(new ZeroError(
         'USER_NOT_FOUND',
         `User with id ${id} not found`,
-        { userId: id }
+        { context: { userId: id } }
       ));
     }
     return ok(user);
@@ -48,7 +62,7 @@ class UserRepository {
       return err(new ZeroError(
         'EMAIL_EXISTS',
         'User with this email already exists',
-        { email: data.email }
+        { context: { email: data.email } }
       ));
     }
 
@@ -79,7 +93,7 @@ class UserRepository {
         return err(new ZeroError(
           'EMAIL_EXISTS',
           'User with this email already exists',
-          { email: data.email }
+          { context: { email: data.email } }
         ));
       }
     }
@@ -94,7 +108,7 @@ class UserRepository {
       return err(new ZeroError(
         'USER_NOT_FOUND',
         `User with id ${id} not found`,
-        { userId: id }
+        { context: { userId: id } }
       ));
     }
     this.users.delete(id);
@@ -122,7 +136,7 @@ class UserService {
       return err(new ZeroError(
         'VALIDATION_ERROR',
         'Name must be at least 2 characters long',
-        { field: 'name', value: data.name }
+        { context: { field: 'name', value: data.name } }
       ));
     }
 
@@ -131,7 +145,7 @@ class UserService {
       return err(new ZeroError(
         'VALIDATION_ERROR',
         'Invalid email format',
-        { field: 'email', value: data.email }
+        { context: { field: 'email', value: data.email } }
       ));
     }
 

@@ -38,7 +38,7 @@ class TaskService {
       return err(new ZeroError(
         'TASK_NOT_FOUND',
         `Task with id ${id} not found`,
-        { taskId: id }
+        { context: { taskId: id } }
       ));
     }
     return ok(task);
@@ -50,7 +50,7 @@ class TaskService {
       return err(new ZeroError(
         'VALIDATION_ERROR',
         'Task title is required',
-        { field: 'title' }
+        { context: { field: 'title' } }
       ));
     }
 
@@ -89,7 +89,7 @@ class TaskService {
       return err(new ZeroError(
         'TASK_NOT_FOUND',
         `Task with id ${id} not found`,
-        { taskId: id }
+        { context: { taskId: id } }
       ));
     }
     
@@ -108,7 +108,7 @@ class TaskService {
     }, (error) => new ZeroError(
       'SEARCH_ERROR',
       'Failed to search tasks',
-      { query, cause: error }
+      { context: { query }, cause: error as Error }
     ));
   }
 }
