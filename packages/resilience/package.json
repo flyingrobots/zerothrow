@@ -51,7 +51,11 @@
     "access": "public"
   },
   "license": "MIT",
-  "author": "ZeroThrow Contributors",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> https://github.com/flyingrobots",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zerothrow/zerothrow.git",
