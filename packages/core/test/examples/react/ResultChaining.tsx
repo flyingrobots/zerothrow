@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // Example: Multi-step order processing with Result chaining
 interface OrderData {
@@ -309,7 +309,7 @@ const error = err(new ZeroError('NOT_FOUND', 'User not found'));`
     },
     {
       title: 'Wrapping Errors',
-      code: `import { wrap } from '@flyingrobots/zerothrow';
+      code: `import { wrap } from '@zerothrow/zerothrow';
 
 try {
   await riskyOperation();

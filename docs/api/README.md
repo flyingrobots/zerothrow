@@ -16,7 +16,7 @@ Complete API documentation for the ZeroThrow error handling library.
 ### Creating Results
 
 ```typescript
-import { ok, err } from '@flyingrobots/zerothrow';
+import { ok, err } from '@zerothrow/zerothrow';
 
 // Success
 const success = ok(42);
@@ -28,7 +28,7 @@ const failure = err('Something went wrong');
 ### Working with Results
 
 ```typescript
-import { tryR, wrap } from '@flyingrobots/zerothrow';
+import { tryR, wrap } from '@zerothrow/zerothrow';
 
 // Convert async operations
 const result = await tryR(async () => {
@@ -56,7 +56,7 @@ if (result.isOk) {
 ## Installation
 
 ```bash
-npm install @flyingrobots/zerothrow
+npm install @zerothrow/zerothrow
 ```
 
 ## Next Steps

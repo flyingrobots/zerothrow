@@ -1,4 +1,4 @@
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // Generic SQL database integration with ZeroThrow
 // This example can work with any SQL driver (pg, mysql2, sqlite3, etc.)

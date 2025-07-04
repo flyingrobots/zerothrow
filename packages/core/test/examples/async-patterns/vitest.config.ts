@@ -8,7 +8,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@flyingrobots/zerothrow': './src/index.ts'
+      '@zerothrow/zerothrow': './src/index.ts'
     }
   }
 });

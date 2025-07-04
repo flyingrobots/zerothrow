@@ -209,7 +209,7 @@ describe('enhanced no-throw rule with auto-fix', () => {
           body: [
             {
               type: 'ImportDeclaration',
-              source: { value: '@flyingrobots/zerothrow' },
+              source: { value: '@zerothrow/zerothrow' },
               specifiers: [
                 { type: 'ImportSpecifier', imported: { name: 'Result' } },
               ],
@@ -264,7 +264,7 @@ describe('enhanced no-throw rule with auto-fix', () => {
           body: [
             {
               type: 'ImportDeclaration',
-              source: { value: '@flyingrobots/zerothrow' },
+              source: { value: '@zerothrow/zerothrow' },
               specifiers: [
                 { type: 'ImportSpecifier', imported: { name: 'ZeroError' } },
               ],
@@ -298,7 +298,7 @@ describe('enhanced no-throw rule with auto-fix', () => {
       return importText.includes('import {') && 
              importText.includes('ZeroError') && 
              importText.includes('err') &&
-             importText.includes("from '@flyingrobots/zerothrow'");
+             importText.includes("from '@zerothrow/zerothrow'");
     });
     expect(replaceCall).toBeDefined();
   });
@@ -367,7 +367,7 @@ describe('enhanced no-throw rule with auto-fix', () => {
         {
           code: `function test() { throw new Error('User not found'); }`,
           errors: [{ messageId: 'noThrow' }],
-          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+          output: `import { err, ZeroError, Result } from '@zerothrow/zerothrow';
 function test(): Result<unknown, ZeroError> { return err(new ZeroError('NOT_FOUND', "User not found")); }`,
         },
       ],
@@ -385,7 +385,7 @@ function test(): Result<unknown, ZeroError> { return err(new ZeroError('NOT_FOUN
         {
           code: `async function test() { throw new Error('Database error'); }`,
           errors: [{ messageId: 'noThrow' }],
-          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+          output: `import { err, ZeroError, Result } from '@zerothrow/zerothrow';
 async function test(): Promise<Result<unknown, ZeroError>> { return err(new ZeroError('DATABASE_ERROR', "Database error")); }`,
         },
       ],
@@ -403,7 +403,7 @@ async function test(): Promise<Result<unknown, ZeroError>> { return err(new Zero
         {
           code: `const test = () => { throw new Error('Validation error'); }`,
           errors: [{ messageId: 'noThrow' }],
-          output: `import { err, ZeroError, Result } from '@flyingrobots/zerothrow';
+          output: `import { err, ZeroError, Result } from '@zerothrow/zerothrow';
 const test = (): Result<unknown, ZeroError> => { return err(new ZeroError('VALIDATION_ERROR', "Validation error")); }`,
         },
       ],
@@ -509,7 +509,7 @@ const test = (): Result<unknown, ZeroError> => { return err(new ZeroError('VALID
           body: [
             {
               type: 'ImportDeclaration',
-              source: { value: '@flyingrobots/zerothrow' },
+              source: { value: '@zerothrow/zerothrow' },
               specifiers: [
                 { type: 'ImportSpecifier', imported: { name: 'err' } },
               ],

@@ -366,7 +366,7 @@ async function main(): Promise<number> {
   console.log('  • Check for partially staged files');
   console.log('  • Provide interactive staging options');
   console.log('  • Run ESLint with no-throw rules');
-  console.log('\nFor more info: https://github.com/flyingrobots/zerothrow');
+  console.log('\nFor more info: https://github.com/zerothrow/zerothrow');
   
   return 0;
 }

@@ -8,7 +8,7 @@ describe('import-utils', () => {
       const imports: TSESTree.ImportDeclaration[] = [
         {
           type: 'ImportDeclaration',
-          source: { type: 'Literal', value: '@flyingrobots/zerothrow' },
+          source: { type: 'Literal', value: '@zerothrow/zerothrow' },
           specifiers: [
             {
               type: 'ImportSpecifier',
@@ -51,7 +51,7 @@ describe('import-utils', () => {
       const imports: TSESTree.ImportDeclaration[] = [
         {
           type: 'ImportDeclaration',
-          source: { type: 'Literal', value: '@flyingrobots/zerothrow' },
+          source: { type: 'Literal', value: '@zerothrow/zerothrow' },
           specifiers: [
             {
               type: 'ImportSpecifier',
@@ -82,13 +82,13 @@ describe('import-utils', () => {
   describe('buildImportText', () => {
     it('creates new import when none exists', () => {
       const result = buildImportText(undefined, ['err', 'Result']);
-      expect(result).toBe(`import { err, Result } from '@flyingrobots/zerothrow';`);
+      expect(result).toBe(`import { err, Result } from '@zerothrow/zerothrow';`);
     });
 
     it('preserves aliases in existing imports', () => {
       const existingImport: TSESTree.ImportDeclaration = {
         type: 'ImportDeclaration',
-        source: { type: 'Literal', value: '@flyingrobots/zerothrow' },
+        source: { type: 'Literal', value: '@zerothrow/zerothrow' },
         specifiers: [
           {
             type: 'ImportSpecifier',
@@ -99,13 +99,13 @@ describe('import-utils', () => {
       } as TSESTree.ImportDeclaration;
 
       const result = buildImportText(existingImport, ['err']);
-      expect(result).toBe(`import { ok as success, err } from '@flyingrobots/zerothrow';`);
+      expect(result).toBe(`import { ok as success, err } from '@zerothrow/zerothrow';`);
     });
 
     it('deduplicates imports', () => {
       const existingImport: TSESTree.ImportDeclaration = {
         type: 'ImportDeclaration',
-        source: { type: 'Literal', value: '@flyingrobots/zerothrow' },
+        source: { type: 'Literal', value: '@zerothrow/zerothrow' },
         specifiers: [
           {
             type: 'ImportSpecifier',
@@ -116,13 +116,13 @@ describe('import-utils', () => {
       } as TSESTree.ImportDeclaration;
 
       const result = buildImportText(existingImport, ['err', 'Result']);
-      expect(result).toBe(`import { err, Result } from '@flyingrobots/zerothrow';`);
+      expect(result).toBe(`import { err, Result } from '@zerothrow/zerothrow';`);
     });
 
     it('handles multiple aliases correctly', () => {
       const existingImport: TSESTree.ImportDeclaration = {
         type: 'ImportDeclaration',
-        source: { type: 'Literal', value: '@flyingrobots/zerothrow' },
+        source: { type: 'Literal', value: '@zerothrow/zerothrow' },
         specifiers: [
           {
             type: 'ImportSpecifier',
@@ -138,7 +138,7 @@ describe('import-utils', () => {
       } as TSESTree.ImportDeclaration;
 
       const result = buildImportText(existingImport, ['Result']);
-      expect(result).toBe(`import { ok as good, err as bad, Result } from '@flyingrobots/zerothrow';`);
+      expect(result).toBe(`import { ok as good, err as bad, Result } from '@zerothrow/zerothrow';`);
     });
   });
 });

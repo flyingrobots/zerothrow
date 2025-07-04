@@ -30,8 +30,8 @@ interface UseResultState<T, E> {
 ### Basic Usage
 
 ```typescript
-import { useResult } from '@flyingrobots/zerothrow/react';
-import { tryR } from '@flyingrobots/zerothrow';
+import { useResult } from '@zerothrow/zerothrow/react';
+import { tryR } from '@zerothrow/zerothrow';
 
 function UserProfile({ userId }: { userId: string }) {
   const { data, error, loading } = useResult(
@@ -405,7 +405,7 @@ function SearchableList() {
 
 ```typescript
 import { renderHook, waitFor } from '@testing-library/react';
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 
 describe('useResult', () => {
   it('handles successful data fetching', async () => {

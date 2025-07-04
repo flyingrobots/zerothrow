@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ok, err, ZeroError } from '@flyingrobots/zerothrow';
+import { ok, err, ZeroError } from '@zerothrow/zerothrow';
 
 // Mock the framework utilities we're testing
 describe('Framework Integration Patterns', () => {
@@ -73,7 +73,7 @@ describe('Framework Integration Patterns', () => {
       }
     }
 
-    async function parseRequestBody<T>(request: any): Promise<import('@flyingrobots/zerothrow').Result<T, ZeroError>> {
+    async function parseRequestBody<T>(request: any): Promise<import('@zerothrow/zerothrow').Result<T, ZeroError>> {
       try {
         const contentType = request.headers.get('content-type');
         
@@ -152,7 +152,7 @@ describe('Framework Integration Patterns', () => {
   });
 
   describe('Form Validation', () => {
-    function validateRegistrationForm(formData: Map<string, any>): import('@flyingrobots/zerothrow').Result<any, ZeroError[]> {
+    function validateRegistrationForm(formData: Map<string, any>): import('@zerothrow/zerothrow').Result<any, ZeroError[]> {
       const errors: ZeroError[] = [];
       
       const name = formData.get('name')?.toString() || '';
@@ -227,7 +227,7 @@ describe('Framework Integration Patterns', () => {
   });
 
   describe('Authentication Helpers', () => {
-    function validateAuthToken(token: string): import('@flyingrobots/zerothrow').Result<{ userId: string }, ZeroError> {
+    function validateAuthToken(token: string): import('@zerothrow/zerothrow').Result<{ userId: string }, ZeroError> {
       if (!token) {
         return err(new ZeroError('UNAUTHORIZED', 'No auth token provided'));
       }
@@ -296,7 +296,7 @@ describe('Framework Integration Patterns', () => {
   });
 
   describe('Response Formatting', () => {
-    function formatApiResponse<T>(result: import('@flyingrobots/zerothrow').Result<T, ZeroError>) {
+    function formatApiResponse<T>(result: import('@zerothrow/zerothrow').Result<T, ZeroError>) {
       if (result.ok) {
         return {
           success: true,

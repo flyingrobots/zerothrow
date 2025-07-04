@@ -51,23 +51,23 @@ Import only what you need:
 
 ```typescript
 // ❌ Imports everything
-import * as ZeroThrow from '@flyingrobots/zerothrow';
+import * as ZeroThrow from '@zerothrow/zerothrow';
 
 // ✅ Imports only used functions
-import { ok, err, tryR } from '@flyingrobots/zerothrow';
+import { ok, err, tryR } from '@zerothrow/zerothrow';
 ```
 
 ### Modular Imports
 
 ```typescript
 // Core functions only (~1KB)
-import { ok, err } from '@flyingrobots/zerothrow';
+import { ok, err } from '@zerothrow/zerothrow';
 
 // Add combinators as needed (~2KB)
-import { andThen, map } from '@flyingrobots/zerothrow';
+import { andThen, map } from '@zerothrow/zerothrow';
 
 // React hook separately (~1KB)
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 ```
 
 ### Production Build

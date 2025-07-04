@@ -1,5 +1,5 @@
 import Fastify, { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // Fastify API example with ZeroThrow
 

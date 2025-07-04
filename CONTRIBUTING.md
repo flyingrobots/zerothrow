@@ -20,7 +20,7 @@ First off, thank you for considering contributing to ZeroThrow! It's people like
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [ZeroThrow Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to james@flyingrobots.dev.
+This project and everyone participating in it is governed by the [ZeroThrow Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to james@zerothrow.dev.
 
 ## Getting Started
 
@@ -196,6 +196,6 @@ zerothrow/
 
 ## Questions?
 
-Feel free to open an issue with your question or reach out directly at james@flyingrobots.dev.
+Feel free to open an issue with your question or reach out directly at james@zerothrow.dev.
 
 Thank you for contributing! 🚀

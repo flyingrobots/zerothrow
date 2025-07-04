@@ -87,7 +87,7 @@ export const zerothrowPinoSerializers: PinoSerializers = {
  * Usage:
  * ```typescript
  * import pino from 'pino';
- * import { createPinoConfig } from '@flyingrobots/zerothrow/loggers';
+ * import { createPinoConfig } from '@zerothrow/zerothrow/loggers';
  *
  * const logger = pino(createPinoConfig({
  *   level: 'info',

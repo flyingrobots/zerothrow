@@ -23,7 +23,7 @@ An `Ok<T>` result containing the value
 ### Examples
 
 ```typescript
-import { ok } from '@flyingrobots/zerothrow';
+import { ok } from '@zerothrow/zerothrow';
 
 // Simple values
 const num = ok(42);
@@ -71,7 +71,7 @@ An `Err<E>` result containing the error
 ### Examples
 
 ```typescript
-import { err } from '@flyingrobots/zerothrow';
+import { err } from '@zerothrow/zerothrow';
 
 // String errors
 const error1 = err('Something went wrong');
@@ -115,7 +115,7 @@ A Promise resolving to a Result
 ### Examples
 
 ```typescript
-import { tryR } from '@flyingrobots/zerothrow';
+import { tryR } from '@zerothrow/zerothrow';
 
 // Async operations
 const result = await tryR(async () => {
@@ -184,7 +184,7 @@ A new `ZeroError` instance
 ### Examples
 
 ```typescript
-import { wrap } from '@flyingrobots/zerothrow';
+import { wrap } from '@zerothrow/zerothrow';
 
 // Basic wrapping
 try {

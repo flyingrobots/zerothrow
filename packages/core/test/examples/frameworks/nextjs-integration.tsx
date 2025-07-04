@@ -1,6 +1,6 @@
 // Next.js Integration Guide for ZeroThrow
 
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 import { NextRequest, NextResponse } from 'next/server';
 import { GetServerSideProps, GetStaticProps as _GetStaticProps } from 'next';
 import { useEffect, useState } from 'react';

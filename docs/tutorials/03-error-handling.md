@@ -17,7 +17,7 @@ Comprehensive guide to error handling patterns with ZeroThrow.
 ### 1. Make Errors Explicit
 
 ```typescript
-import { Result, ZeroError } from '@flyingrobots/zerothrow';
+import { Result, ZeroError } from '@zerothrow/zerothrow';
 
 // Bad: Error is implicit
 function getUser(id: string): User | null {
@@ -72,7 +72,7 @@ type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
 ### 3. Include Actionable Information
 
 ```typescript
-import { ZeroError, wrap } from '@flyingrobots/zerothrow';
+import { ZeroError, wrap } from '@zerothrow/zerothrow';
 
 // Bad: Generic error
 return err(new Error('Operation failed'));
@@ -178,7 +178,7 @@ function withdrawFunds(
 ### Error Context Patterns
 
 ```typescript
-import { ZeroError, wrap } from '@flyingrobots/zerothrow';
+import { ZeroError, wrap } from '@zerothrow/zerothrow';
 
 // Layered context
 class OperationContext {

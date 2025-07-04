@@ -14,7 +14,7 @@ import {
  * 
  * @example
  * ```typescript
- * import { ZT } from '@flyingrobots/zerothrow';
+ * import { ZT } from '@zerothrow/zerothrow';
  * 
  * const result = ZT.try(() => JSON.parse(input));
  * if (!result.ok) {

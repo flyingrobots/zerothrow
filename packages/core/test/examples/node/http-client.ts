@@ -1,4 +1,4 @@
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // HTTP client with ZeroThrow error handling
 

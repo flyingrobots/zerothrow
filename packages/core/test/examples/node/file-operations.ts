@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Result, ok, err, ZeroError, tryR, wrap as _wrap } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR, wrap as _wrap } from '@zerothrow/zerothrow';
 
 // File operations with ZeroThrow error handling
 

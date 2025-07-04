@@ -2,7 +2,7 @@
   "ZeroThrow: Import essentials": {
     "prefix": "ztimport",
     "body": [
-      "import { Result, ok, err, tryR, wrap, ZeroError } from '@flyingrobots/zerothrow';"
+      "import { Result, ok, err, tryR, wrap, ZeroError } from '@zerothrow/zerothrow';"
     ],
     "description": "Import ZeroThrow essentials"
   },
@@ -76,7 +76,7 @@
   "ZeroThrow: Transform Result with combinators": {
     "prefix": "ztcombine",
     "body": [
-      "import { makeCombinable } from '@flyingrobots/zerothrow';",
+      "import { makeCombinable } from '@zerothrow/zerothrow';",
       "",
       "const result = makeCombinable(${1:initialResult})",
       "  .map(${2:value} => ${3:transformation})",
@@ -89,7 +89,7 @@
   "ZeroThrow: Map Result": {
     "prefix": "ztmap",
     "body": [
-      "import { makeCombinable } from '@flyingrobots/zerothrow';",
+      "import { makeCombinable } from '@zerothrow/zerothrow';",
       "",
       "makeCombinable(${1:result}).map(${2:value} => ${3:transformation})"
     ],
@@ -99,7 +99,7 @@
   "ZeroThrow: Chain Results": {
     "prefix": "ztchain",
     "body": [
-      "import { makeCombinable } from '@flyingrobots/zerothrow';",
+      "import { makeCombinable } from '@zerothrow/zerothrow';",
       "",
       "makeCombinable(${1:result})",
       "  .andThen(${2:value} => ${3:nextOperation})",

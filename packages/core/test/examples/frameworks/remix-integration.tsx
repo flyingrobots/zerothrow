@@ -1,6 +1,6 @@
 // Remix Integration Guide for ZeroThrow
 
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 import type { 
   LoaderFunctionArgs, 
   ActionFunctionArgs,

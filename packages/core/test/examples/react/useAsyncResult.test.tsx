@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { ok, err } from '@flyingrobots/zerothrow';
+import { ok, err } from '@zerothrow/zerothrow';
 import { useAsyncResult, UserProfile } from './useAsyncResult.js';
 
 // Mock the fetchUser function

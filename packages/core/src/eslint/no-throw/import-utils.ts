@@ -14,7 +14,7 @@ export function analyzeImports(
   imports: TSESTree.ImportDeclaration[]
 ): ImportInfo {
   const zerothrowImport = imports.find(
-    (imp) => imp.source.value === '@flyingrobots/zerothrow'
+    (imp) => imp.source.value === '@zerothrow/zerothrow'
   );
 
   const hasErrImport =
@@ -53,7 +53,7 @@ export function buildImportText(
   neededImports: string[]
 ): string {
   if (!zerothrowImport) {
-    return `import { ${neededImports.join(', ')} } from '@flyingrobots/zerothrow';`;
+    return `import { ${neededImports.join(', ')} } from '@zerothrow/zerothrow';`;
   }
 
   const existingImports = zerothrowImport.specifiers
@@ -72,7 +72,7 @@ export function buildImportText(
   const allImports = Array.from(
     new Set([...existingImports, ...neededImports])
   );
-  return `import { ${allImports.join(', ')} } from '@flyingrobots/zerothrow';`;
+  return `import { ${allImports.join(', ')} } from '@zerothrow/zerothrow';`;
 }
 
 /**

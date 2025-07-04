@@ -49,7 +49,7 @@ interface Ok<T> {
 ### Creating Ok Values
 
 ```typescript
-import { ok } from '@flyingrobots/zerothrow';
+import { ok } from '@zerothrow/zerothrow';
 
 const success1 = ok(42);
 const success2 = ok({ name: 'John', age: 30 });
@@ -71,7 +71,7 @@ interface Err<E> {
 ### Creating Err Values
 
 ```typescript
-import { err } from '@flyingrobots/zerothrow';
+import { err } from '@zerothrow/zerothrow';
 
 const error1 = err('Something went wrong');
 const error2 = err(new Error('Network failure'));
@@ -103,7 +103,7 @@ class ZeroError<C extends ErrorContext = ErrorContext> extends Error {
 ### Creating ZeroErrors
 
 ```typescript
-import { ZeroError, wrap } from '@flyingrobots/zerothrow';
+import { ZeroError, wrap } from '@zerothrow/zerothrow';
 
 // Direct construction
 const error = new ZeroError(

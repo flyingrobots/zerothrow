@@ -1,5 +1,5 @@
 import { PrismaClient, Prisma } from '@prisma/client';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // Prisma integration with ZeroThrow error handling
 

@@ -6,7 +6,7 @@ import {
   CircuitBreaker,
   AsyncQueue
 } from './async-patterns.js';
-import { ok, err, ZeroError } from '@flyingrobots/zerothrow';
+import { ok, err, ZeroError } from '@zerothrow/zerothrow';
 
 describe('Async Patterns', () => {
   beforeEach(() => {

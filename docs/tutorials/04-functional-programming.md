@@ -18,7 +18,7 @@ Results follow the functor laws, making them composable and predictable.
 ### Identity Law
 
 ```typescript
-import { ok, map } from '@flyingrobots/zerothrow';
+import { ok, map } from '@zerothrow/zerothrow';
 
 // map(id) === id
 const identity = <T>(x: T): T => x;
@@ -54,7 +54,7 @@ Results implement the monad pattern through `andThen` (flatMap).
 ### Monad Laws
 
 ```typescript
-import { ok, andThen } from '@flyingrobots/zerothrow';
+import { ok, andThen } from '@zerothrow/zerothrow';
 
 // Left Identity: return a >>= f === f a
 const value = 42;

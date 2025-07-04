@@ -14,8 +14,8 @@ import {
   ZeroError, 
   andThen,
   collect 
-} from '@flyingrobots/zerothrow';
-import { useResult } from '@flyingrobots/zerothrow/react';
+} from '@zerothrow/zerothrow';
+import { useResult } from '@zerothrow/zerothrow/react';
 
 // Types
 interface FormData {

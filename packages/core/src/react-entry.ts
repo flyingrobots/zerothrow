@@ -5,7 +5,7 @@
  * for users who don't need React integration.
  *
  * Usage:
- *   import { useResult } from '@flyingrobots/zerothrow/react';
+ *   import { useResult } from '@zerothrow/zerothrow/react';
  */
 
 export { type UseResultState, useResult } from './react-hooks.js';

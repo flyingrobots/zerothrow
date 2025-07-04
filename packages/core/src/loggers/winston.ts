@@ -107,7 +107,7 @@ export const zerothrowWinstonFormat = {
  * Usage:
  * ```typescript
  * import winston from 'winston';
- * import { createWinstonLogger } from '@flyingrobots/zerothrow/loggers';
+ * import { createWinstonLogger } from '@zerothrow/zerothrow/loggers';
  *
  * const logger = createWinstonLogger(winston, {
  *   level: 'info',

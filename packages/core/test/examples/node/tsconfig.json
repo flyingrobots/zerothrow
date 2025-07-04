@@ -14,7 +14,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@flyingrobots/zerothrow": ["./src/index.ts"]
+      "@zerothrow/zerothrow": ["./src/index.ts"]
     },
     "verbatimModuleSyntax": true
   },

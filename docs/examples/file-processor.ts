@@ -7,7 +7,7 @@
 
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import { Result, ok, err, tryR, wrap, ZeroError, andThen, map, collect } from '@flyingrobots/zerothrow';
+import { Result, ok, err, tryR, wrap, ZeroError, andThen, map, collect } from '@zerothrow/zerothrow';
 
 // Types
 interface ProcessedFile {

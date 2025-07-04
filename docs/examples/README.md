@@ -41,7 +41,7 @@ Interactive form with validation:
 
 ### Basic Error Handling
 ```typescript
-import { Result, ok, err } from '@flyingrobots/zerothrow';
+import { Result, ok, err } from '@zerothrow/zerothrow';
 
 function parseAge(input: string): Result<number, string> {
   const age = parseInt(input);
@@ -60,7 +60,7 @@ function parseAge(input: string): Result<number, string> {
 
 ### Async Operations
 ```typescript
-import { tryR, wrap } from '@flyingrobots/zerothrow';
+import { tryR, wrap } from '@zerothrow/zerothrow';
 
 async function fetchUserData(userId: string): Promise<Result<User, ZeroError>> {
   return tryR(
@@ -83,7 +83,7 @@ async function fetchUserData(userId: string): Promise<Result<User, ZeroError>> {
 
 ### Chaining Operations
 ```typescript
-import { andThen, map } from '@flyingrobots/zerothrow';
+import { andThen, map } from '@zerothrow/zerothrow';
 
 const result = await fetchUserData('123');
 
@@ -99,7 +99,7 @@ const upperCaseName = map(displayName, (name) => name.toUpperCase());
 
 ### React Hook Usage
 ```typescript
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 
 function UserProfile({ userId }: { userId: string }) {
   const { data, error, loading, refetch } = useResult(
@@ -190,7 +190,7 @@ We welcome example contributions! To add your example:
  * This example demonstrates [what it shows]
  */
 
-import { Result, ok, err } from '@flyingrobots/zerothrow';
+import { Result, ok, err } from '@zerothrow/zerothrow';
 
 // Your example code here
 

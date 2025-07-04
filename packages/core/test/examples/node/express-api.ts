@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { Result, ok, err, ZeroError, tryR as _tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR as _tryR } from '@zerothrow/zerothrow';
 
 // Example Express API with ZeroThrow for error handling
 

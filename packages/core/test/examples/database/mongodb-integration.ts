@@ -1,5 +1,5 @@
 import { MongoClient, Db, Collection, ObjectId, MongoError } from 'mongodb';
-import { Result, ok, err, ZeroError, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, ZeroError, tryR } from '@zerothrow/zerothrow';
 
 // MongoDB integration with ZeroThrow error handling
 

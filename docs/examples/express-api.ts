@@ -6,7 +6,7 @@
  */
 
 import express, { Request, Response, NextFunction } from 'express';
-import { Result, ok, err, tryR, wrap, ZeroError } from '@flyingrobots/zerothrow';
+import { Result, ok, err, tryR, wrap, ZeroError } from '@zerothrow/zerothrow';
 
 // Domain types
 interface User {

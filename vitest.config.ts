@@ -8,7 +8,7 @@ export default mergeConfig(
     resolve: {
       alias: {
         '@': resolve(__dirname, './packages/core/src'),
-        '@flyingrobots/zerothrow': resolve(__dirname, './packages/core/src')
+        '@zerothrow/zerothrow': resolve(__dirname, './packages/core/src')
       }
     },
     test: {

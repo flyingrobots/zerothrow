@@ -1,5 +1,5 @@
 {
-  "name": "@flyingrobots/zerothrow",
+  "name": "@zerothrow/zerothrow",
   "version": "0.0.1-alpha",
   "description": "Rust‑style Result<T,E> & zero‑throw discipline for TypeScript",
   "keywords": [
@@ -12,13 +12,13 @@
     "monad",
     "either"
   ],
-  "homepage": "https://github.com/flyingrobots/zerothrow#readme",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
   "bugs": {
-    "url": "https://github.com/flyingrobots/zerothrow/issues"
+    "url": "https://github.com/zerothrow/zerothrow/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flyingrobots/zerothrow.git"
+    "url": "git+https://github.com/zerothrow/zerothrow.git"
   },
   "license": "MIT",
   "author": "Flying Robots",
