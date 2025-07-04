@@ -71,5 +71,7 @@
   "directories": {
     "test": "test"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.44.1"
+  }
 }

@@ -81,7 +81,7 @@
     "ci:local": "npm run lint && npm run build && npm run test",
     "prepush:test": "npx tsx scripts/githooks/zeropush.ts",
     "githooks": "tsx scripts/githooks/setup-hooks.ts",
-    "prepare": "node -e \"if (process.env.CI !== 'true') require('husky').install()\"",
+    "prepare": "husky || true",
     "bench": "tsx scripts/benchmarks/run-all.ts"
   },
   "peerDependencies": {
