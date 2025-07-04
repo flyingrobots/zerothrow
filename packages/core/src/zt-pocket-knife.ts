@@ -4,7 +4,8 @@
  */
 
 import { 
-  try as _try, 
+  try as _try,
+  tryAsync as _tryAsync,
   ok as _ok, 
   err as _err 
 } from './core-exports.js';
@@ -25,6 +26,7 @@ import {
  */
 export const ZT = {
   try: _try,
+  tryAsync: _tryAsync,
   ok: _ok,
   err: _err
 } as const;
