@@ -231,29 +231,50 @@ function divide(a: number, b: number): ZeroThrow.Result<number> {
 
 ## Interop for Legacy Code
 
-When dealing with code you don't control (third-party libraries, Node.js APIs, legacy code), use `ZT.try`. Once you own the code, refactor to return Result directly.
+When dealing with code you don't control (third-party libraries, Node.js APIs, legacy code), use `ZT.try` or `ZT.tryAsync`. Once you own the code, refactor to return Result directly.
+
+### Synchronous code that throws
 
 ```typescript
 // Wrapping code that might throw
 const result = ZT.try(() => {
   return JSON.parse(userInput) // third-party code that throws
 })
+```
 
-// Wrapping promises that might reject
-const data = await ZT.try(async () => {
-  const response = await fetch(url) // fetch can reject
+### Async code (New in v0.0.2!)
+
+Use `ZT.tryAsync` for clearer async handling:
+
+```typescript
+// NEW: ZT.tryAsync for async operations
+const result = await ZT.tryAsync(async () => {
+  const response = await fetch(url)
   return response.json()
 })
+// result is Result<T, Error> after awaiting
 
-// For more control, use ZeroThrow.fromAsync
-const safeFetch = ZeroThrow.fromAsync(async (url: string) => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.json()
+// ZT.try also works with async, but returns Promise<Result>
+const promiseResult = ZT.try(async () => {
+  const response = await fetch(url)
+  return response.json()
 })
+// Need to await to get the Result
+const result = await promiseResult
+```
 
-// Now it returns Result instead of throwing
-const result = await safeFetch('https://api.example.com/data')
+### Error convenience (New in v0.0.2!)
+
+Create errors with less boilerplate:
+
+```typescript
+// NEW: String overloads for ZT.err
+ZT.err('NETWORK_ERROR')  // Creates ZeroError with code
+ZT.err('VALIDATION_ERROR', 'Email required')  // With custom message
+
+// Still supports Error objects
+ZT.err(new Error('Something went wrong'))
+ZT.err(new ZeroThrow.ZeroError('API_ERROR', 'Failed', { status: 500 }))
 ```
 
 **Remember**: `ZT.try` is for code you don't control. For your own code, return Results directly!

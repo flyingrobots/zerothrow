@@ -61,9 +61,24 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
 // FUNCTIONS - Clean names for ZeroThrow namespace
 // ==========================================
 
-// Factory functions (unchanged)
+// Factory functions
 export const ok = _ok;
-export const err = _err;
+
+// Enhanced err with string overloads
+export function err(error: globalThis.Error): Result<never, globalThis.Error> & _ResultCombinable<never, globalThis.Error>;
+export function err(code: string): Result<never, _ZeroError> & _ResultCombinable<never, _ZeroError>;
+export function err(code: string, message: string): Result<never, _ZeroError> & _ResultCombinable<never, _ZeroError>;
+export function err(
+  errorOrCode: globalThis.Error | string, 
+  message?: string
+): Result<never, globalThis.Error> & _ResultCombinable<never, globalThis.Error> {
+  if (typeof errorOrCode === 'string') {
+    // String overload - create ZeroError
+    return _err(new _ZeroError(errorOrCode, message || errorOrCode));
+  }
+  // Error object - use as-is
+  return _err(errorOrCode);
+}
 
 // NEW: attempt function (replaces tryR, tryRSync, tryRBatch)
 // Single overloaded function that handles all cases
@@ -93,7 +108,7 @@ export function attempt<T>(
         (value) => ok(value),
         (error) => {
           const base = _normalise(error);
-          return err(mapError ? mapError(base) : base);
+          return _err(mapError ? mapError(base) : base);
         }
       );
     }
@@ -103,7 +118,7 @@ export function attempt<T>(
   } catch (e) {
     // Function threw synchronously
     const base = _normalise(e);
-    return err(mapError ? mapError(base) : base);
+    return _err(mapError ? mapError(base) : base);
   }
 }
 
@@ -121,7 +136,7 @@ async function attemptBatch<T>(
       (value) => ok(value),
       (error) => {
         const base = _normalise(error);
-        return err(map ? map(base) : base);
+        return _err(map ? map(base) : base);
       }
     );
     
@@ -137,6 +152,19 @@ async function attemptBatch<T>(
 
 // Temporary alias for grace period
 export { attempt as try };
+
+// NEW: tryAsync for cleaner async ergonomics
+export async function tryAsync<T>(
+  fn: () => Promise<T>
+): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> {
+  try {
+    const value = await fn();
+    return ok(value);
+  } catch (e) {
+    const base = _normalise(e);
+    return _err(base);
+  }
+}
 
 // Error wrapping (unchanged name)
 export { _wrap as wrap };
