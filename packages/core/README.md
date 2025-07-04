@@ -4,6 +4,15 @@
 
 > **Status:** _Early **alpha** preview._ API *should* stay source-compatible inside `core`, but anything else may shift without notice until `v0.5.0`.
 
+## What's New in v0.0.2-alpha 🎉
+
+- **`ZT.tryAsync()`** - Explicit async handling that returns `Promise<Result<T,E>>`
+- **String error shortcuts** - `ZT.err('CODE')` and `ZT.err('CODE', 'message')`
+- **Better type exports** - Import `Result`, `ZeroError` directly from package root
+- **DX improvements** based on real alpha user feedback
+
+[See full changelog](./CHANGELOG.md)
+
 ---
 
 ## Quick Start
@@ -13,19 +22,27 @@ npm install @zerothrow/core@alpha
 ```
 
 ```typescript
-import { ZT, type Result } from '@zerothrow/core';
+import { ZT, Result, ZeroError } from '@zerothrow/core';
 
-function divide(a: number, b: number): Result<number, string> {
+// Simple error handling with string shortcuts (NEW in v0.0.2!)
+function divide(a: number, b: number): Result<number> {
   return b === 0 ? ZT.err('DIV_ZERO') : ZT.ok(a / b);
 }
 
+// Async made easy (NEW in v0.0.2!)
+const data = await ZT.tryAsync(async () => {
+  const response = await fetch('/api/data');
+  return response.json();
+});
+
+// Chain operations
 const result = divide(10, 2)
   .andThen(x => divide(x, 0))
   .map(x => x * 2);
 
 result.match({
   ok:  v => console.log('✅', v),
-  err: e => console.error('❌', e)     // -> DIV_ZERO
+  err: e => console.error('❌', e.message)  // -> DIV_ZERO
 });
 ```
 

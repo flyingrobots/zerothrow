@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/core",
-  "version": "0.0.1-alpha",
+  "version": "0.0.2-alpha",
   "description": "Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript",
   "type": "module",
   "sideEffects": false,
