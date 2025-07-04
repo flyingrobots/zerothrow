@@ -6,7 +6,7 @@ import {
   toBeErrWithMatcher,
   toHaveErrorCodeMatcher,
   toHaveErrorMessageMatcher
-} from '@zerothrow/core/matchers';
+} from '@zerothrow/expect';
 
 // Extend the expect types for Jest
 declare global {

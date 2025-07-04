@@ -44,6 +44,7 @@
   "peerDependencies": {
     "@jest/globals": ">=27.0.0",
     "@zerothrow/core": "0.0.2-alpha",
+    "@zerothrow/expect": "0.0.1-alpha",
     "jest": ">=27.0.0"
   },
   "peerDependenciesMeta": {
@@ -55,6 +56,7 @@
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
     "@zerothrow/core": "file:../core",
+    "@zerothrow/expect": "file:../expect",
     "jest": "^29.7.0"
   },
   "keywords": [

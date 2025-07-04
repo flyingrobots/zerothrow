@@ -55,9 +55,9 @@
     }
   },
   "devDependencies": {
-    "@zerothrow/core": "workspace:*",
-    "@zerothrow/jest": "workspace:*",
-    "@zerothrow/vitest": "workspace:*",
+    "@zerothrow/core": "file:../core",
+    "@zerothrow/jest": "file:../jest",
+    "@zerothrow/vitest": "file:../vitest",
     "tsup": "^8.5.0",
     "typescript": "^5.7.2"
   },

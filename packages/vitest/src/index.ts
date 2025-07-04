@@ -7,7 +7,7 @@ import {
   toHaveErrorCodeMatcher,
   toHaveErrorMessageMatcher,
   type MatcherContext
-} from '@zerothrow/core/matchers';
+} from '@zerothrow/expect';
 import { expect } from 'vitest';
 
 // Extend Vitest's expect types

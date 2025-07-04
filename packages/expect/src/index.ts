@@ -1,4 +1,4 @@
-import type { Result } from '../result.js';
+import type { Result } from '@zerothrow/core';
 
 // Core matcher logic - framework agnostic
 export function isResult(value: unknown): value is Result<unknown, Error> {

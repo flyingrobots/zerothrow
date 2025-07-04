@@ -24,16 +24,26 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 
 ## Package Ecosystem
 
+### Phase 1: Alpha Core (Current Focus)
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
 | [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) | Core Result types and utilities | ✅ Stable |
 | [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for Result types | ✅ Stable |
 | [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for Result types | 🚧 In PR |
-| `@zerothrow/testing` | - | Unified test matchers (Jest + Vitest) | 📋 Planned |
-| `@zerothrow/eslint-plugin` | - | ESLint rules to enforce no-throw | 📋 Beta |
-| `@zerothrow/react` | - | React hooks for Result types | 📋 Beta |
-| `@zerothrow/logger-winston` | - | Winston logger integration | 📋 Beta |
-| `@zerothrow/logger-pino` | - | Pino logger integration | 📋 Beta |
+| `@zerothrow/expect` | - | Shared test matcher logic | 📋 Next |
+| `@zerothrow/testing` | - | Unified test matchers (Jest + Vitest) | 📋 Next |
+| `@zerothrow/dev-kit` | - | Developer toolkit bundle | 📋 Planned |
+
+### Phase 2: Developer Experience (Coming Soon)
+| Package | Description | Status |
+|---------|-------------|--------|
+| `@zerothrow/eslint-plugin` | ESLint rules to enforce no-throw | 📋 Beta |
+| `@zerothrow/react` | React hooks for Result types | 📋 Beta |
+| `@zerothrow/logger-winston` | Winston logger integration | 📋 Beta |
+| `@zerothrow/logger-pino` | Pino logger integration | 📋 Beta |
+| `@zerothrow/cli` | Command-line tools | 📋 Planned |
+
+See our [full ecosystem roadmap](https://github.com/zerothrow/zerothrow/discussions) for Phase 3 (Integration Layer) and Phase 4 (Ecosystem Domination) packages including framework adapters, database integrations, and more!
 
 ### Latest Features (v0.0.2-alpha)
 
