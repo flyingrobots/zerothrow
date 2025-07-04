@@ -25,7 +25,7 @@ function parseJson(text: string): any {
 }
 
 // After: ZeroThrow
-import { Result, ok, err, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, tryR } from '@zerothrow/zerothrow';
 
 function parseJson(text: string): Result<any, Error> {
   try {
@@ -59,7 +59,7 @@ async function fetchUser(id: string): Promise<User> {
 }
 
 // After: ZeroThrow
-import { Result, tryR, wrap, ZeroError } from '@flyingrobots/zerothrow';
+import { Result, tryR, wrap, ZeroError } from '@zerothrow/zerothrow';
 
 async function fetchUser(id: string): Promise<Result<User, ZeroError>> {
   return tryR(
@@ -87,7 +87,7 @@ function processData(input: string): ProcessedData {
 }
 
 // After: ZeroThrow
-import { Result, andThen } from '@flyingrobots/zerothrow';
+import { Result, andThen } from '@zerothrow/zerothrow';
 
 function processData(input: string): Result<ProcessedData, Error> {
   const parsed = parseJson(input);
@@ -125,7 +125,7 @@ const result = ok(42)
   .mapErr(e => `Error: ${e}`);
 
 // ZeroThrow (same API)
-import { Result, ok, err, map, mapErr } from '@flyingrobots/zerothrow';
+import { Result, ok, err, map, mapErr } from '@zerothrow/zerothrow';
 
 const result = mapErr(
   map(ok(42), x => x * 2),
@@ -171,7 +171,7 @@ const result = pipe(
 );
 
 // ZeroThrow
-import { Result, ok, err, andThen, map } from '@flyingrobots/zerothrow';
+import { Result, ok, err, andThen, map } from '@zerothrow/zerothrow';
 
 const compute = (n: number): Result<number, string> =>
   n > 0 ? ok(n * 2) : err('Must be positive');
@@ -194,7 +194,7 @@ const fetchData: TaskEither<Error, Data> = tryCatch(
 );
 
 // ZeroThrow
-import { tryR, Result } from '@flyingrobots/zerothrow';
+import { tryR, Result } from '@zerothrow/zerothrow';
 
 const fetchData: Promise<Result<Data, Error>> = tryR(
   () => fetch('/api/data').then(r => r.json())
@@ -208,7 +208,7 @@ const fetchData: Promise<Result<Data, Error>> = tryR(
 ```json
 {
   "rules": {
-    "@flyingrobots/zerothrow/no-throw": "warn"
+    "@zerothrow/zerothrow/no-throw": "warn"
   }
 }
 ```
@@ -267,7 +267,7 @@ app.get('/user/:id', async (req, res) => {
 ```json
 {
   "rules": {
-    "@flyingrobots/zerothrow/no-throw": "error"
+    "@zerothrow/zerothrow/no-throw": "error"
   }
 }
 ```
@@ -278,7 +278,7 @@ app.get('/user/:id', async (req, res) => {
 
 ```typescript
 import { promises as fs } from 'fs';
-import { Result, tryR, wrap } from '@flyingrobots/zerothrow';
+import { Result, tryR, wrap } from '@zerothrow/zerothrow';
 
 export const readFile = (path: string): Promise<Result<string, ZeroError>> =>
   tryR(
@@ -356,7 +356,7 @@ app.get('/api/users/:id', resultHandler(async (req) => {
 
 ## Next Steps
 
-1. Install ZeroThrow: `npm i @flyingrobots/zerothrow`
+1. Install ZeroThrow: `npm i @zerothrow/zerothrow`
 2. Add ESLint rule as warning
 3. Start migrating leaf functions
 4. Work your way up to controllers

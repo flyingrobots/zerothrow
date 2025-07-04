@@ -1,0 +1,25 @@
+# Source files (exclude from npm package)
+/src
+/test
+vitest.config.ts
+
+# Config files  
+tsconfig.json
+tsconfig.*.json
+tsup.config.ts
+.eslintrc*
+
+# Development files
+*.log
+.DS_Store
+coverage/
+.nyc_output/
+
+# Build artifacts not needed
+*.tsbuildinfo
+
+# Keep only dist folder and docs
+!dist/
+!README.md
+!CHANGELOG.md
+!package.json

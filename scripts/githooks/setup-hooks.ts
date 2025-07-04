@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { existsSync, mkdirSync, chmodSync, readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
-import { ZT, ZeroThrow } from '../../src/index';
+import { ZT, ZeroThrow } from '../../packages/core/src/index';
 import { execCmd, readJsonFile, writeJsonFile, fileExists, readFile, writeFile } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -366,7 +366,7 @@ async function main(): Promise<number> {
   console.log('  • Check for partially staged files');
   console.log('  • Provide interactive staging options');
   console.log('  • Run ESLint with no-throw rules');
-  console.log('\nFor more info: https://github.com/flyingrobots/zerothrow');
+  console.log('\nFor more info: https://github.com/zerothrow/zerothrow');
   
   return 0;
 }

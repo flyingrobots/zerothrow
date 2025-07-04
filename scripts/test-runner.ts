@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow } from '../src/index.js';
+import { ZT, ZeroThrow } from '../packages/core/src/index.js';
 import { execCmd, execCmdInteractive } from './lib/shared.js';
 import { checkDockerStatus, startDocker, isContainerRunning, stopContainer } from './lib/docker.js';
 import chalk from 'chalk';
@@ -89,7 +89,7 @@ async function runTests(options: TestRunnerOptions = {}): Promise<ZeroThrow.Resu
     testCmd += ` ${pattern}`;
   } else if (!includeIntegration) {
     // Exclude integration tests if not requested
-    testCmd += ' --exclude="test/integration/**"';
+    testCmd += ' --exclude="packages/core/test/integration/**"';
   }
 
   console.log(chalk.gray(`Running: ${testCmd}\n`));

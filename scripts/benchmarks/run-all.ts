@@ -2,7 +2,7 @@
 import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { ZT, ZeroThrow } from '../../src/index';
+import { ZT, ZeroThrow } from '../../packages/core/src/index';
 import { execCmd } from '../lib/shared';
 import chalk from 'chalk';
 import ora from 'ora';

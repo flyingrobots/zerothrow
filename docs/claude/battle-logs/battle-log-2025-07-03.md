@@ -113,7 +113,7 @@
 > 
 > 3. Technical achievements:
 >    - Zero breaking changes - all existing APIs preserved
->    - Single import: `import { ZT } from '@flyingrobots/zerothrow'`
+>    - Single import: `import { ZT } from '@zerothrow/zerothrow'`
 >    - Type-safe with full IntelliSense support
 >    - ~60% reduction in import boilerplate
 > 
@@ -482,5 +482,89 @@
 > - Type clarity improved across core-exports.ts
 > 
 > **Status:** PHASE 1 COMPLETE - READY FOR PHASE 2
+> 
+> **HOO-RAH!** 🎖️
+
+> [!info]- SITREP 2025-07-03 15:00 UTC
+> 
+> **PHASE 2 MONOREPO: COMPLETE** ✅
+> 
+> **Phase 2 Major Tasks Completed:**
+> 1. **2-A:** Created `.config/` directory for shared configs ✅
+> 2. **2-B:** Moved src → packages/core/src, test → packages/core/test ✅
+> 3. **2-C:** Set up npm workspaces in root package.json ✅
+> 4. **2-D:** Configured turbo.json for parallel builds ✅
+> 
+> **Technical Architecture:**
+> ```
+> packages/
+> ├── core/           # Main ZeroThrow library (now properly isolated)
+> │   ├── src/        # Library source
+> │   ├── test/       # Tests
+> │   └── package.json
+> └── [future packages...]
+> ```
+> 
+> **Challenges Overcome:**
+> - Module resolution paths updated throughout
+> - Vitest config refactored for monorepo
+> - ESLint now uses shared base config
+> - Build outputs properly isolated
+> 
+> **Discovery Items:**
+> - Logger code should be separate packages
+> - React hooks should be separate package
+> - ESLint plugin should be separate package
+> 
+> **Status:** PHASE 2 COMPLETE - MONOREPO OPERATIONAL
+> 
+> **HOO-RAH!** 🎖️
+
+> [!info]- SITREP 2025-07-03 17:00 UTC
+> 
+> **ALPHA RELEASE RECON COMPLETE** 🎯
+> 
+> **Current Operational Status:**
+> - Branch: ZT-RESILIENCE-PHASE-2 (2 commits)
+> - Phase 2 Monorepo: ✅ COMPLETE
+> - Sub-Mission ALPHA: ⚠️ P0-P3 COMPLETE, P4-P7 PENDING
+> - Sub-Mission BRAVO: ✅ COMPLETE
+> 
+> **Critical Findings:**
+> 1. **API Surface Contamination:**
+>    - `tryR` found in 24 files (tests, examples, benchmarks)
+>    - `ZT.try` correctly uses `attempt` internally
+>    - Old names must be purged before alpha
+> 
+> 2. **Package Structure Issues:**
+>    - Core contains winston, pino, eslint, react code
+>    - Should be separate packages for clean architecture
+>    - Core has unnecessary peer dependencies
+> 
+> 3. **Alpha Release Requirements:**
+>    - Complete Sub-Mission ALPHA P4-P7 (2-3 hrs)
+>    - Extract contaminating code to separate packages
+>    - Verify zero dependencies for core package
+> 
+> **Planned Package Architecture:**
+> - @zerothrow/zerothrow (core only)
+> - @zerothrow/zerothrow-react
+> - @zerothrow/zerothrow-logger-winston
+> - @zerothrow/zerothrow-logger-pino
+> - @zerothrow/zerothrow-eslint-plugin
+> 
+> **Tech Debt Report:**
+> - 24 files with old API names
+> - Mixed package boundaries
+> - Incomplete surface lift
+> - Example tests failing due to imports
+> 
+> **Next Actions:**
+> 1. Complete Sub-Mission ALPHA P4-P7
+> 2. Extract packages per architecture plan
+> 3. Clean dependencies and verify builds
+> 4. Prepare for alpha release
+> 
+> **Status:** AWAITING ORDERS TO EXECUTE ALPHA PREP
 > 
 > **HOO-RAH!** 🎖️

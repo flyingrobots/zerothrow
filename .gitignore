@@ -11,6 +11,7 @@ dist/
 build/
 out/
 *.tsbuildinfo
+.turbo/
 
 # Test coverage
 coverage/
@@ -57,7 +58,6 @@ Thumbs.db
 !.yarn/sdks
 !.yarn/versions
 
-.obsidian/*
 .husky/_
 .claude/*
-PLAN.md
+.obsidian

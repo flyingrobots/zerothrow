@@ -17,7 +17,7 @@ Master advanced error handling patterns and techniques.
 Think of your code as a railway with two tracks: success and error.
 
 ```typescript
-import { Result, ok, err, andThen, map } from '@flyingrobots/zerothrow';
+import { Result, ok, err, andThen, map } from '@zerothrow/zerothrow';
 
 // Each function returns a Result, keeping us on the tracks
 type UserId = string & { __brand: 'UserId' };
@@ -79,7 +79,7 @@ function registerUserClean(
 ### Fallback Values
 
 ```typescript
-import { orElse, unwrapOr } from '@flyingrobots/zerothrow';
+import { orElse, unwrapOr } from '@zerothrow/zerothrow';
 
 // Provide fallback for errors
 function loadUserPreferences(userId: string): Result<Preferences, Error> {
@@ -111,7 +111,7 @@ const theme = unwrapOr(
 ### Retry Logic
 
 ```typescript
-import { Result, tryR } from '@flyingrobots/zerothrow';
+import { Result, tryR } from '@zerothrow/zerothrow';
 
 async function withRetry<T>(
   operation: () => Promise<Result<T, Error>>,
@@ -200,7 +200,7 @@ const result = await breaker.execute(() => fetchUserData(userId));
 Build composable validation pipelines:
 
 ```typescript
-import { Result, ok, err, andThen, collect } from '@flyingrobots/zerothrow';
+import { Result, ok, err, andThen, collect } from '@zerothrow/zerothrow';
 
 // Validation function type
 type Validator<T> = (value: T) => Result<T, string>;
@@ -274,7 +274,7 @@ function validateUserInput(input: UserInput): Result<UserInput, string[]> {
 Handle multiple async operations efficiently:
 
 ```typescript
-import { Result, tryR, collect, firstSuccess } from '@flyingrobots/zerothrow';
+import { Result, tryR, collect, firstSuccess } from '@zerothrow/zerothrow';
 
 // Parallel fetching with all-or-nothing semantics
 async function fetchUserData(userId: string): Promise<Result<UserData, Error>> {
@@ -325,7 +325,7 @@ async function fetchWithTimeout<T>(
 Collect and handle multiple errors:
 
 ```typescript
-import { Result, ok, err } from '@flyingrobots/zerothrow';
+import { Result, ok, err } from '@zerothrow/zerothrow';
 
 // Validation with detailed errors
 interface ValidationError {
@@ -452,7 +452,7 @@ function processOrder(items: Item[]): Result<OrderState, OrderError> {
 Use Results with dependency injection:
 
 ```typescript
-import { Result, ok, err, tryR } from '@flyingrobots/zerothrow';
+import { Result, ok, err, tryR } from '@zerothrow/zerothrow';
 
 // Define service interfaces
 interface Logger {

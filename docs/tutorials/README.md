@@ -59,7 +59,7 @@ Step-by-step guides to master error handling with ZeroThrow.
 
 ### Basic Error Handling
 ```typescript
-import { ok, err, Result } from '@flyingrobots/zerothrow';
+import { ok, err, Result } from '@zerothrow/zerothrow';
 
 function divide(a: number, b: number): Result<number, string> {
   if (b === 0) {
@@ -71,7 +71,7 @@ function divide(a: number, b: number): Result<number, string> {
 
 ### Async Operations
 ```typescript
-import { tryR } from '@flyingrobots/zerothrow';
+import { tryR } from '@zerothrow/zerothrow';
 
 const data = await tryR(async () => {
   const response = await fetch('/api/data');
@@ -81,7 +81,7 @@ const data = await tryR(async () => {
 
 ### React Hook
 ```typescript
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 
 function MyComponent() {
   const { data, error, loading } = useResult(

@@ -1,4 +1,4 @@
-import { ZT, ZeroThrow } from '../../src/index.js';
+import { ZT, ZeroThrow } from '../../packages/core/src/index.js';
 import { execCmd, execCmdInteractive } from './shared.js';
 import { platform } from 'os';
 import { existsSync } from 'fs';

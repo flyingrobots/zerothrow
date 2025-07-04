@@ -7,7 +7,7 @@ ZeroThrow provides an ESLint rule to enforce Result-based error handling instead
 The ESLint plugin is included with the main package:
 
 ```bash
-npm install @flyingrobots/zerothrow
+npm install @zerothrow/zerothrow
 ```
 
 ## Configuration
@@ -20,10 +20,10 @@ npm install @flyingrobots/zerothrow
     // Your other extends...
   ],
   "plugins": [
-    "@flyingrobots/zerothrow"
+    "@zerothrow/zerothrow"
   ],
   "rules": {
-    "@flyingrobots/zerothrow/no-throw": "error"
+    "@zerothrow/zerothrow/no-throw": "error"
   }
 }
 ```
@@ -32,9 +32,9 @@ npm install @flyingrobots/zerothrow
 
 ```javascript
 module.exports = {
-  plugins: ['@flyingrobots/zerothrow'],
+  plugins: ['@zerothrow/zerothrow'],
   rules: {
-    '@flyingrobots/zerothrow/no-throw': 'error'
+    '@zerothrow/zerothrow/no-throw': 'error'
   }
 };
 ```
@@ -42,15 +42,15 @@ module.exports = {
 ### Flat Config (eslint.config.js)
 
 ```javascript
-import zerothrow from '@flyingrobots/zerothrow/eslint';
+import zerothrow from '@zerothrow/zerothrow/eslint';
 
 export default [
   {
     plugins: {
-      '@flyingrobots/zerothrow': zerothrow
+      '@zerothrow/zerothrow': zerothrow
     },
     rules: {
-      '@flyingrobots/zerothrow/no-throw': 'error'
+      '@zerothrow/zerothrow/no-throw': 'error'
     }
   }
 ];
@@ -112,7 +112,7 @@ Examples of **correct** code:
 
 ```typescript
 // ✅ Return Result types
-import { ok, err, Result } from '@flyingrobots/zerothrow';
+import { ok, err, Result } from '@zerothrow/zerothrow';
 
 function divide(a: number, b: number): Result<number, string> {
   if (b === 0) {
@@ -122,7 +122,7 @@ function divide(a: number, b: number): Result<number, string> {
 }
 
 // ✅ Use tryR for potentially throwing operations
-import { tryR } from '@flyingrobots/zerothrow';
+import { tryR } from '@zerothrow/zerothrow';
 
 async function parseData(json: string): Promise<Result<Data, Error>> {
   return tryR(() => {
@@ -183,7 +183,7 @@ Allow throw statements in test files (default: `false`).
 
 ```jsonc
 {
-  "@flyingrobots/zerothrow/no-throw": ["error", {
+  "@zerothrow/zerothrow/no-throw": ["error", {
     "allowInTests": true
   }]
 }
@@ -200,7 +200,7 @@ Array of regex patterns for files where throws are allowed.
 
 ```jsonc
 {
-  "@flyingrobots/zerothrow/no-throw": ["error", {
+  "@zerothrow/zerothrow/no-throw": ["error", {
     "allowedPatterns": [
       "src/legacy/.*",
       "scripts/.*\\.js$"
@@ -215,7 +215,7 @@ Custom error message to display.
 
 ```jsonc
 {
-  "@flyingrobots/zerothrow/no-throw": ["error", {
+  "@zerothrow/zerothrow/no-throw": ["error", {
     "message": "Use Result types instead of throwing. See: https://docs.example.com/error-handling"
   }]
 }
@@ -241,7 +241,7 @@ Start by enabling the rule as a warning:
 ```jsonc
 {
   "rules": {
-    "@flyingrobots/zerothrow/no-throw": "warn"
+    "@zerothrow/zerothrow/no-throw": "warn"
   }
 }
 ```
@@ -317,7 +317,7 @@ When necessary, disable the rule for specific lines:
 
 ```typescript
 function legacyFunction() {
-  // eslint-disable-next-line @flyingrobots/zerothrow/no-throw
+  // eslint-disable-next-line @zerothrow/zerothrow/no-throw
   throw new Error('Legacy code - to be refactored');
 }
 ```
@@ -350,7 +350,7 @@ app.get('/api/users/:id', async (req, res) => {
 class ErrorBoundary extends Component {
   componentDidCatch(error: Error) {
     // At the boundary, we might need to throw
-    // eslint-disable-next-line @flyingrobots/zerothrow/no-throw
+    // eslint-disable-next-line @zerothrow/zerothrow/no-throw
     throw error; // Let React handle it
   }
 }
@@ -383,7 +383,7 @@ self.addEventListener('message', async (event) => {
 
 1. Ensure the plugin is installed:
    ```bash
-   npm ls @flyingrobots/zerothrow
+   npm ls @zerothrow/zerothrow
    ```
 
 2. Check ESLint can find the plugin:

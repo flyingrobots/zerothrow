@@ -71,6 +71,6 @@ Real-world code examples demonstrating practical usage.
 
 ### 💡 Need Help?
 
-- **Issues**: [GitHub Issues](https://github.com/flyingrobots/zerothrow/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/flyingrobots/zerothrow/discussions)
-- **Email**: james@flyingrobots.dev
+- **Issues**: [GitHub Issues](https://github.com/zerothrow/zerothrow/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/zerothrow/zerothrow/discussions)
+- **Email**: james@zerothrow.dev

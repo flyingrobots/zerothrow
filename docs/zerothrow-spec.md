@@ -1,7 +1,7 @@
 # ZeroThrow
 
 _Full Technical Specification (v0.1-draft, 30 Jun 2025)_   
-https://github.com/flyingrobots/zerothrow.git
+https://github.com/zerothrow/zerothrow.git
 
 ---
 ## Table of Contents
@@ -294,8 +294,8 @@ With a lean core, aggressive tooling, and a clear upgrade path, it lets devs:
 - log with full context,
 - ship fewer production `500`s.
 
-Time to add the badge to the `README`: [![ZeroThrow](https://img.shields.io/badge/throws-0%-teal?logo=zerothrow)](https://github.com/flyingrobots/ZeroThrow)
+Time to add the badge to the `README`: [![ZeroThrow](https://img.shields.io/badge/throws-0%-teal?logo=zerothrow)](https://github.com/zerothrow/zerothrow)
 
 ```markdown
-[![ZeroThrow](https://img.shields.io/badge/throws-0%-teal?logo=zerothrow)](https://github.com/flyingrobots/ZeroThrow)
+[![ZeroThrow](https://img.shields.io/badge/throws-0%-teal?logo=zerothrow)](https://github.com/zerothrow/zerothrow)
 ```

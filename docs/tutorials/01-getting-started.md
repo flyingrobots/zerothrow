@@ -11,7 +11,7 @@ Learn how to use ZeroThrow for robust error handling in TypeScript.
 ## Installation
 
 ```bash
-npm install @flyingrobots/zerothrow
+npm install @zerothrow/zerothrow
 ```
 
 ## Your First Result
@@ -19,7 +19,7 @@ npm install @flyingrobots/zerothrow
 The core concept in ZeroThrow is the `Result` type, which represents either success (`Ok`) or failure (`Err`).
 
 ```typescript
-import { ok, err, Result } from '@flyingrobots/zerothrow';
+import { ok, err, Result } from '@zerothrow/zerothrow';
 
 // A function that can fail
 function divide(a: number, b: number): Result<number, string> {
@@ -64,7 +64,7 @@ try {
 With Result types, errors are explicit:
 
 ```typescript
-import { Result, ok, err } from '@flyingrobots/zerothrow';
+import { Result, ok, err } from '@zerothrow/zerothrow';
 
 function riskyOperation(): Result<string, Error> {
   if (Math.random() > 0.5) {
@@ -87,7 +87,7 @@ if (result.isOk) {
 ### Creating Results
 
 ```typescript
-import { ok, err } from '@flyingrobots/zerothrow';
+import { ok, err } from '@zerothrow/zerothrow';
 
 // Success values
 const goodNumber = ok(42);
@@ -167,7 +167,7 @@ function processOrder(order: OrderInput): Result<Order, string> {
 Use `tryR` to convert throwing async functions into Results:
 
 ```typescript
-import { tryR, Result } from '@flyingrobots/zerothrow';
+import { tryR, Result } from '@zerothrow/zerothrow';
 
 // Converting a throwing async function
 async function fetchUser(id: string): Promise<Result<User, Error>> {
@@ -194,7 +194,7 @@ if (userResult.isOk) {
 Use `ZeroError` for structured error information:
 
 ```typescript
-import { ZeroError, wrap, err } from '@flyingrobots/zerothrow';
+import { ZeroError, wrap, err } from '@zerothrow/zerothrow';
 
 function validateEmail(email: string): Result<string, ZeroError> {
   if (!email) {
@@ -240,7 +240,7 @@ async function saveUser(user: User): Promise<Result<User, ZeroError>> {
 Use combinators to chain operations elegantly:
 
 ```typescript
-import { ok, err, andThen, map } from '@flyingrobots/zerothrow';
+import { ok, err, andThen, map } from '@zerothrow/zerothrow';
 
 // Chain operations that can fail
 function parseNumber(str: string): Result<number, string> {
@@ -266,7 +266,7 @@ const doubled = map(result, n => n * 2); // Ok(84)
 Use the `useResult` hook for async operations in React:
 
 ```typescript
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 
 function UserProfile({ userId }: { userId: string }) {
   const { data, error, loading } = useResult(
@@ -310,8 +310,8 @@ import {
   map,          // Transform success value
   mapErr,       // Transform error value
   unwrapOr      // Extract value or default
-} from '@flyingrobots/zerothrow';
+} from '@zerothrow/zerothrow';
 
 // React hook
-import { useResult } from '@flyingrobots/zerothrow/react';
+import { useResult } from '@zerothrow/zerothrow/react';
 ```

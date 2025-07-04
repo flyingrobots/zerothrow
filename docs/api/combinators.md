@@ -26,7 +26,7 @@ Applies a function to the success value that returns a new Result. If the origin
 ### Examples
 
 ```typescript
-import { ok, err, andThen } from '@flyingrobots/zerothrow';
+import { ok, err, andThen } from '@zerothrow/zerothrow';
 
 // Basic chaining
 const result = ok(5);
@@ -100,7 +100,7 @@ Applies a function to transform the success value. If the Result is an error, it
 ### Examples
 
 ```typescript
-import { ok, err, map } from '@flyingrobots/zerothrow';
+import { ok, err, map } from '@zerothrow/zerothrow';
 
 // Transform success
 const num = ok(5);
@@ -178,7 +178,7 @@ Applies a function to transform the error value. If the Result is successful, it
 ### Examples
 
 ```typescript
-import { ok, err, mapErr } from '@flyingrobots/zerothrow';
+import { ok, err, mapErr } from '@zerothrow/zerothrow';
 
 // Transform error
 const error = err('network failure');
@@ -241,7 +241,7 @@ If the Result is an error, applies a function that returns a new Result. Useful 
 ### Examples
 
 ```typescript
-import { ok, err, orElse } from '@flyingrobots/zerothrow';
+import { ok, err, orElse } from '@zerothrow/zerothrow';
 
 // Fallback value
 const error = err('not found');
@@ -296,7 +296,7 @@ Returns the success value if present, otherwise returns the provided default val
 ### Examples
 
 ```typescript
-import { ok, err, unwrapOr } from '@flyingrobots/zerothrow';
+import { ok, err, unwrapOr } from '@zerothrow/zerothrow';
 
 // Success case
 const success = ok(42);
@@ -336,7 +336,7 @@ Returns the success value if present, otherwise throws the error. Use sparingly 
 ### Examples
 
 ```typescript
-import { ok, err, unwrapOrThrow } from '@flyingrobots/zerothrow';
+import { ok, err, unwrapOrThrow } from '@zerothrow/zerothrow';
 
 // Success case
 const success = ok(42);
@@ -382,7 +382,7 @@ Applies a series of functions in sequence, short-circuiting on the first error.
 ### Examples
 
 ```typescript
-import { pipe, ok } from '@flyingrobots/zerothrow';
+import { pipe, ok } from '@zerothrow/zerothrow';
 
 // Validation pipeline
 const validate = pipe(
@@ -433,7 +433,7 @@ If all Results are successful, returns Ok with an array of values. If any Result
 ### Examples
 
 ```typescript
-import { collect, ok, err } from '@flyingrobots/zerothrow';
+import { collect, ok, err } from '@zerothrow/zerothrow';
 
 // All success
 const results1 = [ok(1), ok(2), ok(3)];
@@ -486,7 +486,7 @@ Waits for all Promise<Result> to resolve, then collects them. If all Results are
 ### Examples
 
 ```typescript
-import { collectAsync, tryR } from '@flyingrobots/zerothrow';
+import { collectAsync, tryR } from '@zerothrow/zerothrow';
 
 // Parallel API calls
 async function fetchMultipleUsers(ids: string[]): Promise<Result<User[], ZeroError>> {
@@ -553,7 +553,7 @@ Tries each Result in order, returning the first success. If all fail, returns an
 ### Examples
 
 ```typescript
-import { firstSuccess, ok, err } from '@flyingrobots/zerothrow';
+import { firstSuccess, ok, err } from '@zerothrow/zerothrow';
 
 // Has success
 const results1 = [err('failed1'), ok(42), err('failed2')];

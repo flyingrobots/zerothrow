@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow } from '../src/index.js';
+import { ZT, ZeroThrow } from '../packages/core/src/index.js';
 import { execCmdInteractive } from './lib/shared.js';
 import { checkDockerStatus, startDocker, getDockerInstallCommand, handleDockerError, isRunningInDocker } from './lib/docker.js';
 import chalk from 'chalk';

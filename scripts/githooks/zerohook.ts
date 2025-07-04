@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow } from '../../src/index';
+import { ZT, ZeroThrow, Result } from '../../packages/core/src/index';
+import { collect } from '../../packages/core/src/combinators';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
@@ -19,19 +20,16 @@ type GitDiff = {
 
 
 // Get staged TypeScript files
-async function getStagedFiles(): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
-  const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
-  if (!result.ok) return result;
-  
-  const files = result.value
-    .split('\n')
-    .filter(f => f && f.match(/\.(ts|tsx)$/));
-    
-  return ZT.ok(files);
+function getStagedFiles(): ZeroThrow.Async<string[]> {
+  return execCmd('git diff --cached --name-only --diff-filter=ACM')
+    .map(output => output
+      .split('\n')
+      .filter(f => f && f.match(/\.(ts|tsx)$/))
+    );
 }
 
 // Get staged TypeScript files that should be linted (using ESLint config)
-async function getStagedFilesForLinting(): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
+async function getStagedFilesForLinting(): Promise<Result<string[]>> {
   const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
   if (!result.ok) return result;
   
@@ -56,37 +54,34 @@ async function getStagedFilesForLinting(): Promise<ZeroThrow.Result<string[], Ze
 }
 
 // Check if a file has unstaged changes
-async function hasUnstagedChanges(file: string): Promise<ZeroThrow.Result<boolean, ZeroThrow.ZeroError>> {
-  const result = await execCmd('git diff --name-only');
-  if (!result.ok) return result;
-  
-  const unstagedFiles = result.value.split('\n').filter(Boolean);
-  return ZT.ok(unstagedFiles.includes(file));
+function hasUnstagedChanges(file: string): ZeroThrow.Async<boolean> {
+  return execCmd('git diff --name-only')
+    .map(output => {
+      const unstagedFiles = output.split('\n').filter(Boolean);
+      return unstagedFiles.includes(file);
+    });
 }
 
 // Get diff for a specific file
-async function getFileDiff(file: string): Promise<ZeroThrow.Result<string, ZeroThrow.ZeroError>> {
+function getFileDiff(file: string): ZeroThrow.Async<string> {
   return execCmd(`git diff "${file}"`);
 }
 
 // Run tests
-async function runTests(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
+function runTests(): ZeroThrow.Async<void> {
   const spinner = ora('Running tests...').start();
   
-  const result = await execCmd('npm test');
-  
-  if (!result.ok) {
-    spinner.fail('Tests failed');
-    return result;
-  }
-  
-  spinner.succeed('Tests passed');
-  return ZT.ok(undefined);
+  return execCmd('npm run test', true)
+    .void() // Convert string result to void
+    .tap(() => spinner.succeed('Tests passed'))
+    .tapErr(() => spinner.fail('Tests failed'));
 }
 
 // Run linter on staged files
-async function runLinter(files: string[]): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
-  if (files.length === 0) return ZT.ok(undefined);
+function runLinter(files: string[]): ZeroThrow.Async<void> {
+  if (files.length === 0) {
+    return ZeroThrow.fromAsync(async () => ZT.ok(undefined));
+  }
   
   const spinner = ora('Running linter...').start();
   
@@ -94,35 +89,30 @@ async function runLinter(files: string[]): Promise<ZeroThrow.Result<void, ZeroTh
   const srcFiles = files.filter(f => f.startsWith('src/'));
   const otherFiles = files.filter(f => !f.startsWith('src/'));
   
-  // Run strict linting on src files (fail on any errors)
-  if (srcFiles.length > 0) {
-    spinner.text = 'Running strict linting on src files...';
-    const srcResult = await execCmd(`npx eslint ${srcFiles.join(' ')}`);
-    
-    if (!srcResult.ok) {
-      spinner.fail('Source file linting failed (strict mode)');
-      console.error(chalk.red('\n❌ Source files must pass strict linting rules'));
-      console.error(srcResult.error.message);
-      return ZT.err(srcResult.error);
-    }
-  }
-  
-  // Run relaxed linting on other files (warnings are ok)
-  if (otherFiles.length > 0) {
-    spinner.text = 'Running linting on test/other files...';
-    const otherResult = await execCmd(`npx eslint ${otherFiles.join(' ')}`);
-    
-    if (!otherResult.ok) {
-      // For non-src files, we could be more lenient
-      // But for now, still fail on errors (ESLint returns exit code 1 for errors, 0 for warnings)
-      spinner.fail('Test/other file linting failed');
-      console.error(otherResult.error.message);
-      return ZT.err(otherResult.error);
-    }
-  }
-  
-  spinner.succeed('Linting passed');
-  return ZT.ok(undefined);
+  // Build the linting pipeline
+  return ZeroThrow.fromAsync(async () => ZT.ok(undefined))
+    .andThen(() => {
+      if (srcFiles.length === 0) return ZT.ok(undefined);
+      
+      spinner.text = 'Running strict linting on src files...';
+      return execCmd(`npx eslint ${srcFiles.join(' ')}`)
+        .void()
+        .tapErr(() => {
+          spinner.fail('Source file linting failed (strict mode)');
+          console.error(chalk.red('\n❌ Source files must pass strict linting rules'));
+        });
+    })
+    .andThen(() => {
+      if (otherFiles.length === 0) return ZT.ok(undefined);
+      
+      spinner.text = 'Running linting on test/other files...';
+      return execCmd(`npx eslint ${otherFiles.join(' ')}`)
+        .void()
+        .tapErr(() => {
+          spinner.fail('Test/other file linting failed');
+        });
+    })
+    .tap(() => spinner.succeed('Linting passed'));
 }
 
 // Handle interactive staging for a file
@@ -185,50 +175,39 @@ async function handleFileInteractive(file: string, diff: string): Promise<'stage
   }
 }
 
-// Main pre-commit logic
-async function main(): Promise<number> {
-  console.log(chalk.blue('\n🚀 ZeroHook - Pre-commit checks\n'));
+// Check partially staged files and collect them
+function checkPartiallyStaged(files: string[]): ZeroThrow.Async<string[]> {
+  // Map each file to a promise that checks if it has unstaged changes
+  const checks = files.map(file => 
+    hasUnstagedChanges(file)
+      .map(unstaged => ({ file, unstaged }))
+  );
   
-  // Run tests first
-  const testResult = await runTests();
-  if (!testResult.ok) {
-    console.error(chalk.red('\n❌ Tests must pass before committing'));
-    return 1;
-  }
-  
-  // Get staged files
-  const stagedFilesResult = await getStagedFiles();
-  if (!stagedFilesResult.ok) {
-    console.error(chalk.red(`Failed to get staged files: ${stagedFilesResult.error.message}`));
-    return 1;
-  }
-  
-  const stagedFiles = stagedFilesResult.value;
-  if (stagedFiles.length === 0) {
-    console.log(chalk.gray('No TypeScript files to check'));
-    return 0;
-  }
-  
-  // Check for partially staged files
-  const partiallyStaged: string[] = [];
-  for (const file of stagedFiles) {
-    const hasUnstagedResult = await hasUnstagedChanges(file);
-    if (!hasUnstagedResult.ok) {
-      console.error(chalk.red(`Failed to check ${file}: ${hasUnstagedResult.error.message}`));
-      return 1;
-    }
+  // Use collect to handle all results at once
+  return ZeroThrow.fromAsync(async () => {
+    const results = await Promise.all(checks);
+    const collected = collect(results);
     
-    if (hasUnstagedResult.value) {
-      partiallyStaged.push(file);
-    }
-  }
-  
-  // Handle partially staged files
-  if (partiallyStaged.length > 0) {
-    console.log(chalk.yellow('⚠️  Detected partially staged files with unstaged changes:\n'));
-    partiallyStaged.forEach(file => console.log(`  • ${file}`));
-    console.log(chalk.gray('\nThe linter will check the staged version, not what\'s in your editor.'));
+    if (!collected.ok) return collected;
     
+    // Filter to only partially staged files
+    const partiallyStaged = collected.value
+      .filter(item => item.unstaged)
+      .map(item => item.file);
+      
+    return ZT.ok(partiallyStaged);
+  });
+}
+
+// Handle all partially staged files
+function handlePartiallyStaged(files: string[]): ZeroThrow.Async<void> {
+  if (files.length === 0) return ZeroThrow.enhance(Promise.resolve(ZT.ok(undefined)));
+  
+  console.log(chalk.yellow('⚠️  Detected partially staged files with unstaged changes:\n'));
+  files.forEach(file => console.log(`  • ${file}`));
+  console.log(chalk.gray('\nThe linter will check the staged version, not what\'s in your editor.'));
+  
+  return ZeroThrow.fromAsync(async () => {
     const { shouldReview } = await inquirer.prompt([{
       type: 'confirm',
       name: 'shouldReview',
@@ -236,77 +215,88 @@ async function main(): Promise<number> {
       default: true,
     }]);
     
-    if (shouldReview) {
-      let stageAll = false;
-      let skipAll = false;
+    if (!shouldReview) return ZT.ok(undefined);
+    
+    let stageAll = false;
+    let skipAll = false;
+    
+    for (const file of files) {
+      if (stageAll) {
+        const result = await execCmd(`git add "${file}"`)
+          .tap(() => console.log(chalk.green(`✅ Staged ${file}`)))
+          .tapErr(e => console.error(chalk.red(`Failed to stage ${file}: ${e.message}`)));
+        if (!result.ok) return result.void();
+        continue;
+      }
       
-      for (const file of partiallyStaged) {
-        if (stageAll) {
-          const stageResult = await execCmd(`git add "${file}"`);
-          if (!stageResult.ok) {
-            console.error(chalk.red(`Failed to stage ${file}: ${stageResult.error.message}`));
-            return 1;
-          }
-          console.log(chalk.green(`✅ Staged ${file}`));
-          continue;
-        }
-        
-        if (skipAll) {
+      if (skipAll) {
+        console.log(chalk.yellow(`⏭️  Skipped ${file}`));
+        continue;
+      }
+      
+      const diffResult = await getFileDiff(file)
+        .tapErr(e => console.error(chalk.red(`Failed to get diff for ${file}: ${e.message}`)));
+      if (!diffResult.ok) return diffResult.void();
+      
+      const action = await handleFileInteractive(file, diffResult.value);
+      
+      switch (action) {
+        case 'quit':
+          console.log(chalk.red('\n❌ Commit cancelled'));
+          return ZT.err(new ZeroThrow.ZeroError('CANCELLED', 'User cancelled commit'));
+        case 'stage-all':
+          stageAll = true;
+          const stageResult = await execCmd(`git add "${file}"`)
+            .tap(() => console.log(chalk.green(`✅ Staged ${file}`)))
+            .tapErr(e => console.error(chalk.red(`Failed to stage ${file}: ${e.message}`)));
+          if (!stageResult.ok) return stageResult.void();
+          break;
+        case 'skip-all':
+          skipAll = true;
           console.log(chalk.yellow(`⏭️  Skipped ${file}`));
-          continue;
-        }
-        
-        const diffResult = await getFileDiff(file);
-        if (!diffResult.ok) {
-          console.error(chalk.red(`Failed to get diff for ${file}: ${diffResult.error.message}`));
-          return 1;
-        }
-        
-        const result = await handleFileInteractive(file, diffResult.value);
-        
-        switch (result) {
-          case 'quit':
-            console.log(chalk.red('\n❌ Commit cancelled'));
-            return 1;
-          case 'stage-all':
-            stageAll = true;
-            const stageResult = await execCmd(`git add "${file}"`);
-            if (!stageResult.ok) {
-              console.error(chalk.red(`Failed to stage ${file}: ${stageResult.error.message}`));
-              return 1;
-            }
-            console.log(chalk.green(`✅ Staged ${file}`));
-            break;
-          case 'skip-all':
-            skipAll = true;
-            console.log(chalk.yellow(`⏭️  Skipped ${file}`));
-            break;
-        }
+          break;
       }
     }
-  }
+    
+    return ZT.ok(undefined);
+  });
+}
+
+// Main pre-commit logic
+async function main(): Promise<number> {
+  console.log(chalk.blue('\n🚀 ZeroHook - Pre-commit checks\n'));
   
-  // Re-get staged files after potential changes
-  const finalStagedResult = await getStagedFilesForLinting();
-  if (!finalStagedResult.ok) {
-    console.error(chalk.red(`Failed to get final staged files: ${finalStagedResult.error.message}`));
-    return 1;
-  }
+  const result = await runTests()
+    .tapErr(() => console.error(chalk.red('\n❌ Tests must pass before committing')))
+    .andThen(() => getStagedFiles())
+    .tapErr(e => console.error(chalk.red(`Failed to get staged files: ${e.message}`)))
+    .andThen(files => {
+      if (files.length === 0) {
+        console.log(chalk.gray('No TypeScript files to check'));
+        // Return success with void - no more work to do
+        return ZeroThrow.fromAsync(async () => ZT.ok(undefined));
+      }
+      
+      // Process files through the pipeline
+      return checkPartiallyStaged(files)
+        .andThen(partiallyStaged => handlePartiallyStaged(partiallyStaged))
+        .andThen(() => ZeroThrow.fromAsync(async () => {
+          const result = await getStagedFilesForLinting();
+          if (!result.ok) {
+            console.error(chalk.red(`Failed to get final staged files: ${result.error.message}`));
+            return result;
+          }
+          return runLinter(result.value);
+        }))
+        .tap(() => {
+          console.log(chalk.green('\n✨ Pre-commit checks passed! Proceeding with commit...\n'));
+          if (process.env.ZEROHOOK_DEBUG) {
+            console.log(chalk.gray('\n🚀 Powered by zerothrow - zero exceptions thrown'));
+          }
+        });
+    });
   
-  // Run linter (only on src/ files)
-  const lintResult = await runLinter(finalStagedResult.value);
-  if (!lintResult.ok) {
-    return 1;
-  }
-  
-  console.log(chalk.green('\n✨ Pre-commit checks passed! Proceeding with commit...\n'));
-  
-  // Show that we use zerothrow - no try/catch blocks in the entire codebase!
-  if (process.env.ZEROHOOK_DEBUG) {
-    console.log(chalk.gray('\n🚀 Powered by zerothrow - zero exceptions thrown'));
-  }
-  
-  return 0;
+  return result.ok ? 0 : 1;
 }
 
 // Run the hook
