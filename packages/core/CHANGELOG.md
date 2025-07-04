@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.0.2
+
+### Patch Changes
+
+- 04a2556: Refactor test matcher architecture
+  - Created new `@zerothrow/expect` package containing shared test matcher logic
+  - Removed `/matchers` export from `@zerothrow/core` to keep core pure
+  - Updated `@zerothrow/jest` and `@zerothrow/vitest` to depend on `@zerothrow/expect`
+  - Cleaned up package structure by removing nested packages directory from core
+
+  This is an internal refactoring with no API changes for end users.
+
+- 1d3361e: feat: add Vitest support and extract shared matcher logic
+  - Extract shared matcher logic to @zerothrow/core/matchers
+  - Update @zerothrow/jest to use shared matchers
+  - Add new @zerothrow/vitest package with Vitest support
+  - All packages support Result-friendly assertions without throwing
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
