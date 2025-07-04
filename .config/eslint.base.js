@@ -54,6 +54,14 @@ export default [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
+      // Ban old ZeroThrow API names
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: '@zerothrow/zerothrow',
+          importNames: ['tryR', 'tryRSync', 'tryRBatch', 'promise', 'async', 'OK', 'ERR', 'AnyError'],
+          message: 'Use the new API: ZT.try() or ZeroThrow.attempt() instead of tryR, ZeroThrow.wrap() instead of promise(), ZeroThrow.fromAsync() instead of async().'
+        }]
+      }],
     },
   },
   
@@ -97,6 +105,14 @@ export default [
       '@typescript-eslint/no-unsafe-function-type': 'off', // Allow Function type in tests
       '@typescript-eslint/no-unused-expressions': 'off', // Allow standalone expressions in tests
       'no-magic-numbers': 'off', // Tests are full of magic numbers
+      // Ban old ZeroThrow API names in tests too
+      'no-restricted-imports': ['error', {
+        paths: [{
+          name: '@zerothrow/zerothrow',
+          importNames: ['tryR', 'tryRSync', 'tryRBatch', 'promise', 'async', 'OK', 'ERR', 'AnyError'],
+          message: 'Use the new API: ZT.try() or ZeroThrow.attempt() instead of tryR, ZeroThrow.wrap() instead of promise(), ZeroThrow.fromAsync() instead of async().'
+        }]
+      }],
     },
   },
 ];
