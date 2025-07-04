@@ -213,6 +213,21 @@ const result = await policy.execute(() =>
 
 > [!failure] **ALWAYS FETCH WHEN STARTING NEW FEATURES, AND PUT EACH ONE IN THEIR OWN BRANCH OFF OF ORIGIN/MAIN. MICRO-COMMITS EVERY STEP OF THE WAY.**
 
+> [!important] **COMMIT MESSAGE FORMAT:**
+> ```
+> [{npm-package}] {type}: {subject}
+> 
+> {body}
+> 
+> (optional) BREAKING CHANGE: {details}
+> ```
+
+> [!warning] **ATOMIC COMMITS: One module per commit!**
+> - NEVER mix changes from multiple packages in one commit
+> - NEVER mix src/ and test/ changes unless they're directly related
+> - NEVER mix feature code and documentation unless inseparable
+> - Keep commits bisectable and focused
+
 > [!important] **ALWAYS** update basic memory after commits
 
 > [!success] **ALWAYS** tick boxes as you complete TASKS
