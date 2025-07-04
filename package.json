@@ -79,6 +79,7 @@
     "clean": "turbo run clean",
     "ci": "npm run lint && npm run build && npm run test",
     "ci:local": "npm run lint && npm run build && npm run test",
+    "prepush:test": "npx tsx scripts/githooks/zeropush.ts",
     "githooks": "tsx scripts/githooks/setup-hooks.ts",
     "prepare": "husky",
     "bench": "tsx scripts/benchmarks/run-all.ts"
