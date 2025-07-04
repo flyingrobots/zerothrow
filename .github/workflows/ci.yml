@@ -59,7 +59,10 @@ jobs:
       run: npm ci --workspaces --include-workspace-root --force
 
     - name: Run unit tests
-      run: npm test
+      run: |
+        # Ensure rollup deps are installed for the test build
+        cd packages/core && npm ci && cd ../..
+        npm test
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -122,7 +125,10 @@ jobs:
       run: npm ci --workspaces --include-workspace-root --force
 
     - name: Run tests with coverage
-      run: npm test
+      run: |
+        # Ensure rollup deps are installed for the test build
+        cd packages/core && npm ci && cd ../..
+        npm test
 
     - name: Check coverage thresholds
       run: npx tsx scripts/ci/coverage-check.ts --threshold 90
