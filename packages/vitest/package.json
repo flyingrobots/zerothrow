@@ -1,0 +1,49 @@
+{
+  "name": "@zerothrow/vitest",
+  "version": "0.0.1-alpha",
+  "description": "Vitest matchers for ZeroThrow Result types",
+  "keywords": [
+    "zerothrow",
+    "vitest",
+    "test",
+    "matchers",
+    "result",
+    "error-handling"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/vitest"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo 'Linting is run from monorepo root'"
+  },
+  "peerDependencies": {
+    "@zerothrow/core": "0.0.2-alpha",
+    "vitest": ">=0.30.0"
+  },
+  "devDependencies": {
+    "@zerothrow/core": "workspace:*",
+    "tsup": "^8.5.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
