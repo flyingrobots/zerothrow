@@ -27,13 +27,14 @@
   "files": [
     "dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run --config ../../vitest.config.ts",
-    "test:watch": "vitest --config ../../vitest.config.ts",
-    "lint": "cd ../.. && eslint packages/core/src --max-warnings 0",
+    "test": "echo 'Tests are run from monorepo root'",
+    "test:watch": "echo 'Tests are run from monorepo root'",
+    "lint": "echo 'Linting is run from monorepo root'",
     "clean": "rm -rf dist .turbo",
     "prepublishOnly": "npm run build"
   },
@@ -59,7 +60,11 @@
     "directory": "packages/core"
   },
   "license": "MIT",
-  "author": "J. Kirby Ross",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> https://github.com/flyingrobots",
+  "publishConfig": {
+    "access": "public",
+    "tag": "alpha"
+  },
   "engines": {
     "node": ">=18.17.0"
   },

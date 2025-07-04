@@ -16,5 +16,5 @@ export default defineConfig({
   outDir: 'dist',
   target: 'es2022',
   tsconfig: './tsconfig.json',
-  onSuccess: 'echo "✅ Build complete"'
+  onSuccess: 'echo "✅ Build complete" && rm -f dist/**/*.d.cts'
 });
