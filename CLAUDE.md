@@ -22,8 +22,9 @@
 - **NPM_TOKEN:** ⚠️ Need to add for auto-publishing
 
 **CURRENT STATE:**
-- **Remaining `tryR` references:** 11 files
-- **Active PRs:** #17 (workflow permissions fix)
+- **Remaining `tryR` references:** 0 in code, few in MD files
+- **Docs/Benchmarks:** DELETED (2025-01-04) - Clean slate for future
+- **Published versions:** 0.1.0 for core/expect, 1.0.0 for test packages
 
 ---
 
@@ -160,17 +161,10 @@ packages/
 ## 📋 NEXT SPRINT: Beta Preparation
 
 ### Remaining Phase 3 Tasks
-- [ ] **P4: PURGE `tryR` FROM 11 FILES**
-  - Run: `grep -r "tryR" packages/ | grep -v node_modules`
-  - Replace with `ZT.try()` or `ZeroThrow.attempt()`
-- [ ] **P5: Update tests & examples**
-  - All tests must use new API
-  - Update example code
-- [ ] **P6: Add ESLint rule**
-  - Ban imports of old names
-  - Add to `.config/eslint.config.js`
-  - Catch `makeCombinable(ZT.ok(...))` - ZT.ok already returns combinable
-- [ ] **P7: Create PR**
+- [x] **P4: PURGE `tryR` FROM 11 FILES** - DONE by deleting docs/benchmarks
+- [x] **P5: Update tests & examples** - No tryR in tests, examples deleted
+- [ ] **P6: Add ESLint rule** - Already exists in .config/eslint.base.js!
+- [x] **P7: Create PR** - This one!
 
 ### Phase 5: Zero-Throw Resilience (THE GAME CHANGER)
 - [ ] Retry strategies (constant/linear/exponential)
@@ -286,9 +280,10 @@ gh pr create                         # Create PR
 ## 📊 TECH DEBT TRACKER
 
 ### High Priority
-- [ ] 11 files using `tryR` (was 24, then 1, now 11?)
-- [ ] ESLint rule not implemented
-- [ ] Some tests using old API
+- [x] ~~11 files using `tryR`~~ - RESOLVED by deleting docs/benchmarks
+- [ ] ESLint rule not implemented (but exists in config)
+- [ ] Rewrite documentation from scratch
+- [ ] Create new benchmarks with current API
 
 ### Medium Priority
 - [ ] Docker creates files in working dir
