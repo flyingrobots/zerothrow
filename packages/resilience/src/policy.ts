@@ -1,6 +1,6 @@
 import { ZT, type Result } from '@zerothrow/core'
-import type { Policy } from './types'
-import { SystemClock, type Clock } from './clock'
+import type { Policy } from './types.js'
+import { SystemClock, type Clock } from './clock.js'
 
 export abstract class BasePolicy implements Policy {
   constructor(

@@ -1,7 +1,7 @@
 import { ZT, type Result } from '@zerothrow/core'
-import { BasePolicy } from '../policy'
-import { RetryExhaustedError, type RetryOptions } from '../types'
-import type { Clock } from '../clock'
+import { BasePolicy } from '../policy.js'
+import { RetryExhaustedError, type RetryOptions } from '../types.js'
+import type { Clock } from '../clock.js'
 
 export class RetryPolicy extends BasePolicy {
   constructor(

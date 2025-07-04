@@ -36,10 +36,13 @@ export class TestClock implements Clock {
     this.currentTime += ms
     
     // Wake up sleepers
-    while (this.sleepers.length > 0 && this.sleepers[0].wakeTime <= this.currentTime) {
-      const sleeper = this.sleepers.shift()
-      if (sleeper) {
-        sleeper.resolve()
+    while (this.sleepers.length > 0) {
+      const nextSleeper = this.sleepers[0]
+      if (nextSleeper && nextSleeper.wakeTime <= this.currentTime) {
+        this.sleepers.shift()
+        nextSleeper.resolve()
+      } else {
+        break
       }
     }
   }
