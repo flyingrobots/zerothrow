@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        node: ['18.x', '20.x']
+        node: ['20.x', '22.x']
       fail-fast: false
 
     steps:
@@ -147,19 +147,33 @@ jobs:
       run: |
         echo "📊 CI Results Summary:"
         echo "======================"
+        echo "Quality Checks: ${{ needs.quality-checks.result }}"
+        echo "Test Matrix: ${{ needs.test-matrix.result }}"
+        echo "======================"
         
-        [ "${{ needs.quality-checks.result }}" == "success" ] && echo "✅ Quality Checks:     PASSED" || echo "❌ Quality Checks:     FAILED"
-        [ "${{ needs.test-matrix.result }}" == "success" ] && echo "✅ Test Matrix:        PASSED" || echo "❌ Test Matrix:        FAILED"
-        # [ "${{ needs.integration-tests.result }}" == "success" ] && echo "✅ Integration Tests:  PASSED" || echo "❌ Integration Tests:  FAILED"
-        # [ "${{ needs.coverage.result }}" == "success" ] && echo "✅ Coverage:           PASSED" || echo "❌ Coverage:           FAILED"
+        # Show detailed failure info
+        if [ "${{ needs.quality-checks.result }}" != "success" ]; then
+          echo "❌ Quality Checks FAILED"
+          echo "   Check the Quality Checks job for details on lint/build/type errors"
+          echo "   Common issues: TypeScript errors, lint violations, build failures"
+        else
+          echo "✅ Quality Checks PASSED"
+        fi
+        
+        if [ "${{ needs.test-matrix.result }}" != "success" ]; then
+          echo "❌ Test Matrix FAILED"
+          echo "   Check the Tests jobs for details on test failures"
+          echo "   Common issues: failing tests, dependency issues, Node version incompatibility"
+        else
+          echo "✅ Test Matrix PASSED"
+        fi
         
         echo "======================"
         
+        # Fail if any job failed
         if [ "${{ needs.quality-checks.result }}" != "success" ] || \
            [ "${{ needs.test-matrix.result }}" != "success" ]; then
-          #  [ "${{ needs.integration-tests.result }}" != "success" ] || \
-          #  [ "${{ needs.coverage.result }}" != "success" ]; then
-          echo "❌ CI Failed"
+          echo "❌ CI FAILED - Check individual job logs above for actionable details"
           exit 1
         fi
         
