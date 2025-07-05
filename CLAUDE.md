@@ -1,8 +1,98 @@
 # OPERATION "ZERO-THROW ALPHA" 🎯
 
-## 📊 LATEST SITREP (2025-01-04 14:40 PDT)
+## 🚨 TOP PRIORITY - LIVE USER FEEDBACK (2025-01-04)
 
-**STATUS:** RESILIENCE PACKAGE COMPLETE! 🎯 Ready for npm publish.
+**CRITICAL:** Real users are confused about our ecosystem. Fix discoverability NOW.
+
+### IMMEDIATE FIXES (Push Today)
+1. **Badge Strip** - Add to resilience README:
+   ```markdown
+   [![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+   ![npm](https://img.shields.io/npm/v/@zerothrow/resilience)
+   ![types](https://img.shields.io/npm/types/@zerothrow/resilience)
+   ![size](https://packagephobia.com/badge?p=@zerothrow/resilience)
+   ```
+
+2. **Fix Install Block** - Include peer dep:
+   ```bash
+   npm install @zerothrow/resilience @zerothrow/core
+   # or: pnpm add @zerothrow/resilience @zerothrow/core
+   ```
+
+3. **Mental Model Box** - Add to EVERY package README:
+   ```markdown
+   > **🧠 ZeroThrow Layers**  
+   > • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+   > • **Result** – combinators (`map`, `andThen`, `match`)  
+   > • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+   > • **@zerothrow/**** – ecosystem packages (resilience, jest, etc)
+   ```
+
+4. **Status Banner** - Add to resilience:
+   ```markdown
+   > ⚠️ **Status:** Alpha (v0.1.0) – API may change until v1.0
+   ```
+
+### TOMORROW TASKS
+1. **Create /docs/index.md** - Central documentation portal
+2. **Cross-link Everything** - Every README points to ecosystem
+3. **Getting Started Guide** - Clear adoption path
+4. **Deploy GitHub Pages** - Professional docs site
+
+### THIS WEEK
+1. **Ecosystem Overview** - Single source of truth table
+2. **Package Selection Guide** - "Which package do I need?"
+3. **Integration Example** - Show core + resilience + jest together
+4. **Deprecate enhanceAsync** - Policy.execute is the way
+
+### KEY INSIGHTS FROM FEEDBACK
+- **Users don't understand our layers** - ZT vs Result vs ZeroThrow confusion
+- **Discoverability is broken** - No clear ecosystem story
+- **Missing peer deps cause runtime fails** - Critical install UX bug
+- **No stability indicators** - Users can't gauge maturity
+- **README-only docs insufficient** - Need proper docs portal
+
+**LESSON:** We built the tech right but failed the user journey. Fix the storytelling!
+
+### DEEPER INSIGHTS - Why This Happened
+
+**What Users ACTUALLY Need (vs What We Built):**
+1. **Discovery Path** - They need to understand the ecosystem BEFORE they install
+2. **Mental Model** - The ZT/Result/ZeroThrow layers make sense to us, not them
+3. **Trust Signals** - Badges, version numbers, stability indicators = credibility
+4. **Copy-Paste Success** - Install commands must work first time, every time
+5. **Progressive Disclosure** - Start simple (core), add complexity (resilience) as needed
+
+**Are We Heading Right?**
+YES - The modular architecture is correct. Users want:
+- Small focused packages ✅
+- Zero dependencies ✅  
+- Composable patterns ✅
+- Type safety ✅
+
+NO - Our communication strategy failed:
+- Scattered docs ❌
+- No clear starting point ❌
+- Hidden ecosystem ❌
+- Confusing namespaces ❌
+
+**Anticipating Next Needs:**
+1. **IDE Integration** - VSCode snippets, autocomplete for ZT.*
+2. **Migration Tools** - Codemod from try/catch to Result
+3. **Framework Templates** - Next.js, Remix starters with ZT baked in
+4. **Real-World Examples** - Not just retry, but "resilient Stripe integration"
+5. **Performance Proof** - Benchmarks showing zero overhead
+
+**The Right Thing:**
+We're building the right technical foundation. Now we need to build the right 
+user experience AROUND that foundation. Every package needs to tell the story
+of the whole ecosystem, not just its own chapter.
+
+---
+
+## 📊 LATEST SITREP (2025-01-04 15:30 PDT)
+
+**STATUS:** CRITICAL DISCOVERABILITY FIXES PUSHED! 🚨 Resilience package ready + UX fixes applied.
 
 **MISSION ACCOMPLISHED:**
 - ✅ **STABLE VERSIONS PUBLISHED** - All packages now on stable semver
@@ -16,7 +106,11 @@
 - **@zerothrow/jest v1.0.0** - Jest matchers (unintended 1.0, but we're keeping it)
 - **@zerothrow/vitest v1.0.0** - Vitest matchers
 - **@zerothrow/testing v1.0.0** - Unified test package
-- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish
+- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish (after UX fixes)
+
+**BRANCHES IN FLIGHT:**
+- **feat/resilience-api** - Complete resilience package ready for PR
+- **fix/discoverability-critical** - Emergency README fixes (PUSHED)
 
 **SECRETS STATUS:**
 - **GH_PAT:** ✅ Added to repo (enables extra features)

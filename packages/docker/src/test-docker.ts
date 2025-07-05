@@ -1,10 +1,25 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow } from '../packages/core/src/index.js';
-import { execCmdInteractive } from './lib/shared.js';
-import { checkDockerStatus, startDocker, getDockerInstallCommand, handleDockerError, isRunningInDocker } from './lib/docker.js';
+import { ZT, ZeroThrow } from '@zerothrow/core';
+import { checkDockerStatus, startDocker, getDockerInstallCommand, handleDockerError, isRunningInDocker } from './index.js';
+import { exec } from 'child_process';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
+
+// Execute shell command with inherited stdio (for interactive commands)
+function execCmdInteractive(cmd: string): ZeroThrow.Async<void, ZeroThrow.ZeroError> {
+  return ZeroThrow.fromAsync(() => 
+    new Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>>((resolve) => {
+      exec(cmd, { stdio: 'inherit' } as any, (error) => {
+        if (error) {
+          resolve(ZT.err(ZeroThrow.wrap(error, 'EXEC_INTERACTIVE_FAILED', `Interactive command failed: ${cmd}`)));
+        } else {
+          resolve(ZT.ok(undefined));
+        }
+      });
+    })
+  );
+}
 
 async function main(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   const isTTY = process.stdout.isTTY && process.stdin.isTTY;
@@ -135,8 +150,9 @@ async function main(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroError>> {
   return execCmdInteractive('npm test -- test/integration/');
 }
 
-// Run the main function
-main().then(result => {
+// Export for CLI usage
+export default async function runTests() {
+  const result = await main();
   if (!result.ok) {
     console.error(chalk.red('\n❌ Integration tests failed:'));
     console.error(chalk.red(`   ${result.error.code}: ${result.error.message}`));
@@ -148,4 +164,9 @@ main().then(result => {
     }
     process.exit(1);
   }
-});
+}
+
+// Run if called directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  runTests();
+}

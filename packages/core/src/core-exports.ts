@@ -76,7 +76,7 @@ export function err(
     // String overload - create ZeroError
     return _err(new _ZeroError(errorOrCode, message || errorOrCode));
   }
-  // Error object - use as-is
+  // Error object - use as-is (preserves all error types)
   return _err(errorOrCode);
 }
 
