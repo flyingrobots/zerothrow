@@ -1,0 +1,73 @@
+{
+  "name": "@zerothrow/docker",
+  "version": "0.1.0",
+  "description": "Zero-throw Docker utilities for testing and container management",
+  "type": "module",
+  "sideEffects": false,
+  "keywords": [
+    "zerothrow",
+    "docker",
+    "containers",
+    "testing",
+    "devops"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "bin": {
+    "zt-docker": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --max-warnings 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "inquirer": "^9.2.15",
+    "ora": "^8.0.1"
+  },
+  "peerDependencies": {
+    "@zerothrow/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.1",
+    "@zerothrow/core": "^0.1.0",
+    "tsup": "^8.3.0",
+    "typescript": "5.5.4",
+    "vitest": "^2.1.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/docker"
+  },
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  }
+}
