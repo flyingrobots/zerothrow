@@ -1,0 +1,46 @@
+{
+  "name": "@zerothrow/zt-cli",
+  "version": "0.1.0",
+  "description": "ZeroThrow CLI tool for repo-wide workflows",
+  "type": "module",
+  "bin": {
+    "zt": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "test": "vitest",
+    "lint": "echo 'Linting runs from monorepo root'"
+  },
+  "keywords": [
+    "zerothrow",
+    "cli",
+    "workflow"
+  ],
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "license": "MIT",
+  "dependencies": {
+    "@zerothrow/core": "^0.1.0",
+    "@zerothrow/resilience": "^0.1.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "inquirer": "^9.2.15",
+    "ora": "^8.0.1"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "platform": "universal",
+  "dev": false,
+  "repository": {
+    "directory": "packages/zt-cli"
+  }
+}
