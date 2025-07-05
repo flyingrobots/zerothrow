@@ -85,7 +85,8 @@
     "bench": "tsx scripts/benchmarks/run-all.ts",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "release": "turbo run build && changeset publish",
+    "zt:install": "node scripts/install-zt-dev.js"
   },
   "peerDependencies": {
     "react": ">=16.8.0"

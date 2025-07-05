@@ -1,0 +1,42 @@
+# Package Deploy Checklist
+
+Before a package is considered "ready" for deployment the following requirements must be met:
+
+- [ ] has package.json:
+    - [ ] has accurate description
+    - [ ] has correct package name
+    - [ ] type = "module"
+    - [ ] sideEffects = false
+    - [ ] has "exports"
+    - [ ] has "platform"
+    - [ ] has "dev"
+    - [ ] "main"
+    - [ ] "module"
+    - [ ] "types"
+    - [ ] has MINIMAL "files"
+        - [ ] has "README.md"
+            - [ ] "README.md" is correct
+            - [ ] "README.md" has correct badges
+            - [ ] "README.md" links to ECOSYSTEM.md
+            - [ ] README.md has "> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)" near the top
+            - [ ] has install instructions "bash npm i @zerothrow/core @zerothrow/vitest @zerothrow/resilience" WITH optional recommended packages included
+            - [ ] Badge bar ![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
+            - [ ] has intro blurb
+        - [ ] has mascot image
+        - [ ] has CHANGELOG.md
+        - [ ] has LICENSE file
+        - [ ] ALL files have SPDX-License-Identifier and copyright at the top
+    - [ ] hash "keywords" that are correct
+    - [ ] "homepage" = "https://github.com/zerothrow/zerothrow#readme"
+    - [ ] has "bugs" link and it is correct
+    - [ ] has "repository" and is correct
+        - [ ] directory in repository is correct
+    - [ ] has license and is MIT
+    - [ ] "author" is "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)
+    - [ ] publishConfig" = { "access": "public" }
+    - [ ] engines = { "node": ">=18.17.0" }
+    - [ ] devDependencies = empty
+    - [ ] optionalDependencies = empty
+    - [ ] has correct peerDependencies according to the chart in ECOSYSTEM.md
+- [ ] is mentioned in ECOSYSTEM.md
+- [ ] ECOSYSTEM.md has correct package.json version

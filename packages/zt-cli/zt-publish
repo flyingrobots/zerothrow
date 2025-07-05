@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// This allows 'zt publish' to work via git-style subcommand discovery
+import('./dist/index.js').then(module => {
+  // Inject 'publish' as the first argument
+  process.argv.splice(2, 0, 'publish');
+  // The main CLI will handle the rest
+});

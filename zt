@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Run tsx with the zt-cli TypeScript file
+const tsxPath = '/Users/james/git/zerothrow/node_modules/.bin/tsx';
+const cliPath = '/Users/james/git/zerothrow/packages/zt-cli/src/index.ts';
+
+import { spawn } from 'child_process';
+
+const child = spawn(tsxPath, [cliPath, ...process.argv.slice(2)], {
+  stdio: 'inherit',
+  env: process.env,
+});
+
+child.on('exit', (code) => {
+  process.exit(code || 0);
+});
