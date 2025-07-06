@@ -20,7 +20,7 @@
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "license": "MIT",
   "dependencies": {
-    "@zerothrow/core": "^0.1.0",
+    "@zerothrow/core": "^0.2.0",
     "@zerothrow/resilience": "^0.1.0",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
