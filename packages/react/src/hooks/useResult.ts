@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { Result, ZT } from '@zerothrow/core'
+import { ZT } from '@zerothrow/core'
+import type { Result } from '@zerothrow/core'
 
 export interface UseResultOptions {
   /**
@@ -14,7 +15,7 @@ export interface UseResultOptions {
   deps?: React.DependencyList
 }
 
-export interface UseResultReturn<T, E> {
+export interface UseResultReturn<T, E extends Error> {
   /**
    * The current Result value (undefined while loading)
    */
@@ -36,17 +37,17 @@ export interface UseResultReturn<T, E> {
   reset: () => void
 }
 
-interface State<T, E> {
+interface State<T, E extends Error> {
   result: Result<T, E> | undefined
   loading: boolean
 }
 
-type Action<T, E> = 
+type Action<T, E extends Error> = 
   | { type: 'LOADING' }
   | { type: 'SUCCESS'; result: Result<T, E> }
   | { type: 'RESET' }
 
-function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
+function reducer<T, E extends Error>(state: State<T, E>, action: Action<T, E>): State<T, E> {
   switch (action.type) {
     case 'LOADING':
       return { ...state, loading: true }
@@ -82,7 +83,7 @@ function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
  * }) ?? null
  * ```
  */
-export function useResult<T, E = Error>(
+export function useResult<T, E extends Error = Error>(
   fn: () => Promise<Result<T, E>> | Result<T, E>,
   options: UseResultOptions = {}
 ): UseResultReturn<T, E> {
@@ -114,7 +115,7 @@ export function useResult<T, E = Error>(
       // If fn throws (which it shouldn't if following Result patterns),
       // convert to Result.err
       if (isMountedRef.current && !abortControllerRef.current.signal.aborted) {
-        const errorResult = ZT.err(error instanceof Error ? error : new Error(String(error))) as Result<T, E>
+        const errorResult = ZT.err(error instanceof Error ? error : new Error(String(error))) as Result<T, any>
         dispatch({ type: 'SUCCESS', result: errorResult })
       }
     }

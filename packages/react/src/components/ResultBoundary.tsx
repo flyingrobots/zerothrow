@@ -1,5 +1,7 @@
-import { Component, ReactNode, ErrorInfo } from 'react'
-import { Result, ZT } from '@zerothrow/core'
+import { Component } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
+import { ZT } from '@zerothrow/core'
+import type { Result } from '@zerothrow/core'
 
 export interface ResultBoundaryProps {
   /**
@@ -58,7 +60,7 @@ export class ResultBoundary extends Component<ResultBoundaryProps, ResultBoundar
     return { hasError: true, error }
   }
   
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log the error to error reporting service
     this.props.onError?.(error, errorInfo)
   }
@@ -67,7 +69,7 @@ export class ResultBoundary extends Component<ResultBoundaryProps, ResultBoundar
     this.setState({ hasError: false, error: null })
   }
   
-  render() {
+  override render() {
     if (this.state.hasError && this.state.error) {
       // Convert the error to a Result and pass to fallback
       const result = ZT.err(this.state.error) as Result<never, Error>

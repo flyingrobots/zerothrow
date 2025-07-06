@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
-import { Result, ZT } from '@zerothrow/core'
-import type { Policy, CircuitState } from '@zerothrow/resilience'
+import { ZT } from '@zerothrow/core'
+import type { Result } from '@zerothrow/core'
+// import type { PolicyInterface } from '@zerothrow/resilience' // TODO: Fix when resilience exports proper types
+
+type CircuitState = 'closed' | 'open' | 'half-open'
 
 export interface UseResilientResultOptions {
   /**
@@ -15,7 +18,7 @@ export interface UseResilientResultOptions {
   deps?: React.DependencyList
 }
 
-export interface UseResilientResultReturn<T, E> {
+export interface UseResilientResultReturn<T, E extends Error> {
   /**
    * The current Result value (undefined while loading)
    */
@@ -34,12 +37,12 @@ export interface UseResilientResultReturn<T, E> {
   /**
    * Timestamp when the next retry will occur (if applicable)
    */
-  nextRetryAt?: number
+  nextRetryAt: number | undefined
   
   /**
    * Current state of the circuit breaker (if using CircuitBreakerPolicy)
    */
-  circuitState?: CircuitState
+  circuitState: CircuitState | undefined
   
   /**
    * Manually trigger execution
@@ -52,22 +55,22 @@ export interface UseResilientResultReturn<T, E> {
   reset: () => void
 }
 
-interface State<T, E> {
+interface State<T, E extends Error> {
   result: Result<T, E> | undefined
   loading: boolean
   retryCount: number
-  nextRetryAt?: number
-  circuitState?: CircuitState
+  nextRetryAt: number | undefined
+  circuitState: CircuitState | undefined
 }
 
-type Action<T, E> = 
+type Action<T, E extends Error> = 
   | { type: 'LOADING' }
   | { type: 'SUCCESS'; result: Result<T, E> }
   | { type: 'RETRY_SCHEDULED'; nextRetryAt: number; retryCount: number }
   | { type: 'CIRCUIT_STATE_CHANGED'; state: CircuitState }
   | { type: 'RESET' }
 
-function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
+function reducer<T, E extends Error>(state: State<T, E>, action: Action<T, E>): State<T, E> {
   switch (action.type) {
     case 'LOADING':
       return { ...state, loading: true }
@@ -76,7 +79,7 @@ function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
         ...state, 
         result: action.result, 
         loading: false,
-        nextRetryAt: undefined 
+        nextRetryAt: undefined as number | undefined
       }
     case 'RETRY_SCHEDULED':
       return {
@@ -94,8 +97,8 @@ function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
         result: undefined, 
         loading: false, 
         retryCount: 0,
-        nextRetryAt: undefined,
-        circuitState: undefined
+        nextRetryAt: undefined as number | undefined,
+        circuitState: undefined as CircuitState | undefined
       }
     default:
       return state
@@ -137,9 +140,9 @@ function reducer<T, E>(state: State<T, E>, action: Action<T, E>): State<T, E> {
  * }) ?? null
  * ```
  */
-export function useResilientResult<T, E = Error>(
+export function useResilientResult<T, E extends Error = Error>(
   fn: () => Promise<T>,
-  policy: Policy<T, E>,
+  policy: any, // TODO: Fix when resilience exports proper types
   options: UseResilientResultOptions = {}
 ): UseResilientResultReturn<T, E> {
   const { immediate = true, deps = [] } = options
@@ -148,6 +151,8 @@ export function useResilientResult<T, E = Error>(
     result: undefined,
     loading: immediate,
     retryCount: 0,
+    nextRetryAt: undefined,
+    circuitState: undefined
   })
   
   const isMountedRef = useRef(true)
@@ -166,9 +171,7 @@ export function useResilientResult<T, E = Error>(
     dispatch({ type: 'LOADING' })
     
     // Create a wrapped version that tracks retry metadata
-    let currentRetryCount = 0
-    const wrappedPolicy = policy.onRetry((attempt, error, delay) => {
-      currentRetryCount = attempt
+    const wrappedPolicy = policy.onRetry((attempt: number, _error: unknown, delay: number) => {
       if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
         dispatch({ 
           type: 'RETRY_SCHEDULED', 
@@ -198,7 +201,7 @@ export function useResilientResult<T, E = Error>(
       if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
         const errorResult = ZT.err(
           error instanceof Error ? error : new Error(String(error))
-        ) as Result<T, E>
+        ) as Result<T, any>
         dispatch({ type: 'SUCCESS', result: errorResult })
       }
     }
