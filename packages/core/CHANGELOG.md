@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1
+
+### Patch Changes
+
+- Removed `alpha` tag from publishConfig to ensure future releases publish to `latest` by default
+- This fixes the issue where v0.2.0 was accidentally published to the alpha dist-tag
+
 ## 0.2.0
 
 ### Major Changes

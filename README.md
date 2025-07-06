@@ -27,9 +27,9 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 ### Published Packages
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
-| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.0 | Core Result types and utilities | ✅ Stable |
-| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.0.1 | Jest matchers for Result types | ✅ Stable |
-| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.0.1 | Vitest matchers for Result types | ✅ Stable |
+| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.1 | Core Result types and utilities | ✅ Stable |
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.0.2 | Jest matchers for Result types | ✅ Stable |
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.0.2 | Vitest matchers for Result types | ✅ Stable |
 | [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) v0.1.0 | Shared test matcher logic | ✅ Stable |
 | [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) v1.0.1 | Unified test matchers (Jest + Vitest) | ✅ Stable |
 | [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) v0.1.1 | Production-grade resilience patterns | ✅ Stable |

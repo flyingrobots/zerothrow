@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.2
+
+### Patch Changes
+
+- Updated peer dependency for @zerothrow/expect to support wider range
+  - Changed from exact version `0.1.0` to range `>=0.1.0 <1.0.0`
+  - This provides more flexibility for users while maintaining compatibility
+  - Follows semantic versioning best practices for peer dependencies
+
 ## 1.0.1
 
 ### Patch Changes

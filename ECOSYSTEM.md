@@ -6,13 +6,13 @@ Welcome to the **ZeroThrow** ecosystem – a comprehensive suite of packages tha
 
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
-| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.0 | Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript | ✅ Published |
+| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.1 | Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript | ✅ Published |
 | [`@zerothrow/docker`](packages/docker) | [![npm](https://img.shields.io/npm/v/@zerothrow/docker.svg?style=flat-square)](https://npm.im/@zerothrow/docker) v0.1.1 | Zero-throw Docker utilities for testing and container management | ✅ Published |
 | [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) v0.1.0 | Shared test matcher logic for ZeroThrow Result types | ✅ Published |
-| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.0.1 | Jest matchers for ZeroThrow Result types | ✅ Published |
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.0.2 | Jest matchers for ZeroThrow Result types | ✅ Published |
 | [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) v0.1.1 | Production-grade resilience patterns for ZeroThrow | ✅ Published |
 | [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) v1.0.1 | Unified test matchers for ZeroThrow Result types - supports Jest and Vitest | ✅ Published |
-| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.0.1 | Vitest matchers for ZeroThrow Result types | ✅ Published |
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.0.2 | Vitest matchers for ZeroThrow Result types | ✅ Published |
 | [`@zerothrow/zt-cli`](packages/zt-cli) | v0.1.1 | ZeroThrow CLI tool for repo-wide workflows | 🚧 Internal |
 
 ## 📦 Unpublished Packages (In Development)
@@ -99,9 +99,9 @@ graph TB
 
 ### Phase 1: Core Foundation (Complete ✅)
 Focus on core functionality and essential developer tools:
-- ✅ `@zerothrow/core` (v0.2.0)
-- ✅ `@zerothrow/jest` (v1.0.1)
-- ✅ `@zerothrow/vitest` (v1.0.1)
+- ✅ `@zerothrow/core` (v0.2.1)
+- ✅ `@zerothrow/jest` (v1.0.2)
+- ✅ `@zerothrow/vitest` (v1.0.2)
 - ✅ `@zerothrow/expect` (v0.1.0)
 - ✅ `@zerothrow/testing` (v1.0.1)
 - ✅ `@zerothrow/resilience` (v0.1.1)

@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/jest",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Jest matchers for ZeroThrow Result types",
   "author": "ZeroThrow",
   "license": "MIT",
