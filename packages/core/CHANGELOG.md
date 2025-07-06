@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.2.0
+
+### Major Changes
+
+- **BREAKING**: Unified Result API - All Results are now combinable by default
+
+  ## Summary
+  
+  Eliminated the two-tier Result system. Previously, Results needed to be made combinable via `makeCombinable()`. 
+  Now all Results have built-in combinator methods, making the API simpler and more consistent.
+
+  ## Breaking Changes
+  
+  - Removed `makeCombinable()` function - no longer needed
+  - Removed `ResultCombinable` interface - all Results now have these methods
+  - `firstSuccess()` now accepts lazy functions `() => Result<T, E>` instead of direct Results
+  - Internal `_err()` and `_ok()` functions renamed to `err()` and `ok()`
+  
+  ## Migration Guide
+  
+  ```typescript
+  // Before
+  const result = makeCombinable(ZT.try(() => risky()));
+  result.map(x => x * 2);
+  
+  // After  
+  const result = ZT.try(() => risky());
+  result.map(x => x * 2);  // Works directly!
+  
+  // Before - firstSuccess with direct Results
+  const result = firstSuccess([
+    attempt1(),
+    attempt2(),
+    attempt3()
+  ]);
+  
+  // After - firstSuccess with lazy functions
+  const result = firstSuccess([
+    () => attempt1(),
+    () => attempt2(),
+    () => attempt3()
+  ]);
+  ```
+  
+  ## Benefits
+  
+  - Simpler API - no need to think about "plain" vs "combinable" Results
+  - Better ergonomics - all Results work the same way
+  - Cleaner internal architecture
+  - Consistent behavior across the entire API
+
 ## 0.1.0
 
 ### Minor Changes
