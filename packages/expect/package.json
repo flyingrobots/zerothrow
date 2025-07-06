@@ -52,7 +52,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
-    "@zerothrow/core": ">=0.0.3-alpha.0"
+    "@zerothrow/core": ">=0.1.0"
   },
   "devDependencies": {
     "@zerothrow/core": "file:../core",
