@@ -18,6 +18,11 @@
   - `firstSuccess()` now accepts lazy functions `() => Result<T, E>` instead of direct Results
   - Internal `_err()` and `_ok()` functions renamed to `err()` and `ok()`
   
+  ## Improvements
+  
+  - `ZT.tryAsync` now correctly returns `Promise<Result<T, E>>` instead of the confusing `Result<Promise<T>, E>`
+  - Better TypeScript inference throughout the API
+  
   ## Migration Guide
   
   ```typescript

@@ -57,13 +57,41 @@ import { ZT } from '@zerothrow/core';
 
 // Wrap throwing functions
 ZT.try(() => risky())              // Result<T, Error>
-ZT.tryAsync(async () => fetch())   // Promise<Result<T, Error>>
+ZT.tryAsync(async () => fetch())   // Promise<Result<T, Error>> ✨
 
 // Create Results directly
 ZT.ok(value)                       // Result<T, never>
 ZT.err(error)                      // Result<never, Error>
 ZT.err('CODE')                     // Result<never, ZeroError>
 ZT.err('CODE', 'message')          // Result<never, ZeroError>
+```
+
+#### Understanding tryAsync
+
+`ZT.tryAsync` now returns the intuitive `Promise<Result<T, E>>` type:
+
+```typescript
+// ✅ Correct: Returns Promise<Result<T, E>>
+const result = await ZT.tryAsync(async () => {
+  const response = await fetch('/api/data');
+  return response.json();
+});
+// result is Result<Data, Error> - can use combinators immediately!
+
+// This is different from ZT.try with an async function:
+const confusing = ZT.try(async () => fetch('/api/data'));
+// confusing is Result<Promise<Response>, Error> - not what you want!
+
+// With tryAsync, you can chain naturally:
+const userData = await ZT.tryAsync(async () => {
+  const response = await fetch('/api/user');
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+})
+.then(result => result
+  .map(data => data.profile)
+  .tap(profile => console.log('Got profile:', profile))
+);
 ```
 
 ### Result Combinators
