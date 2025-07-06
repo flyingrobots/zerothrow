@@ -1,0 +1,1 @@
+| [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) | Unified test matchers for ZeroThrow Result types - supports Jest and Vitest |
