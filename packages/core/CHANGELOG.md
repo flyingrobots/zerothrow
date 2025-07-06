@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated README with Result-first mental model and better examples
+- Documentation now emphasizes writing functions that return Results from the beginning
+- Fixed misleading examples that showed wrapping throwing code
+
 ## 0.2.1
 
 ### Patch Changes
