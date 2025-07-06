@@ -17,8 +17,6 @@
 <img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-resilience.webp" height="300" />
 </div>
 
-> ⚠️ **Status:** Alpha (v0.1.0) – API may change until v1.0
-
 Production-grade resilience patterns for ZeroThrow: retry policies, circuit breakers, and timeouts with full Result<T,E> integration.
 
 ## Installation

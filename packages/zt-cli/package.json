@@ -25,7 +25,7 @@
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "inquirer": "^12.6.3",
-    "markdown-transclusion": "^1.1.2",
+    "markdown-transclusion": "^1.2.0",
     "ora": "^8.2.0"
   },
   "engines": {

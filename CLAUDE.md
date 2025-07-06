@@ -1,650 +1,208 @@
-# OPERATION "ZERO-THROW ALPHA" 🎯
+# ZeroThrow Project Guide
 
-## 🚨 TOP PRIORITY - LIVE USER FEEDBACK (2025-01-04)
+This guide contains essential information about the ZeroThrow monorepo for AI assistants.
 
-**CRITICAL:** Real users are confused about our ecosystem. Fix discoverability NOW.
+## Project Overview
 
-### IMMEDIATE FIXES (Push Today)
-1. **Badge Strip** - Add to resilience README:
-   ```markdown
-   [![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
-   ![npm](https://img.shields.io/npm/v/@zerothrow/resilience)
-   ![types](https://img.shields.io/npm/types/@zerothrow/resilience)
-   ![size](https://packagephobia.com/badge?p=@zerothrow/resilience)
-   ```
+ZeroThrow is a TypeScript error handling library that replaces exceptions with type-safe Result types. The core philosophy: **Stop throwing, start returning.**
 
-2. **Fix Install Block** - Include peer dep:
-   ```bash
-   npm install @zerothrow/resilience @zerothrow/core
-   # or: pnpm add @zerothrow/resilience @zerothrow/core
-   ```
+### Key Mental Model
+1. **Write functions that return Results from the beginning** - Don't throw then wrap
+2. **Only use `ZT.try` at absolute boundaries** - When interfacing with code you don't control
+3. **Results are your primary return type** - Not an afterthought or wrapper
 
-3. **Mental Model Box** - Add to EVERY package README:
-   ```markdown
-   > **🧠 ZeroThrow Layers**  
-   > • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
-   > • **Result** – combinators (`map`, `andThen`, `match`)  
-   > • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
-   > • **@zerothrow/**** – ecosystem packages (resilience, jest, etc)
-   ```
+## Repository Structure
 
-4. **Status Banner** - Add to resilience:
-   ```markdown
-   > ⚠️ **Status:** Alpha (v0.1.0) – API may change until v1.0
-   ```
+```
+zerothrow/
+├── packages/
+│   ├── core/           # Core Result<T,E> type (v0.2.2)
+│   ├── resilience/     # Retry, circuit breaker, timeout (v0.1.1)
+│   ├── jest/           # Jest matchers (v1.0.2)
+│   ├── vitest/         # Vitest matchers (v1.0.2)
+│   ├── testing/        # Unified test package (v1.0.1)
+│   ├── expect/         # Shared matcher logic (v0.1.0)
+│   ├── docker/         # Docker utilities (v0.1.1)
+│   ├── zt-cli/         # CLI tooling (internal)
+│   ├── eslint-plugin/  # ESLint rules (unpublished)
+│   └── react/          # React hooks (unpublished)
+├── docs-src/           # Source for transcluded documentation
+├── scripts/            # Build and release scripts
+├── README.md           # Monorepo control tower
+└── ECOSYSTEM.md        # Complete package listing
+```
 
-### TOMORROW TASKS
-1. **Create /docs/index.md** - Central documentation portal
-2. **Cross-link Everything** - Every README points to ecosystem
-3. **Getting Started Guide** - Clear adoption path
-4. **Deploy GitHub Pages** - Professional docs site
+## Development Workflow
 
-### THIS WEEK
-1. **Ecosystem Overview** - Single source of truth table
-2. **Package Selection Guide** - "Which package do I need?"
-3. **Integration Example** - Show core + resilience + jest together
-4. **Deprecate enhanceAsync** - Policy.execute is the way
+### Prerequisites
+- Node.js 18+
+- pnpm 9+ (`npm install -g pnpm`)
+- Docker (optional, for full test matrix)
 
-### KEY INSIGHTS FROM FEEDBACK
-- **Users don't understand our layers** - ZT vs Result vs ZeroThrow confusion
-- **Discoverability is broken** - No clear ecosystem story
-- **Missing peer deps cause runtime fails** - Critical install UX bug
-- **No stability indicators** - Users can't gauge maturity
-- **README-only docs insufficient** - Need proper docs portal
-
-**LESSON:** We built the tech right but failed the user journey. Fix the storytelling!
-
-### DEEPER INSIGHTS - Why This Happened
-
-**What Users ACTUALLY Need (vs What We Built):**
-1. **Discovery Path** - They need to understand the ecosystem BEFORE they install
-2. **Mental Model** - The ZT/Result/ZeroThrow layers make sense to us, not them
-3. **Trust Signals** - Badges, version numbers, stability indicators = credibility
-4. **Copy-Paste Success** - Install commands must work first time, every time
-5. **Progressive Disclosure** - Start simple (core), add complexity (resilience) as needed
-
-**Are We Heading Right?**
-YES - The modular architecture is correct. Users want:
-- Small focused packages ✅
-- Zero dependencies ✅  
-- Composable patterns ✅
-- Type safety ✅
-
-NO - Our communication strategy failed:
-- Scattered docs ❌
-- No clear starting point ❌
-- Hidden ecosystem ❌
-- Confusing namespaces ❌
-
-**Anticipating Next Needs:**
-1. **IDE Integration** - VSCode snippets, autocomplete for ZT.*
-2. **Migration Tools** - Codemod from try/catch to Result
-3. **Framework Templates** - Next.js, Remix starters with ZT baked in
-4. **Real-World Examples** - Not just retry, but "resilient Stripe integration"
-5. **Performance Proof** - Benchmarks showing zero overhead
-
-**The Right Thing:**
-We're building the right technical foundation. Now we need to build the right 
-user experience AROUND that foundation. Every package needs to tell the story
-of the whole ecosystem, not just its own chapter.
-
----
-
-## 📊 LATEST SITREP (2025-01-04 15:30 PDT)
-
-**STATUS:** CRITICAL DISCOVERABILITY FIXES PUSHED! 🚨 Resilience package ready + UX fixes applied.
-
-**MISSION ACCOMPLISHED:**
-- ✅ **STABLE VERSIONS PUBLISHED** - All packages now on stable semver
-- ✅ **DOCS/BENCHMARKS DELETED** - Clean slate for rapid iteration
-- ✅ **tryR REFERENCES PURGED** - 252 references eliminated via deletion
-- ✅ **Test matchers complete** - Jest/Vitest/Testing packages published
-
-**CURRENT RELEASES:**
-- **@zerothrow/core v0.1.0** - Stable release with all alpha features
-- **@zerothrow/expect v0.1.0** - Shared matcher logic
-- **@zerothrow/jest v1.0.0** - Jest matchers (unintended 1.0, but we're keeping it)
-- **@zerothrow/vitest v1.0.0** - Vitest matchers
-- **@zerothrow/testing v1.0.0** - Unified test package
-- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish (after UX fixes)
-
-**BRANCHES IN FLIGHT:**
-- **feat/resilience-api** - Complete resilience package ready for PR
-- **fix/discoverability-critical** - Emergency README fixes (PUSHED)
-
-**SECRETS STATUS:**
-- **GH_PAT:** ✅ Added to repo (enables extra features)
-- **NPM_TOKEN:** ⚠️ Need to add for auto-publishing
-
-**CURRENT STATE:**
-- **Remaining `tryR` references:** 0 in code, few in MD files
-- **Docs/Benchmarks:** DELETED (2025-01-04) - Clean slate for future
-- **Published versions:** 0.1.0 for core/expect, 1.0.0 for test packages
-
----
-
-## 🎯 IMMEDIATE OBJECTIVES - BETA DX SPRINT
-
-**CRITICAL FIXES (Based on Alpha Feedback):**
-1. **Add ZT.tryAsync** - Clear async ergonomics
-2. **String overload for ZT.err** - `ZT.err('CODE')` convenience
-3. **Test matchers** - `expect(result).toBeOk()` for jest/vitest
-4. **Async combinators** - Reduce verbose nested handling
-
-**LATEST ACHIEVEMENTS:**
-- ✅ Added ZT.tryAsync for `Promise<Result<T,E>>` 
-- ✅ Added string overloads to ZT.err
-- ✅ Created @zerothrow/jest matchers (published)
-- ✅ Created @zerothrow/vitest matchers (PR merged)
-- ✅ Refactored to @zerothrow/expect architecture
-- ✅ Added ECOSYSTEM.md with 34-package roadmap
-- ✅ **RESILIENCE PACKAGE COMPLETE!**
-  - RetryPolicy with backoff strategies
-  - CircuitBreakerPolicy with state machine
-  - TimeoutPolicy with Promise.race
-  - Policy.compose() for chaining
-  - 21 passing tests, 100% behavior coverage
-
-**NEXT MISSION:** Ship resilience to npm!
-
-**STILL PENDING (Lower Priority):**
-- [ ] Delete ALL `tryR` references (11 remaining)
-- [ ] Add ESLint rule to ban old names
-- [ ] Resilience API (retry, circuit breaker)
-
----
-
-## 📊 ALPHA USER FEEDBACK ANALYSIS
-
-### Pain Points Discovered
-| Issue | Root Cause | Impact |
-|-------|------------|--------|
-| Async confusion with ZT.try | Returns `Result<Promise<T>>` not `Promise<Result<T>>` | Devs expect to await directly |
-| Can't pass strings to ZT.err | Typed to only accept Error objects | Extra boilerplate, TS errors |
-| Test helpers throw | Jest/Vitest mental model | Violates zero-throw philosophy |
-| Verbose async handling | Missing async combinators | Hard to read nested blocks |
-
-### Solution Priority
-1. **ZT.tryAsync** - New function that returns `Promise<Result<T,E>>`
-2. **ZT.err overloads** - Accept strings: `ZT.err('CODE')` or `ZT.err('CODE', 'message')`
-3. **@zerothrow/jest** - Test matchers: `expect(result).toBeOk()`
-4. **Async helpers** - `flatMapAsync`, `awaitOk`, etc.
-
----
-
-## 🧠 BASIC MEMORY INTEGRATION
-
-**IMPORTANT:** Always check basic memory at conversation start:
+### Common Commands
 ```bash
-# Search for project info
+# Setup
+pnpm install
+
+# Development
+pnpm build              # Build all packages
+pnpm test               # Run all tests
+pnpm lint               # Lint check
+npm run ci:local        # Full CI simulation
+
+# Package-specific
+pnpm --filter @zerothrow/core test
+pnpm --filter @zerothrow/core build
+```
+
+### Git Workflow
+```bash
+# Feature development
+git checkout -b feat/feature-name
+git checkout -b fix/issue-name
+
+# Create PR
+gh pr create
+```
+
+## Commit Guidelines
+
+### Format
+```
+[{package}] {type}: {subject}
+
+{body}
+
+(optional) BREAKING CHANGE: {details}
+```
+
+### Examples
+```
+[core] feat: add Result.tap method for side effects
+[jest] fix: handle undefined values in toBeOkWith matcher
+[resilience] docs: add circuit breaker examples
+```
+
+### Rules
+- **One package per commit** - Keep changes focused
+- **Atomic commits** - Each commit should be independently valid
+- **Test with code** - Include tests in the same commit as features
+- **Build before commit** - Ensure packages build successfully
+
+## Documentation System
+
+We use markdown-transclusion for modular documentation:
+
+```bash
+# Generate docs from templates
+pnpm zt docs generate
+
+# Templates live in docs-src/
+# Shared components in docs-src/shared/
+```
+
+## Release Process
+
+### 1. Version Bump
+```bash
+# Update package.json versions
+# Update CHANGELOG.md
+# Update README/ECOSYSTEM versions
+```
+
+### 2. Commit and Push
+```bash
+git add -A
+git commit -m "chore: release v{version}"
+git push
+```
+
+### 3. Publish to npm
+```bash
+cd packages/{package}
+npm publish --otp={otp}
+```
+
+### Publishing Order (respect dependencies)
+1. Core first
+2. Packages that depend on core (resilience, expect)
+3. Test packages last (jest, vitest, testing)
+
+## Testing Philosophy
+
+- **Write behavior tests, not implementation tests**
+- **Test the public API, not internals**
+- **Use Result matchers for clean assertions**
+- **No try/catch in tests - use Result patterns**
+
+## Key Design Decisions
+
+### Zero Dependencies
+All packages aim for zero runtime dependencies. This ensures:
+- Small bundle sizes
+- No dependency conflicts
+- Predictable behavior
+
+### Modular Architecture
+- Small, focused packages that do one thing well
+- Compose packages for complex use cases
+- Each package has its own README and tests
+
+### Result-First API
+- Functions return Results, not throw exceptions
+- Errors are values, not control flow
+- Composable error handling with combinators
+
+## Common Patterns
+
+### Creating Results
+```typescript
+// Your functions
+function divide(a: number, b: number): Result<number, Error> {
+  if (b === 0) return ZT.err('DIV_BY_ZERO');
+  return ZT.ok(a / b);
+}
+
+// Third-party code
+const parsed = ZT.try(() => JSON.parse(input));
+```
+
+### Chaining Operations
+```typescript
+userResult
+  .map(user => user.name)
+  .andThen(name => validateName(name))
+  .tap(name => console.log('Valid name:', name))
+  .unwrapOr('Anonymous')
+```
+
+## Memory Integration
+
+When starting work:
+```
 mcp__basic-memory__search "zerothrow"
-
-# Read specific notes
-mcp__basic-memory__read_note "projects/zerothrow/..."
 ```
 
-**AFTER EACH COMMIT:** Update basic memory with SITREP:
-```bash
-# Create/update SITREP note
+After significant changes:
+```
 mcp__basic-memory__write_note
-  title: "ZeroThrow SITREP [DATE]"
+  title: "ZeroThrow SITREP {date}"
   folder: "projects/zerothrow"
-  content: [current status]
-  tags: ["#zerothrow", "#sitrep", "#progress"]
+  content: {summary of changes}
+  tags: ["#zerothrow", "#sitrep"]
 ```
 
----
-
-## 📊 CURRENT STATUS
-
-**Branch:** `main` (alpha released)
-**Next feature branch:** TBD based on next objective
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| 0 | ✅ COMPLETE | Operational readiness |
-| 1 | ✅ COMPLETE | Fast fixes (build, types, DB tests) |
-| 2 | ✅ COMPLETE | Monorepo skeleton |
-| 3 | 🔄 PARTIAL | ZT Surface Lift (P0-P3 done, P4-P7 TODO) |
-| 4 | ⏳ PENDING | Docker & CI Infrastructure |
-| 5 | ✅ COMPLETE | Zero-Throw Resilience API |
-| 6 | ⏳ PENDING | New helpers & tests |
-| 7 | ⏳ PENDING | Beta release preparation |
-
----
-
-## 🚀 THE API (Stable)
-
-### Pocket Knife (99% of use cases)
-```typescript
-import { ZT } from '@zerothrow/core'
-
-ZT.try(() => risky())     // Wrap throwing functions
-ZT.ok(value)              // Create success
-ZT.err(error)             // Create failure
-```
-
-### Full Arsenal (advanced usage)
-```typescript
-import { ZeroThrow } from '@zerothrow/core'
-
-ZeroThrow.attempt()       // Advanced try with overloads
-ZeroThrow.wrap()          // Wrap promises
-ZeroThrow.fromAsync()     // Handle async functions
-ZeroThrow.pipe()          // Compose operations
-ZeroThrow.collect()       // Batch operations
-```
-
----
-
-## 📦 COMPLETED: NPM ALPHA RELEASE ✅
-
-### What Was Accomplished:
-1. ✅ Extracted all non-core code to separate packages
-2. ✅ Clean package structure (only core functionality)
-3. ✅ Zero runtime dependencies
-4. ✅ Full TypeScript support
-5. ✅ Published to npm with alpha tag
-6. ✅ GitHub release created with signed tag
-
-### Package Structure Achieved:
-```
-packages/
-├── core/                 # ✅ Pure Result<T,E> (PUBLISHED)
-├── eslint-plugin/       # ✅ ESLint rules (extracted)
-├── logger-winston/      # ✅ Winston integration (extracted)
-├── logger-pino/         # ✅ Pino integration (extracted)
-└── react/               # ✅ React hooks (extracted)
-```
-
----
-
-## 📋 NEXT SPRINT: Beta Preparation
-
-### Remaining Phase 3 Tasks
-- [x] **P4: PURGE `tryR` FROM 11 FILES** - DONE by deleting docs/benchmarks
-- [x] **P5: Update tests & examples** - No tryR in tests, examples deleted
-- [ ] **P6: Add ESLint rule** - Already exists in .config/eslint.base.js!
-- [x] **P7: Create PR** - This one!
-
-### Phase 5: Zero-Throw Resilience ✅ COMPLETE!
-- ✅ Retry strategies (constant/linear/exponential)
-- ✅ Circuit breaker pattern
-- ✅ Timeout handling
-- ✅ Composable API (Policy.compose)
-- ✅ ZERO runtime dependencies
-
-#### Resilience API Design (`@zerothrow/resilience`)
-
-**Core Strategies (Polly-inspired):**
-1. **Retry** - Automatic retry with backoff strategies
-2. **Circuit Breaker** - Fail fast when service is down
-3. **Timeout** - Prevent hanging operations
-4. **Bulkhead** - Limit concurrent operations
-5. **Fallback** - Graceful degradation
-6. **Hedge** - Race multiple attempts for speed
-
-**Key Design Principles:**
-- Result-first: All strategies work with `Result<T,E>`
-- Zero-cost abstraction: No overhead when not retrying
-- Composable: Chain multiple strategies with Policy builder
-- Type-safe: Full error context preserved
-
-**Example API:**
-```typescript
-const policy = Policy
-  .timeout(5000)
-  .retry(3, { delay: 'exponential' })
-  .circuitBreaker({ threshold: 5 })
-  .fallback(() => ZT.ok(cachedData))
-  .build()
-
-const result = await policy.execute(() => 
-  fetch('/api/data').then(r => r.json())
-)
-```
-
----
-
-## ⚔️ RULES OF ENGAGEMENT
-
-> [!important] **ALWAYS** check basic memory when starting work
-
-> [!failure] **ALWAYS FETCH WHEN STARTING NEW FEATURES, AND PUT EACH ONE IN THEIR OWN BRANCH OFF OF ORIGIN/MAIN. MICRO-COMMITS EVERY STEP OF THE WAY.**
-
-> [!important] **COMMIT MESSAGE FORMAT:**
-> ```
-> [{npm-package}] {type}: {subject}
-> 
-> {body}
-> 
-> (optional) BREAKING CHANGE: {details}
-> ```
-
-> [!warning] **ATOMIC COMMITS: One module per commit!**
-> - NEVER mix changes from multiple packages in one commit
-> - NEVER mix src/ and test/ changes unless they're directly related
-> - NEVER mix feature code and documentation unless inseparable
-> - Keep commits bisectable and focused
-
-> [!important] **ALWAYS** update basic memory after commits
-
-> [!success] **ALWAYS** tick boxes as you complete TASKS
-
-> [!failure] **NEVER** `git add -A` or stage everything
-
-> [!success] **ALWAYS** write behavior tests, not implementation tests
-
----
-
-## 🎖️ ACHIEVEMENTS UNLOCKED
-
-**Alpha Release Badge** 🏅
-- ✅ Published @zerothrow/core v0.0.1-alpha
-- ✅ Zero dependencies achieved
-- ✅ Clean monorepo structure
-- ✅ CI pipeline green
-
-**Next Achievement:** Beta Release
-- [ ] Zero `tryR` references
-- [ ] ESLint rules enforced
-- [ ] Resilience API implemented
-- [ ] 95%+ test coverage
-
----
-
-## 📝 QUICK REFERENCE
-
-**NPM Commands:**
-```bash
-npm install @zerothrow/core@alpha  # Install alpha
-npm view @zerothrow/core           # Check package info
-```
-
-**Development:**
-```bash
-turbo run build      # Build all packages
-turbo run test       # Run all tests
-turbo run lint       # Lint check
-npm run ci:local     # Full CI simulation
-```
-
-**Git Flow:**
-```bash
-git checkout -b feat/[feature-name]  # New feature
-git checkout -b fix/[issue]          # Bug fix
-gh pr create                         # Create PR
-```
-
----
-
-## 📊 TECH DEBT TRACKER
-
-### High Priority
-- [x] ~~11 files using `tryR`~~ - RESOLVED by deleting docs/benchmarks
-- [ ] ESLint rule not implemented (but exists in config)
-- [ ] Rewrite documentation from scratch
-- [ ] Create new benchmarks with current API
-
-### Medium Priority
-- [ ] Docker creates files in working dir
-- [ ] Port conflicts (only 67 available)
-- [ ] `db-transaction.test.ts` disabled
-
-### Low Priority
-- [ ] 2 ESLint tests skipped
-- [ ] Add ZT.ok() void overload
-
----
-
-## 🚀 BETA ROADMAP
-
-1. **Clean House** (1 day)
-   - Eliminate all `tryR` usage
-   - Implement ESLint rules
-   - Update all tests/examples
-
-2. **Resilience API** (2-3 days)
-   - Design zero-overhead retry system
-   - Implement circuit breaker
-   - Add timeout handling
-   - Create fluent API
-
-3. **Polish & Ship** (1 day)
-   - Update documentation
-   - Add more examples
-   - Performance benchmarks
-   - Release v0.1.0-beta
-
----
-
-> **"ALPHA SECURED, BETA IN SIGHT!"** — Cmdr Chat
-
-**REMEMBER:** Check basic memory for project context and update after each session!
-
-**HOO-RAH!** 🎖️
-
-----
-# How to Release Packages
-
-> [!warning] When new changes land on `main`, there is a CI/CD workflow on GitHub that automatically publishes new releases to `npm`. Therefore **IT IS CRITICAL** that you take steps to ensure that your PR is ready.
-
-Below is a **sane-defaults playbook** for bumping package versions in the ZeroThrow monorepo.
-
-## **0 · Prerequisites & mental model**
-
-| **Tool**             | **Why we use it**                                                             |
-| -------------------- | ----------------------------------------------------------------------------- |
-| **npm workspaces**   | Single lockfile, per-package node_modules, zero npm link pain.                |
-| **Turbo v2**         | Incremental builds/tests; every script lives under "turbo" pipeline.          |
-| **Changesets**       | Calculates semver bumps + changelogs, publishes multiple packages atomically. |
-| **zt CLI**           | `zt package ready`, `zt ecosystem sync`, `zt validate`, `zt release`.         |
-| **Workspace ranges** | All cross-deps are `workspace:*`; Changesets will rewrite them on bump.       |
-
-> **Rule #1**: _All_ version changes happen via Changesets—never hand-edit `package.json` versions.
-
----
-## **1. Day-to-day bump workflow (stable releases)**
-
-> [!note] The goal is to add tools to `zt release` that will automate much of this process, but we're not there yet. For now, it must be done by hand.
-### **1.1  Create / update code on a branch**
-
-```
-git checkout -b feat/my-new-api
-# hack hack hack
-npm test -w @zerothrow/core
-```
-
-### **1.2  Add a changeset**
-
-When you're ready to submit your work:
-
-```
-npx changeset add
-```
-
-You’ll see a prompt; pick the affected packages and the bump type (patch/minor/major).
-
-The tool creates .changeset/[slug].md like:
-
-```
----
-"@zerothrow/core": minor
-"@zerothrow/resilience": patch
----
-
-Add `retryAll()` helper and fix timeout bug.
-```
-
-> **TIP:** multiple unrelated bumps? create multiple files—it keeps changelog lines tidy.
-### **1.3  Run health checks locally**
-
-```
-zt validate                # lints, tests, build
-zt ecosystem check         # ensures ECOSYSTEM.md isn’t stale
-zt package ready --fix     # makes sure README / SPDX headers etc.
-```
-
-Fix anything that bails; commit. Ex:
-
-```
-git add .
-git commit -m "[core] feat(core): add retryAll() helper"
-git push
-```
-
-### 1.4 Open a PR
-
-CI will run `zt validate` + `zt ecosystem check`; it **should not** run changeset version yet.
-
----
-## **2. Versioning & publishing (maintainer steps, main branch)**
-
-### **2.1  Merge PR → run the bump**
-
-On main:
-
-```
-git pull origin main
-npx changeset version     # reads .changeset/*.md, updates versions
-npm install               # refreshes root package-lock.json
-zt ecosystem sync         # updates ECOSYSTEM.md with new versions
-git add .
-git commit -m "chore(release): version packages"
-git push
-```
-
-**What happens**
-
-- changeset version bumps every touched package (0.2.3 → 0.3.0)
-- Workspace dependency ranges are rewritten (workspace:* → exact ^range)
-- CHANGELOG.md files are appended
-### **2.2  Smoke check**
-
-```
-npm run build --workspaces
-npm test --workspaces
-zt package ready          # just in case
-```
-
-### **2.3  Publish**
-
-```
-zt release ship           # wraps: turbo run build, changeset publish, git tag push
-```
-
-Under the hood:
-
-```
-changeset publish         # publishes every bumped pkg with `--access public`
-git push --follow-tags
-```
-
-CI watching main won’t re-publish—publish happens locally or via a dedicated _Release_ GitHub Action you already configured.
-
----
-## **3. Alpha / pre-release flow**
-
-When you’re iterating on unreleased features:
-
-```
-npx changeset pre enter alpha      # one-time to enter pre-mode
-# do your work, add normal changesets (patch/minor)
-```
-
-changeset version will output versions like 0.3.0-alpha.0.
-
-Publish with an explicit tag so npm latest stays clean:
-
-```
-npx changeset publish --tag alpha
-```
-
-Exit pre-mode when ready:
-
-```
-npx changeset pre exit
-# add one last changeset if needed, then version + publish (now goes to latest)
-```
-
----
-## **4 · Emergency hot-fix on a single package**
-
-1. `git checkout -b fix/logical-typo`
-2. Patch code, `npx changeset add` (patch bump only that package).
-3. Follow **§1.3** and **§2** steps.
-4. Publish ⇒ only that package gets `0.x.y+1`, others unchanged.
-
----
-## **5 · Handling common edge cases**
-
-| **Problem**                              | **Fix**                                                                                                                                        |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Forgot a package in the changeset**    | `npx changeset add` on a new commit, or edit the MD file, re-run changeset version.                                                            |
-| **Published but forgot exports field**   | Patch release: code change + changeset patch bump, republish. Never yank the bad version unless <72 h.                                         |
-| **Peer-dep mismatch after bump**         | Run `zt ecosystem check`—it fails CI if peer ranges drift; bump downstream packages with a changeset patch.                                    |
-| **Installed dependency in wrong folder** | Run `npm install --workspace=@zerothrow/foo --save-dev eslint` (note the flag). `zt guard install` (future) will refuse installs from subdirs. |
-
----
-## **6 · CI outline (GitHub Actions)**
-
-```
-name: CI
-
-on:
-  pull_request:
-  push:
-    branches: [main]
-
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm install
-      - run: zt validate
-      - run: zt ecosystem check
-
-  release:
-    needs: build-test
-    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'chore(release)')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, registry-url: 'https://registry.npmjs.org' }
-      - run: npm install
-      - run: changeset publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-```
-
----
-## **7 · Command cheat-sheet**
-
-```
-# everyday contributor
-npx changeset add
-zt validate
-zt ecosystem check
-git commit -m "feat(pkg): change"
-git push
-
-# release manager
-git checkout main && git pull
-npx changeset version
-npm install
-zt ecosystem sync
-git commit -m "chore(release): versions"
-zt release ship        # or npx changeset publish --tag alpha
-```
-
----
-### **Remember**
-
-- **Never** bump versions manually.
-- **Always** run zt validate and zt ecosystem check before pushing.
-- Use **workspace ranges** for internal deps (workspace:*). Changesets will rewrite them correctly.
-- Publish from **main** (or a protected `release/*` branch) only.
+## Important Notes
+
+- **Check package versions** before releasing
+- **Update documentation** when APIs change
+- **Run tests locally** before pushing
+- **Use pnpm** for all package operations
+- **Follow Result-first patterns** in all examples
+
+## Resources
+
+- [API Documentation](packages/core/docs/api.md)
+- [Ecosystem Overview](ECOSYSTEM.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [GitHub Discussions](https://github.com/zerothrow/zerothrow/discussions)
