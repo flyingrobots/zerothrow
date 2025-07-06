@@ -1,58 +1,3 @@
-# @zerothrow/jest
-
-> **🧠 ZeroThrow Layers**  
-> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
-> • **Result** – combinators (`map`, `andThen`, `orElse`)  
-> • **ZeroThrow** – utilities (`collect`, `firstSuccess`, `pipe`)  
-> • **@zerothrow/\*** – ecosystem packages (resilience, jest, etc)
-
-> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)
-
-![npm](https://img.shields.io/npm/v/@zerothrow/jest)
-![types](https://img.shields.io/npm/types/@zerothrow/jest)
-![size](https://packagephobia.com/badge?p=@zerothrow/jest)
-[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
-![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
-
-<div align="center">
-<img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-jest.webp" height="300" />
-</div>
-
-Jest matchers for ZeroThrow Result types - elegant error handling assertions for your tests.
-
-## Installation
-
-```bash
-npm install @zerothrow/jest @zerothrow/core @zerothrow/expect
-# or: pnpm add @zerothrow/jest @zerothrow/core @zerothrow/expect
-```
-
-> **Note:** `@zerothrow/core` and `@zerothrow/expect` are peer dependencies.
-
-## Quick Start
-
-The matchers are automatically registered when you import the package. Simply import it in your test setup file or at the top of your test files:
-
-```typescript
-import '@zerothrow/jest';
-import { ZT } from '@zerothrow/core';
-
-describe('My Service', () => {
-  it('should handle success', () => {
-    const result = ZT.ok(42);
-    expect(result).toBeOk();
-    expect(result).toBeOkWith(42);
-  });
-
-  it('should handle errors', () => {
-    const result = ZT.err('VALIDATION_ERROR', 'Invalid input');
-    expect(result).toBeErr();
-    expect(result).toHaveErrorCode('VALIDATION_ERROR');
-    expect(result).toHaveErrorMessage('Invalid input');
-  });
-});
-```
-
 ## Setup Options
 
 ### Automatic Setup (Default)
@@ -60,14 +5,14 @@ The matchers are automatically registered when the module is imported:
 
 ```typescript
 // In your test file or setup file
-import '@zerothrow/jest';
+import '{{packageName}}';
 ```
 
 ### Manual Setup
 If you need more control over when matchers are registered:
 
 ```typescript
-import { setup, jestMatchers } from '@zerothrow/jest';
+import { setup, jestMatchers } from '{{packageName}}';
 
 // Option 1: Use the setup function
 setup();
@@ -82,7 +27,7 @@ The TypeScript types are automatically included. If you're using a custom `tscon
 ```json
 {
   "compilerOptions": {
-    "types": ["jest", "@zerothrow/jest"]
+    "types": ["jest", "{{packageName}}"]
   }
 }
 ```
@@ -165,7 +110,7 @@ expect(result).toHaveErrorMessage(/timeout after \d+ seconds/);
 ### Testing Async Operations with Combinators
 
 ```typescript
-import '@zerothrow/jest';
+import '{{packageName}}';
 import { ZT } from '@zerothrow/core';
 
 async function fetchUser(id: string) {
@@ -207,7 +152,7 @@ test('fetchUser provides fallback for errors', async () => {
 ### Testing Error Codes
 
 ```typescript
-import '@zerothrow/jest';
+import '{{packageName}}';
 import { ZT } from '@zerothrow/core';
 
 function validateEmail(email: string) {
@@ -272,7 +217,7 @@ describe('validateEmail', () => {
 ### Testing with Custom Error Types and Combinators
 
 ```typescript
-import '@zerothrow/jest';
+import '{{packageName}}';
 import { ZT, ZeroThrow } from '@zerothrow/core';
 
 class ValidationError extends Error {
@@ -325,11 +270,3 @@ test('collects multiple validations', () => {
   expect(results).toHaveErrorCode('EMPTY_DATA');
 });
 ```
-
-## Contributing
-
-See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
-
-## License
-
-MIT

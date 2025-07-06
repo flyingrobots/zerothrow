@@ -2,180 +2,193 @@
 // Copyright (c) 2025 J. Kirby Ross
 
 import { ZT, ZeroThrow } from '@zerothrow/core';
-import { readFile, writeFile, readdir, mkdir, access } from 'fs/promises';
-import { join } from 'path';
-import { createReadStream, createWriteStream } from 'fs';
-import { pipeline } from 'stream/promises';
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
-import { createTransclusionStream } from 'markdown-transclusion';
 
-interface PackageInfo {
-  name: string;
-  version: string;
+interface PackageConfig {
+  packageName: string;
+  mascotImage: string;
   description: string;
-  path: string;
 }
 
-export async function docsCommand(subcommand: string): Promise<ZeroThrow.Result<void, Error>> {
+// Package configurations
+const packages: Record<string, PackageConfig> = {
+  jest: {
+    packageName: '@zerothrow/jest',
+    mascotImage: 'zerothrow-jest.webp',
+    description: 'Jest matchers for ZeroThrow Result types'
+  },
+  vitest: {
+    packageName: '@zerothrow/vitest', 
+    mascotImage: 'zerothrow-vitest.webp',
+    description: 'Vitest matchers for ZeroThrow Result types'
+  },
+  resilience: {
+    packageName: '@zerothrow/resilience',
+    mascotImage: 'zerothrow-resilience.webp', 
+    description: 'Production-grade resilience patterns for ZeroThrow'
+  },
+  core: {
+    packageName: '@zerothrow/core',
+    mascotImage: 'zerothrow-core.webp',
+    description: 'Core ZeroThrow functionality - Rust-style Result<T, E> for TypeScript'
+  },
+  expect: {
+    packageName: '@zerothrow/expect',
+    mascotImage: 'zerothrow-expect.webp',
+    description: 'Shared test matcher logic for ZeroThrow'
+  },
+  testing: {
+    packageName: '@zerothrow/testing',
+    mascotImage: 'zerothrow-testing.webp',
+    description: 'Unified testing utilities for ZeroThrow'
+  },
+  docker: {
+    packageName: '@zerothrow/docker',
+    mascotImage: 'zerothrow-docker.webp',
+    description: 'Docker integration for ZeroThrow'
+  },
+  'eslint-plugin': {
+    packageName: '@zerothrow/eslint-plugin',
+    mascotImage: 'zerothrow-eslint.webp',
+    description: 'ESLint rules for ZeroThrow best practices'
+  },
+  'logger-winston': {
+    packageName: '@zerothrow/logger-winston',
+    mascotImage: 'zerothrow-winston.webp',
+    description: 'Winston logger integration for ZeroThrow'
+  },
+  'logger-pino': {
+    packageName: '@zerothrow/logger-pino',
+    mascotImage: 'zerothrow-pino.webp',
+    description: 'Pino logger integration for ZeroThrow'
+  },
+  react: {
+    packageName: '@zerothrow/react',
+    mascotImage: 'zerothrow-react.webp',
+    description: 'React hooks and utilities for ZeroThrow'
+  }
+};
+
+export async function docsCommand(subcommand: string, packageName?: string): Promise<ZeroThrow.Result<void, Error>> {
   if (subcommand === 'generate') {
-    return generateDocs();
+    return generateDocs(packageName);
+  } else if (subcommand === 'list') {
+    return listDocs();
   }
   
   return ZT.err(new ZeroThrow.ZeroError('INVALID_SUBCOMMAND', `Unknown subcommand: ${subcommand}`));
 }
 
-async function generateDocs(): Promise<ZeroThrow.Result<void, Error>> {
-  const spinner = ora('Generating documentation...').start();
-
-  try {
-    // Find repo root
-    let rootDir = process.cwd();
-    while (!rootDir.endsWith('/zerothrow') && rootDir !== '/') {
-      rootDir = join(rootDir, '..');
+function findProjectRoot(startDir: string): string | null {
+  let dir = startDir;
+  while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, 'packages', 'core', 'package.json'))) {
+      return dir;
     }
-
-    // Step 1: Generate package info files
-    spinner.text = 'Extracting package information...';
-    await generatePackageInfo(rootDir);
-
-    // Step 2: Process ECOSYSTEM.md
-    spinner.text = 'Processing ECOSYSTEM.md...';
-    const ecosystemTemplate = join(rootDir, 'templates', 'ECOSYSTEM-template.md');
-    const ecosystemOutput = join(rootDir, 'ECOSYSTEM.md');
-    
-    await processMarkdownFile(ecosystemTemplate, ecosystemOutput, rootDir);
-
-    // Step 3: Process all package READMEs
-    spinner.text = 'Processing package READMEs...';
-    const packages = await getAllPackages(rootDir);
-    
-    for (const pkg of packages) {
-      const packageShortName = pkg.name.replace('@zerothrow/', '');
-      const readmeTemplate = join(rootDir, 'templates', 'README-template.md');
-      const readmeOutput = join(rootDir, 'packages', pkg.path, 'README.md');
-      
-      // Check if package has custom README template
-      const customTemplate = join(rootDir, 'templates', 'packages', `${packageShortName}-README.md`);
-      const templateToUse = await fileExists(customTemplate) ? customTemplate : readmeTemplate;
-      
-      const variables = {
-        PACKAGE_NAME: pkg.name,
-        PACKAGE_SHORT_NAME: packageShortName,
-        PACKAGE_VERSION: pkg.version,
-        PACKAGE_DESCRIPTION: pkg.description
-      };
-      
-      await processMarkdownFile(templateToUse, readmeOutput, rootDir, variables);
-    }
-
-    spinner.succeed('Documentation generated successfully!');
-    
-    console.log(chalk.green(`\n✅ Generated documentation for ${packages.length} packages`));
-    console.log(chalk.blue('\n📝 Files updated:'));
-    console.log(chalk.gray('  - ECOSYSTEM.md'));
-    packages.forEach(pkg => {
-      console.log(chalk.gray(`  - packages/${pkg.path}/README.md`));
-    });
-    
-    return ZT.ok(undefined);
-  } catch (error) {
-    spinner.fail('Failed to generate documentation');
-    return ZT.err(new Error(`Failed to generate docs: ${error}`));
+    dir = path.dirname(dir);
   }
+  return null;
 }
 
-async function generatePackageInfo(rootDir: string): Promise<void> {
-  const packagesDir = join(rootDir, 'packages');
-  const templatesDir = join(rootDir, 'templates', 'packages');
+function buildPackageDocs(pkgShortName: string, config: PackageConfig, rootDir: string): ZeroThrow.Result<void, Error> {
+  const sourcePath = path.join(rootDir, 'docs-src', 'packages', pkgShortName, 'README.md');
+  const outputPath = path.join(rootDir, 'packages', pkgShortName, 'README.md');
   
-  // Ensure templates directory exists
-  await mkdir(templatesDir, { recursive: true });
-  
-  const packages = await readdir(packagesDir);
-  
-  for (const pkgDir of packages) {
-    try {
-      const packageJsonPath = join(packagesDir, pkgDir, 'package.json');
-      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf-8'));
-      
-      // Generate version file
-      const versionPath = join(templatesDir, `${pkgDir}-version.md`);
-      await writeFile(versionPath, packageJson.version);
-      
-      // Generate description file
-      const descPath = join(templatesDir, `${pkgDir}-description.md`);
-      await writeFile(descPath, packageJson.description || 'Zero-throw utilities for TypeScript');
-      
-      // Generate full info table row
-      const infoPath = join(templatesDir, `${pkgDir}-info.md`);
-      const info = `| [\`${packageJson.name}\`](packages/${pkgDir}) | [![npm](https://img.shields.io/npm/v/${packageJson.name}.svg?style=flat-square)](https://npm.im/${packageJson.name}) | ${packageJson.description || 'Zero-throw utilities'} |`;
-      await writeFile(infoPath, info);
-      
-    } catch (error) {
-      // Skip if no package.json
-    }
+  // Check if source file exists
+  if (!fs.existsSync(sourcePath)) {
+    return ZT.err(new Error(`SOURCE_NOT_FOUND: No source file for ${pkgShortName}`));
   }
+
+  console.log(`📝 Building ${chalk.cyan(pkgShortName)}...`);
+
+  // Build the command with template variables as JSON
+  const templateVarsJson = JSON.stringify(config);
+  const basePath = path.join(rootDir, 'docs-src'); // Allow access to entire docs-src
+
+  const command = `npx markdown-transclusion "${sourcePath}" --base-path "${basePath}" --template-variables '${templateVarsJson}' --output "${outputPath}"`;
+  
+  return ZT.try(() => {
+    execSync(command, { stdio: 'pipe' });
+    console.log(`✅ Generated ${chalk.green(outputPath)}`);
+  }).mapErr(error => {
+    if (error instanceof Error) {
+      return new Error(`Failed to build ${pkgShortName}: ${error.message}`);
+    }
+    return new Error(`Failed to build ${pkgShortName}: Unknown error`);
+  });
 }
 
-async function processMarkdownFile(
-  inputPath: string, 
-  outputPath: string, 
-  rootDir: string,
-  variables?: Record<string, string>
-): Promise<void> {
-  // Process transclusions with variables
-  const input = createReadStream(inputPath);
-  const output = createWriteStream(outputPath);
+async function generateDocs(packageFilter?: string): Promise<ZeroThrow.Result<void, Error>> {
+  const spinner = ora('Finding project root...').start();
   
-  const transclusionStream = createTransclusionStream({
-    basePath: rootDir,
-    variables: variables || {},
-    strict: false, // Don't fail on missing files
-    stripFrontmatter: true
+  const rootDir = findProjectRoot(process.cwd());
+  if (!rootDir) {
+    spinner.fail('Could not find project root');
+    return ZT.err(new Error('Could not find project root (no packages/core/package.json found)'));
+  }
+  
+  spinner.text = 'Building documentation from source...';
+  spinner.color = 'blue';
+
+  // Filter packages if requested
+  let packagesToBuild: Record<string, PackageConfig>;
+  
+  if (packageFilter) {
+    if (!packages[packageFilter]) {
+      spinner.fail(`Unknown package: ${packageFilter}`);
+      return ZT.err(new Error(`Unknown package: ${packageFilter}`));
+    }
+    packagesToBuild = { [packageFilter]: packages[packageFilter] };
+  } else {
+    packagesToBuild = packages;
+  }
+
+  const results = Object.entries(packagesToBuild).map(([pkgShortName, config]) => {
+    const result = buildPackageDocs(pkgShortName, config, rootDir);
+    
+    // Handle missing source files as non-errors
+    if (!result.ok && result.error.message.includes('SOURCE_NOT_FOUND')) {
+      console.log(chalk.yellow(`⏭️  Skipping ${pkgShortName} (no source file)`));
+      return ZT.ok<void>(undefined); // Convert to success for missing files
+    }
+    
+    return result.tapErr(err => console.error(chalk.red(`❌ ${err.message}`)));
   });
 
-  // Monitor errors
-  transclusionStream.on('error', (err: Error) => {
-    console.warn(chalk.yellow(`Warning: ${err.message}`));
+  const collected = ZeroThrow.collect(results);
+  
+  return collected
+    .map(() => {
+      spinner.succeed('Documentation build complete!');
+      return undefined;
+    })
+    .mapErr(err => {
+      spinner.fail('Documentation build failed!');
+      return err;
+    })
+    .void();
+}
+
+async function listDocs(): Promise<ZeroThrow.Result<void, Error>> {
+  const rootDir = findProjectRoot(process.cwd());
+  if (!rootDir) {
+    return ZT.err(new Error('Could not find project root'));
+  }
+
+  console.log(chalk.blue.bold('\n📚 Available documentation templates:\n'));
+  
+  Object.entries(packages).forEach(([name, config]) => {
+    const sourcePath = path.join(rootDir, 'docs-src', 'packages', name, 'README.md');
+    const exists = fs.existsSync(sourcePath);
+    const status = exists ? chalk.green('✓') : chalk.gray('○');
+    console.log(`${status} ${chalk.cyan(name)} - ${config.description}`);
   });
 
-  await pipeline(
-    input,
-    transclusionStream,
-    output
-  );
+  console.log(chalk.gray('\n✓ = template exists, ○ = no template yet'));
+  return ZT.ok(undefined);
 }
 
-async function getAllPackages(rootDir: string): Promise<PackageInfo[]> {
-  const packagesDir = join(rootDir, 'packages');
-  const dirs = await readdir(packagesDir);
-  const packages: PackageInfo[] = [];
-
-  for (const dir of dirs) {
-    const packageJsonPath = join(packagesDir, dir, 'package.json');
-    try {
-      const content = await readFile(packageJsonPath, 'utf-8');
-      const pkg = JSON.parse(content);
-      packages.push({
-        name: pkg.name || dir,
-        version: pkg.version || '0.0.0',
-        description: pkg.description || '',
-        path: dir,
-      });
-    } catch {
-      // Skip if no package.json
-    }
-  }
-
-  return packages.sort((a, b) => a.name.localeCompare(b.name));
-}
-
-async function fileExists(path: string): Promise<boolean> {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}

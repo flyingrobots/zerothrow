@@ -107,25 +107,29 @@ Examples:
   $ zt ecosystem check  # Verify in CI
 `);
 
-program
-  .command('docs <subcommand>')
+const docsCmd = program
+  .command('docs <subcommand> [package]')
   .description('Documentation generation utilities')
-  .action(async (subcommand) => {
-    const result = await docsCommand(subcommand);
+  .action(async (subcommand, packageName) => {
+    const result = await docsCommand(subcommand, packageName);
     if (!result.ok) {
       console.error(chalk.red(`Error: ${result.error.message}`));
       process.exit(2);
     }
-  })
-  .addHelpText('after', `
+  });
+
+docsCmd.addHelpText('after', `
 Subcommands:
-  generate - Generate all documentation from templates
+  generate [package] - Generate documentation from source templates
+  list               - List all available documentation templates
 
 Examples:
-  $ zt docs generate   # Generate ECOSYSTEM.md and all READMEs
+  $ zt docs generate           # Generate all package READMEs
+  $ zt docs generate jest      # Generate only jest README
+  $ zt docs list              # Show which templates exist
 
-This uses markdown-transclusion to compose documentation from templates,
-ensuring consistency across all packages and keeping versions in sync.
+This uses markdown-transclusion to compose documentation from modular
+source files in /docs-src, ensuring consistency across all packages.
 `);
 
 // Handle help specially to avoid conflicts
@@ -143,7 +147,7 @@ program.on('command:*', (operands) => {
 // Parse but handle unknown commands ourselves
 try {
   program.parse(process.argv);
-} catch (err) {
+} catch {
   // Ignore commander errors, we'll handle them ourselves
 }
 
@@ -157,7 +161,7 @@ function executeExternalCommand(args: string[]): void {
     stdio: 'inherit',
   });
 
-  child.on('error', (err: any) => {
+  child.on('error', (err: NodeJS.ErrnoException) => {
     if (err.code === 'ENOENT') {
       console.error(chalk.red(`Error: Unknown command '${command}'`));
       console.error(chalk.gray(`No built-in command or 'zt-${command}' found in PATH`));
