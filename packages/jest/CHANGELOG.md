@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+### Patch Changes
+
+- Updated peer dependency for @zerothrow/core to support v0.2.0
+  - Changed from exact version `0.1.0` to range `>=0.1.0`
+  - This allows the package to work with core v0.2.0 without warnings
+
 ## 1.0.0
 
 ### Minor Changes

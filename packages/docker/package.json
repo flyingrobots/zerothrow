@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/docker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-throw Docker utilities for testing and container management",
   "type": "module",
   "sideEffects": false,

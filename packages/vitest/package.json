@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/vitest",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vitest matchers for ZeroThrow Result types",
   "author": "ZeroThrow Contributors",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",

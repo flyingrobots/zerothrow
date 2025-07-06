@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/testing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unified test matchers for ZeroThrow Result types - supports Jest and Vitest",
   "keywords": [
     "zerothrow",
