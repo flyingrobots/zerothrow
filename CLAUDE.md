@@ -423,3 +423,228 @@ gh pr create                         # Create PR
 **REMEMBER:** Check basic memory for project context and update after each session!
 
 **HOO-RAH!** 🎖️
+
+----
+# How to Release Packages
+
+> [!warning] When new changes land on `main`, there is a CI/CD workflow on GitHub that automatically publishes new releases to `npm`. Therefore **IT IS CRITICAL** that you take steps to ensure that your PR is ready.
+
+Below is a **sane-defaults playbook** for bumping package versions in the ZeroThrow monorepo.
+
+## **0 · Prerequisites & mental model**
+
+| **Tool**             | **Why we use it**                                                             |
+| -------------------- | ----------------------------------------------------------------------------- |
+| **npm workspaces**   | Single lockfile, per-package node_modules, zero npm link pain.                |
+| **Turbo v2**         | Incremental builds/tests; every script lives under "turbo" pipeline.          |
+| **Changesets**       | Calculates semver bumps + changelogs, publishes multiple packages atomically. |
+| **zt CLI**           | `zt package ready`, `zt ecosystem sync`, `zt validate`, `zt release`.         |
+| **Workspace ranges** | All cross-deps are `workspace:*`; Changesets will rewrite them on bump.       |
+
+> **Rule #1**: _All_ version changes happen via Changesets—never hand-edit `package.json` versions.
+
+---
+## **1. Day-to-day bump workflow (stable releases)**
+
+> [!note] The goal is to add tools to `zt release` that will automate much of this process, but we're not there yet. For now, it must be done by hand.
+### **1.1  Create / update code on a branch**
+
+```
+git checkout -b feat/my-new-api
+# hack hack hack
+npm test -w @zerothrow/core
+```
+
+### **1.2  Add a changeset**
+
+When you're ready to submit your work:
+
+```
+npx changeset add
+```
+
+You’ll see a prompt; pick the affected packages and the bump type (patch/minor/major).
+
+The tool creates .changeset/[slug].md like:
+
+```
+---
+"@zerothrow/core": minor
+"@zerothrow/resilience": patch
+---
+
+Add `retryAll()` helper and fix timeout bug.
+```
+
+> **TIP:** multiple unrelated bumps? create multiple files—it keeps changelog lines tidy.
+### **1.3  Run health checks locally**
+
+```
+zt validate                # lints, tests, build
+zt ecosystem check         # ensures ECOSYSTEM.md isn’t stale
+zt package ready --fix     # makes sure README / SPDX headers etc.
+```
+
+Fix anything that bails; commit. Ex:
+
+```
+git add .
+git commit -m "[core] feat(core): add retryAll() helper"
+git push
+```
+
+### 1.4 Open a PR
+
+CI will run `zt validate` + `zt ecosystem check`; it **should not** run changeset version yet.
+
+---
+## **2. Versioning & publishing (maintainer steps, main branch)**
+
+### **2.1  Merge PR → run the bump**
+
+On main:
+
+```
+git pull origin main
+npx changeset version     # reads .changeset/*.md, updates versions
+npm install               # refreshes root package-lock.json
+zt ecosystem sync         # updates ECOSYSTEM.md with new versions
+git add .
+git commit -m "chore(release): version packages"
+git push
+```
+
+**What happens**
+
+- changeset version bumps every touched package (0.2.3 → 0.3.0)
+- Workspace dependency ranges are rewritten (workspace:* → exact ^range)
+- CHANGELOG.md files are appended
+### **2.2  Smoke check**
+
+```
+npm run build --workspaces
+npm test --workspaces
+zt package ready          # just in case
+```
+
+### **2.3  Publish**
+
+```
+zt release ship           # wraps: turbo run build, changeset publish, git tag push
+```
+
+Under the hood:
+
+```
+changeset publish         # publishes every bumped pkg with `--access public`
+git push --follow-tags
+```
+
+CI watching main won’t re-publish—publish happens locally or via a dedicated _Release_ GitHub Action you already configured.
+
+---
+## **3. Alpha / pre-release flow**
+
+When you’re iterating on unreleased features:
+
+```
+npx changeset pre enter alpha      # one-time to enter pre-mode
+# do your work, add normal changesets (patch/minor)
+```
+
+changeset version will output versions like 0.3.0-alpha.0.
+
+Publish with an explicit tag so npm latest stays clean:
+
+```
+npx changeset publish --tag alpha
+```
+
+Exit pre-mode when ready:
+
+```
+npx changeset pre exit
+# add one last changeset if needed, then version + publish (now goes to latest)
+```
+
+---
+## **4 · Emergency hot-fix on a single package**
+
+1. `git checkout -b fix/logical-typo`
+2. Patch code, `npx changeset add` (patch bump only that package).
+3. Follow **§1.3** and **§2** steps.
+4. Publish ⇒ only that package gets `0.x.y+1`, others unchanged.
+
+---
+## **5 · Handling common edge cases**
+
+| **Problem**                              | **Fix**                                                                                                                                        |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Forgot a package in the changeset**    | `npx changeset add` on a new commit, or edit the MD file, re-run changeset version.                                                            |
+| **Published but forgot exports field**   | Patch release: code change + changeset patch bump, republish. Never yank the bad version unless <72 h.                                         |
+| **Peer-dep mismatch after bump**         | Run `zt ecosystem check`—it fails CI if peer ranges drift; bump downstream packages with a changeset patch.                                    |
+| **Installed dependency in wrong folder** | Run `npm install --workspace=@zerothrow/foo --save-dev eslint` (note the flag). `zt guard install` (future) will refuse installs from subdirs. |
+
+---
+## **6 · CI outline (GitHub Actions)**
+
+```
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm install
+      - run: zt validate
+      - run: zt ecosystem check
+
+  release:
+    needs: build-test
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'chore(release)')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, registry-url: 'https://registry.npmjs.org' }
+      - run: npm install
+      - run: changeset publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+---
+## **7 · Command cheat-sheet**
+
+```
+# everyday contributor
+npx changeset add
+zt validate
+zt ecosystem check
+git commit -m "feat(pkg): change"
+git push
+
+# release manager
+git checkout main && git pull
+npx changeset version
+npm install
+zt ecosystem sync
+git commit -m "chore(release): versions"
+zt release ship        # or npx changeset publish --tag alpha
+```
+
+---
+### **Remember**
+
+- **Never** bump versions manually.
+- **Always** run zt validate and zt ecosystem check before pushing.
+- Use **workspace ranges** for internal deps (workspace:*). Changesets will rewrite them correctly.
+- Publish from **main** (or a protected `release/*` branch) only.

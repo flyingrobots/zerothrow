@@ -1,0 +1,1 @@
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for ZeroThrow Result types |

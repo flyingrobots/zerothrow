@@ -1,0 +1,1 @@
+Shared test matcher logic for ZeroThrow Result types

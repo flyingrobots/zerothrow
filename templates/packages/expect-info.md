@@ -1,0 +1,1 @@
+| [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) | Shared test matcher logic for ZeroThrow Result types |

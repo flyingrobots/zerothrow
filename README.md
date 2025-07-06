@@ -7,7 +7,7 @@
 ![No-Throw Discipline](https://img.shields.io/badge/no--throw_discipline-✅-success?style=for-the-badge)
 [![NPM Version](https://img.shields.io/npm/v/@zerothrow/core?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zerothrow/core)
 [![License](https://img.shields.io/github/license/zerothrow/zerothrow?style=for-the-badge)](LICENSE)
-![Alpha](https://img.shields.io/badge/status-alpha-orange?style=for-the-badge)
+![Beta](https://img.shields.io/badge/status-beta-yellow?style=for-the-badge)
 
 **Stop throwing, start returning.**
 
@@ -16,7 +16,7 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 [The Result Mindset](#the-result-mindset) • [Composability](#composability) • [Interop](#interop-for-legacy-code)<br/>
 [Package Ecosystem](#package-ecosystem) • [Performance](#performance) • [Migration](#migration-guide)
 
-> 🚀 **Now in alpha!** Core functionality is stable and ready for early adopters. [See roadmap](#roadmap)
+> 🚀 **Now in beta!** Core functionality is stable with comprehensive test coverage. [See roadmap](#roadmap)
 
 </div>
 
@@ -24,28 +24,29 @@ Write functions that return `Result<T,E>` from the start. No hidden control flow
 
 ## Package Ecosystem
 
-### Phase 1: Alpha Core (Current Focus)
+### Published Packages
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
-| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) | Core Result types and utilities | ✅ Stable |
-| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for Result types | ✅ Stable |
-| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for Result types | 🚧 In PR |
-| `@zerothrow/expect` | - | Shared test matcher logic | 📋 Next |
-| `@zerothrow/testing` | - | Unified test matchers (Jest + Vitest) | 📋 Next |
-| `@zerothrow/dev-kit` | - | Developer toolkit bundle | 📋 Planned |
+| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.0 | Core Result types and utilities | ✅ Stable |
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.0.1 | Jest matchers for Result types | ✅ Stable |
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.0.1 | Vitest matchers for Result types | ✅ Stable |
+| [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) v0.1.0 | Shared test matcher logic | ✅ Stable |
+| [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) v1.0.1 | Unified test matchers (Jest + Vitest) | ✅ Stable |
+| [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) v0.1.1 | Production-grade resilience patterns | ✅ Stable |
+| [`@zerothrow/docker`](packages/docker) | [![npm](https://img.shields.io/npm/v/@zerothrow/docker.svg?style=flat-square)](https://npm.im/@zerothrow/docker) v0.1.1 | Docker utilities for testing | ✅ Stable |
+| [`@zerothrow/zt-cli`](packages/zt-cli) | v0.1.1 | CLI tool for repo workflows | 🚧 Internal |
 
-### Phase 2: Developer Experience (Coming Soon)
+### Unpublished Packages (In Development)
 | Package | Description | Status |
 |---------|-------------|--------|
-| `@zerothrow/eslint-plugin` | ESLint rules to enforce no-throw | 📋 Beta |
-| `@zerothrow/react` | React hooks for Result types | 📋 Beta |
-| `@zerothrow/logger-winston` | Winston logger integration | 📋 Beta |
-| `@zerothrow/logger-pino` | Pino logger integration | 📋 Beta |
-| `@zerothrow/cli` | Command-line tools | 📋 Planned |
+| [`@zerothrow/eslint-plugin`](packages/eslint-plugin) | ESLint rules to enforce no-throw | 🚧 Development |
+| [`@zerothrow/react`](packages/react) | React hooks for Result types | 🚧 Development |
+| [`@zerothrow/logger-winston`](packages/logger-winston) | Winston logger integration | 🚧 Development |
+| [`@zerothrow/logger-pino`](packages/logger-pino) | Pino logger integration | 🚧 Development |
 
 See our [full ecosystem roadmap](https://github.com/zerothrow/zerothrow/discussions) for Phase 3 (Integration Layer) and Phase 4 (Ecosystem Domination) packages including framework adapters, database integrations, and more!
 
-### Latest Features (v0.0.2-alpha)
+### Latest Features (v0.2.0)
 
 - **✨ `ZT.tryAsync()`** - Cleaner async error handling that returns `Promise<Result<T,E>>`
 - **✨ String error shortcuts** - `ZT.err('ERROR_CODE')` and `ZT.err('CODE', 'message')`
@@ -217,14 +218,14 @@ if (!result.ok) {
 ### Installation
 
 ```bash
-npm install @zerothrow/core@alpha
+npm install @zerothrow/core
 
 # For testing
 npm install --save-dev @zerothrow/jest  # Jest users
 npm install --save-dev @zerothrow/vitest # Vitest users (coming soon)
 ```
 
-> ⚠️ **Alpha Release**: API is stabilizing but may have minor changes before 1.0
+> ⚠️ **Beta Release**: API is stable with semantic versioning. Breaking changes in v0.2.0 - see [migration guide](#migration-guide)
 
 ### Basic Usage
 
@@ -481,7 +482,7 @@ Result pattern performance vs exceptions:
 ### Step 1: Install and Configure
 
 ```bash
-npm install @zerothrow/core@alpha
+npm install @zerothrow/core
 ```
 
 Add the ESLint rule to catch throws (coming in beta):
@@ -724,23 +725,25 @@ function UserProfile({ id }: { id: string }) {
 
 ## Roadmap
 
-### 🎯 Current: Alpha (v0.0.2)
+### 🎯 Current: Beta (v0.2.0)
 - ✅ Core `Result<T,E>` type system
 - ✅ ZT pocket knife API
 - ✅ ZeroThrow advanced namespace
 - ✅ Zero runtime dependencies
 - ✅ Full TypeScript support
-- ✅ Jest test matchers
+- ✅ Jest & Vitest test matchers
 - ✅ `ZT.tryAsync()` for cleaner async handling
 - ✅ String overloads for `ZT.err()`
+- ✅ Unified Result API - all Results are combinable
+- ✅ Resilience patterns (retry, circuit breaker, timeout)
 
-### 🚀 Next: Beta (v0.1.0)
-- [ ] Vitest test matchers
+### 🚀 Next: v1.0 Release
 - [ ] ESLint plugin (`@zerothrow/eslint-plugin`)
 - [ ] React hooks (`@zerothrow/react`)
 - [ ] Logger integrations (`@zerothrow/logger-winston`, `@zerothrow/logger-pino`)
-- [ ] Resilience API (retry, circuit breaker, timeout)
+- [ ] Comprehensive migration tooling
 - [ ] Performance benchmarks
+- [ ] Production case studies
 
 ### 🏁 Future: v1.0
 - [ ] Stable API guarantee

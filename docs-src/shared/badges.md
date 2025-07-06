@@ -1,0 +1,5 @@
+![npm](https://img.shields.io/npm/v/{{packageName}})
+![types](https://img.shields.io/npm/types/{{packageName}})
+![size](https://packagephobia.com/badge?p={{packageName}})
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)

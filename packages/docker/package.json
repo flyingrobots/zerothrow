@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/docker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-throw Docker utilities for testing and container management",
   "type": "module",
   "sideEffects": false,
@@ -44,11 +44,11 @@
     "ora": "^8.2.0"
   },
   "peerDependencies": {
-    "@zerothrow/core": "^0.1.0"
+    "@zerothrow/core": ">=0.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.8.1",
-    "@zerothrow/core": "^0.1.0",
+    "@zerothrow/core": "^0.2.0",
     "tsup": "^8.3.0",
     "typescript": "5.5.4",
     "vitest": "^2.1.3"

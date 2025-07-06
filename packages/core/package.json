@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript",
   "type": "module",
   "sideEffects": false,
@@ -39,6 +39,7 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
+    "zerothrow",
     "result",
     "error-handling",
     "typescript",
@@ -60,7 +61,7 @@
     "directory": "packages/core"
   },
   "license": "MIT",
-  "author": "J. Kirby Ross <james@flyingrobots.dev> https://github.com/flyingrobots",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "publishConfig": {
     "access": "public",
     "tag": "alpha"
@@ -68,9 +69,8 @@
   "engines": {
     "node": ">=18.17.0"
   },
-  "directories": {
-    "test": "test"
-  },
+  "platform": "universal",
+  "dev": false,
   "devDependencies": {},
   "optionalDependencies": {}
 }

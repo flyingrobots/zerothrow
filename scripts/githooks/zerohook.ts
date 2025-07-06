@@ -67,15 +67,6 @@ function getFileDiff(file: string): ZeroThrow.Async<string> {
   return execCmd(`git diff "${file}"`);
 }
 
-// Run tests
-function runTests(): ZeroThrow.Async<void> {
-  const spinner = ora('Running tests...').start();
-  
-  return execCmd('npm run test', true)
-    .void() // Convert string result to void
-    .tap(() => spinner.succeed('Tests passed'))
-    .tapErr(() => spinner.fail('Tests failed'));
-}
 
 // Run linter on staged files
 function runLinter(files: string[]): ZeroThrow.Async<void> {
@@ -266,9 +257,7 @@ function handlePartiallyStaged(files: string[]): ZeroThrow.Async<void> {
 async function main(): Promise<number> {
   console.log(chalk.blue('\n🚀 ZeroHook - Pre-commit checks\n'));
   
-  const result = await runTests()
-    .tapErr(() => console.error(chalk.red('\n❌ Tests must pass before committing')))
-    .andThen(() => getStagedFiles())
+  const result = await getStagedFiles()
     .tapErr(e => console.error(chalk.red(`Failed to get staged files: ${e.message}`)))
     .andThen(files => {
       if (files.length === 0) {

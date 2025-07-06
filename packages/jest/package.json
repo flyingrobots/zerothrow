@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/jest",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Jest matchers for ZeroThrow Result types",
   "author": "ZeroThrow",
   "license": "MIT",
@@ -43,7 +43,7 @@
   },
   "peerDependencies": {
     "@jest/globals": ">=27.0.0",
-    "@zerothrow/core": "0.1.0",
+    "@zerothrow/core": ">=0.1.0",
     "@zerothrow/expect": "0.1.0",
     "jest": ">=27.0.0"
   },

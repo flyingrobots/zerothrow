@@ -1,162 +1,209 @@
 # @zerothrow/docker
 
-> Zero-throw Docker utilities for testing and container management
+> **🧠 ZeroThrow Layers**  
+> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+> • **Result** – combinators (`map`, `andThen`, `match`)  
+> • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+> • **@zerothrow/*** – ecosystem packages (resilience, jest, etc)
 
-[![npm version](https://img.shields.io/npm/v/@zerothrow/docker.svg)](https://www.npmjs.com/package/@zerothrow/docker)
-[![npm downloads](https://img.shields.io/npm/dm/@zerothrow/docker.svg)](https://www.npmjs.com/package/@zerothrow/docker)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)
 
-## 🚀 Overview
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+![npm](https://img.shields.io/npm/v/@zerothrow/docker)
+![types](https://img.shields.io/npm/types/@zerothrow/docker)
+![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
 
-@zerothrow/docker provides Zero-throw Result-based APIs for Docker operations, making container management and Docker-based testing more reliable and developer-friendly.
+<div align="center">
+<img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-docker.webp" height="300" />
+</div>
 
-Part of the [ZeroThrow ecosystem](../../README.md#ecosystem) 🎯
+Zero-throw Docker utilities for testing and container management, with automatic error handling and recovery suggestions.
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @zerothrow/docker @zerothrow/core
-# or
-yarn add @zerothrow/docker @zerothrow/core
-# or
-pnpm add @zerothrow/docker @zerothrow/core
+# or: pnpm add @zerothrow/docker @zerothrow/core
 ```
 
-## 🎯 Features
-
-- **Zero-throw Docker APIs** - All operations return `Result<T, E>` types
-- **Platform-aware** - Smart handling for macOS, Linux, and Windows
-- **Interactive CLI** - User-friendly prompts for Docker setup
-- **CI-friendly** - Fails fast in non-interactive environments
-- **Comprehensive utilities** - Status checks, cleanup, container management
-
-## 💻 CLI Usage
-
-### Standalone CLI
-
-```bash
-# Check Docker status
-npx @zerothrow/docker status
-
-# Start Docker daemon
-npx @zerothrow/docker start
-
-# Check disk usage
-npx @zerothrow/docker disk
-
-# Clean up resources
-npx @zerothrow/docker prune --all --volumes
-
-# Run interactive tests
-npx @zerothrow/docker test
-```
-
-### With ZT CLI
-
-```bash
-# Once integrated with zt-cli
-zt docker status
-zt docker prune
-```
-
-## 🔧 API Usage
+## Quick Start
 
 ```typescript
-import { 
-  checkDockerStatus,
-  startDocker,
-  pruneDocker,
-  isRunningInDocker,
-  handleDockerError
-} from '@zerothrow/docker';
+import { checkDockerStatus, startDocker, isContainerRunning } from '@zerothrow/docker';
 
-// Check Docker status
+// Check if Docker is installed and running
 const status = await checkDockerStatus();
-if (status.isErr()) {
-  console.error('Docker check failed:', status.error);
-  return;
+if (status.ok) {
+  console.log('Docker version:', status.value.version);
+  console.log('Docker running:', status.value.running);
 }
 
+// Start Docker if not running
 if (!status.value.running) {
-  // Try to start Docker
   const startResult = await startDocker();
-  if (startResult.isErr()) {
-    // Get platform-specific help
-    const suggestion = handleDockerError(startResult.error);
-    console.error(suggestion);
+  if (startResult.ok) {
+    console.log('Docker started successfully');
   }
 }
 
-// Clean up Docker resources
-const pruneResult = await pruneDocker({ 
-  all: true,      // Remove all unused images
-  volumes: true,  // Also prune volumes
-  force: true     // Don't prompt
-});
-
-// Check if running inside container
-if (isRunningInDocker()) {
-  console.log('Running inside Docker container');
+// Check if a container is running
+const running = await isContainerRunning('my-postgres');
+if (running.ok && running.value) {
+  console.log('Container is running');
 }
 ```
 
-## 📖 API Reference
+## CLI Tool
 
-### Status & Checks
+The package includes a CLI tool `zt-docker` for common Docker operations:
 
-- `checkDockerStatus()` - Get Docker installation and runtime status
-- `isRunningInDocker()` - Detect if code is running in a container
-- `checkDiskSpace()` - Analyze Docker disk usage
+```bash
+# Check Docker status
+zt-docker status
+
+# Start Docker daemon
+zt-docker start
+
+# Check disk usage
+zt-docker disk
+
+# Clean up Docker resources
+zt-docker prune --all --volumes --force
+
+# Stop a container
+zt-docker stop my-container
+
+# Remove a container
+zt-docker remove my-container
+
+# Run interactive Docker-based tests
+zt-docker test
+```
+
+## API
+
+### Docker Status Functions
+
+#### `checkDockerStatus(): Promise<Result<DockerStatus, ZeroError>>`
+Checks if Docker is installed, running, and if Docker Compose is available.
+
+```typescript
+interface DockerStatus {
+  installed: boolean;
+  running: boolean;
+  version?: string;
+  composeInstalled: boolean;
+  composeVersion?: string;
+  error?: ZeroError;
+}
+```
+
+#### `isRunningInDocker(): boolean`
+Detects if the current process is running inside a Docker container.
+
+#### `startDocker(): Promise<Result<void, ZeroError>>`
+Attempts to start the Docker daemon. Platform-specific:
+- **macOS**: Opens Docker Desktop app and waits up to 30 seconds
+- **Linux**: Uses systemctl to start the Docker service (requires sudo)
+- **Windows**: Returns an error asking user to start Docker Desktop manually
 
 ### Container Management
 
-- `startDocker()` - Start Docker daemon (platform-specific)
-- `stopContainer(name)` - Stop a running container
-- `removeContainer(name)` - Remove a container
-- `isContainerRunning(name)` - Check container status
+#### `isContainerRunning(name: string): Promise<Result<boolean, ZeroError>>`
+Checks if a container with the given name is currently running.
 
-### Cleanup
+#### `stopContainer(name: string): Promise<Result<void, ZeroError>>`
+Stops a running container by name.
 
-- `pruneDocker(options)` - Clean up Docker resources
-  - `all` - Remove all unused images
-  - `volumes` - Also prune volumes
-  - `force` - Skip confirmation
+#### `removeContainer(name: string): Promise<Result<void, ZeroError>>`
+Forcefully removes a container by name (equivalent to `docker rm -f`).
 
-### Error Handling
+### Disk Management
 
-- `handleDockerError(error)` - Get platform-specific suggestions
-- `getDockerInstallCommand()` - Get installation instructions
+#### `checkDiskSpace(): Promise<Result<string, ZeroError>>`
+Returns Docker disk usage information (equivalent to `docker system df`).
 
-## 🧪 Testing Helper
-
-The package includes a special test runner for Docker-based integration tests:
+#### `pruneDocker(options?: DockerPruneOptions): Promise<Result<string, ZeroError>>`
+Cleans up Docker resources with various options:
 
 ```typescript
-// In your test script
-import runTests from '@zerothrow/docker/test-docker';
-
-await runTests(); // Interactive Docker setup and test execution
+interface DockerPruneOptions {
+  all?: boolean;      // Remove all unused images, not just dangling
+  volumes?: boolean;  // Also prune volumes
+  force?: boolean;    // Skip confirmation prompts
+}
 ```
 
-## 🏗️ Architecture
+### Utility Functions
 
-All functions follow Zero-throw patterns:
-- Return `Result<T, ZeroError>` types
-- Never throw exceptions
-- Provide detailed error context
-- Include helpful error recovery suggestions
+#### `getDockerInstallCommand(): string`
+Returns the platform-specific Docker installation command:
+- **macOS**: `brew install --cask docker`
+- **Linux**: `curl -fsSL https://get.docker.com | sh`
+- **Windows**: `winget install Docker.DockerDesktop`
+- **Other**: Returns Docker documentation URL
 
-## 📚 More Information
+#### `handleDockerError(error: ZeroError): Promise<Result<void, ZeroError>>`
+Analyzes Docker-related errors and provides actionable suggestions:
+- Disk space issues: Suggests pruning commands
+- Daemon not running: Attempts to start Docker
+- Permission issues: Provides platform-specific fix instructions
 
-- [ZeroThrow Documentation](https://github.com/zerothrow/zerothrow)
-- [API Reference](https://github.com/zerothrow/zerothrow/docs/api/docker)
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+#### `execCmdInteractive(cmd: string): Promise<Result<void, ZeroError>>`
+Executes a shell command with inherited stdio, useful for interactive commands that need user input.
 
-## 📄 License
+## Examples
 
-MIT © J. Kirby Ross
+### Running Integration Tests with Docker
 
----
+The `test-docker.ts` script provides an interactive way to ensure Docker is ready before running integration tests:
 
-Part of the [ZeroThrow](https://github.com/zerothrow/zerothrow) ecosystem 🎯
+```typescript
+import runTests from '@zerothrow/docker/test-docker';
+
+// Checks Docker status, offers to start it if needed,
+// and runs integration tests when ready
+await runTests();
+```
+
+### Error Handling with Recovery
+
+```typescript
+import { checkDockerStatus, handleDockerError, pruneDocker } from '@zerothrow/docker';
+
+const status = await checkDockerStatus();
+if (!status.ok) {
+  // handleDockerError provides smart recovery suggestions
+  const handled = await handleDockerError(status.error);
+  if (!handled.ok) {
+    console.error('Could not recover:', handled.error.message);
+  }
+}
+
+// Handle disk space issues
+const result = await someDockerOperation();
+if (!result.ok && result.error.message.includes('no space left')) {
+  console.log('Running out of disk space, cleaning up...');
+  await pruneDocker({ all: true, volumes: true, force: true });
+}
+```
+
+### Platform Detection
+
+```typescript
+import { isRunningInDocker, getDockerInstallCommand } from '@zerothrow/docker';
+
+if (isRunningInDocker()) {
+  console.log('Already in Docker, skipping container operations');
+} else {
+  console.log('To install Docker:', getDockerInstallCommand());
+}
+```
+
+## Contributing
+
+See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
+
+## License
+
+MIT

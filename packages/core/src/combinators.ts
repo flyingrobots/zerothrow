@@ -1,153 +1,5 @@
-import { type Result, err, _ok, _err } from './result.js';
+import { type Result, ok, err } from './result.js';
 import { ZeroError } from './error.js';
-
-/**
- * Fluent combinators for Result types - chainable operations
- */
-
-export interface ResultCombinable<T, E extends Error = ZeroError> {
-  /**
-   * Chain operations that can fail
-   */
-  andThen<U>(
-    fn: (value: T) => Result<U, E>
-  ): Result<U, E> & ResultCombinable<U, E>;
-
-  /**
-   * Transform errors while preserving success values
-   */
-  mapErr<F extends Error>(
-    fn: (error: E) => F
-  ): Result<T, F> & ResultCombinable<T, F>;
-
-  /**
-   * Transform success values while preserving errors
-   */
-  map<U>(fn: (value: T) => U): Result<U, E> & ResultCombinable<U, E>;
-
-  /**
-   * Provide fallback value on error
-   */
-  orElse(fallback: () => Result<T, E>): Result<T, E> & ResultCombinable<T, E>;
-
-  /**
-   * Get value or fallback
-   */
-  unwrapOr(fallback: T): T;
-
-  /**
-   * Get value or throw (use sparingly!)
-   */
-  unwrapOrThrow(): T;
-
-  /**
-   * Execute side effect without changing the Result
-   * Useful for logging, metrics, debugging
-   */
-  tap(fn: (value: T) => void): Result<T, E> & ResultCombinable<T, E>;
-
-  /**
-   * Execute side effect on error without changing the Result
-   */
-  tapErr(fn: (error: E) => void): Result<T, E> & ResultCombinable<T, E>;
-
-  /**
-   * Execute cleanup function regardless of success/failure
-   * Gets the value if successful, undefined if error
-   */
-  finally(fn: (value?: T) => void): Result<T, E> & ResultCombinable<T, E>;
-
-  /**
-   * Discard the value and return void
-   * Useful when you only care about success/failure, not the value
-   */
-  void(): Result<void, E> & ResultCombinable<void, E>;
-}
-
-/**
- * Add combinators to Result type
- */
-export function makeCombinable<T, E extends Error = ZeroError>(
-  result: Result<T, E>
-): Result<T, E> & ResultCombinable<T, E> {
-  return Object.assign({}, result, {
-    andThen: function <U>(
-      this: Result<T, E>,
-      fn: (value: T) => Result<U, E>
-    ): Result<U, E> & ResultCombinable<U, E> {
-      if (!this.ok) return makeCombinable(this as Result<U, E>);
-      return makeCombinable(fn(this.value));
-    },
-
-    mapErr: function <F extends Error>(
-      this: Result<T, E>,
-      fn: (error: E) => F
-    ): Result<T, F> & ResultCombinable<T, F> {
-      if (this.ok) return makeCombinable(this as Result<T, F>);
-      return makeCombinable(_err(fn(this.error)));
-    },
-
-    map: function <U>(
-      this: Result<T, E>,
-      fn: (value: T) => U
-    ): Result<U, E> & ResultCombinable<U, E> {
-      if (!this.ok) return makeCombinable(this as Result<U, E>);
-      return makeCombinable(_ok(fn(this.value)));
-    },
-
-    orElse: function (
-      this: Result<T, E>,
-      fallback: () => Result<T, E>
-    ): Result<T, E> & ResultCombinable<T, E> {
-      if (this.ok) return makeCombinable(this);
-      return makeCombinable(fallback());
-    },
-
-    unwrapOr: function (this: Result<T, E>, fallback: T): T {
-      return this.ok ? this.value : fallback;
-    },
-
-    /**
-     * @warning This method violates the zero-throw discipline by throwing exceptions.
-     * Use only in tests or when absolutely necessary. Prefer unwrapOr() or proper
-     * error handling instead.
-     * @throws {Error} Throws the error if the Result is an Err
-     */
-    unwrapOrThrow: function (this: Result<T, E>): T {
-      if (!this.ok) throw this.error;
-      return this.value;
-    },
-
-    tap: function (
-      this: Result<T, E>,
-      fn: (value: T) => void
-    ): Result<T, E> & ResultCombinable<T, E> {
-      if (this.ok) fn(this.value);
-      return makeCombinable(this);
-    },
-
-    tapErr: function (
-      this: Result<T, E>,
-      fn: (error: E) => void
-    ): Result<T, E> & ResultCombinable<T, E> {
-      if (!this.ok) fn(this.error);
-      return makeCombinable(this);
-    },
-
-    finally: function (
-      this: Result<T, E>,
-      fn: (value?: T) => void
-    ): Result<T, E> & ResultCombinable<T, E> {
-      fn(this.ok ? this.value : undefined);
-      return makeCombinable(this);
-    },
-
-    void: function (this: Result<T, E>): Result<void, E> & ResultCombinable<void, E> {
-      if (!this.ok) return makeCombinable(this as Result<void, E>);
-      return makeCombinable(_ok(undefined));
-    },
-  });
-}
 
 /**
  * Pipe multiple operations together with full type inference
@@ -181,11 +33,11 @@ export function collect<T, E extends Error = ZeroError>(
   let index = 0;
 
   for (const result of results) {
-    if (!result.ok) return result;
+    if (!result.ok) return result as Result<T[], E>;
     values[index++] = result.value;
   }
 
-  return _ok(values) as Result<T[], E>;
+  return ok(values) as unknown as Result<T[], E>;
 }
 
 /**
@@ -199,19 +51,22 @@ export async function collectAsync<T, E extends Error = ZeroError>(
 }
 
 /**
- * Try each Result in sequence until one succeeds
+ * Get the first successful Result from an array of Result-producing functions
+ * Evaluates lazily - stops on first success
+ * Returns custom error if all fail
  */
 export function firstSuccess<T, E extends Error = ZeroError>(
-  results: Array<() => Result<T, E>>
+  attempts: Array<() => Result<T, E>>
 ): Result<T, E> {
-  for (const getResult of results) {
-    const result = getResult();
+  if (attempts.length === 0) {
+    return err(new ZeroError('ALL_FAILED', 'All alternatives failed') as unknown as E);
+  }
+  
+  for (const attempt of attempts) {
+    const result = attempt();
     if (result.ok) return result;
   }
-
-  // Return a generic error that matches the expected type
-  // The caller should handle this case appropriately
-  return err(
-    new ZeroError('ALL_FAILED', 'All alternatives failed') as unknown as E
-  );
+  
+  // All attempts failed
+  return err(new ZeroError('ALL_FAILED', 'All alternatives failed') as unknown as E);
 }

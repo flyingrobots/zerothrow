@@ -1,0 +1,1 @@
+| [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) | Production-grade resilience patterns for ZeroThrow |

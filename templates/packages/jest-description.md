@@ -1,0 +1,1 @@
+Jest matchers for ZeroThrow Result types

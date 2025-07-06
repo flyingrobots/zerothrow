@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/testing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unified test matchers for ZeroThrow Result types - supports Jest and Vitest",
   "keywords": [
     "zerothrow",
@@ -34,7 +34,7 @@
     "test": "echo 'Tests run from monorepo root'"
   },
   "peerDependencies": {
-    "@zerothrow/core": "0.1.0",
+    "@zerothrow/core": ">=0.1.0",
     "@zerothrow/jest": ">=0.1.2-alpha.0",
     "@zerothrow/vitest": ">=0.1.1-alpha.0",
     "jest": ">=26.0.0",

@@ -1,5 +1,100 @@
 # Changelog
 
+## 0.2.0
+
+### Major Changes
+
+- **BREAKING**: Unified Result API - All Results are now combinable by default
+
+  ## Summary
+  
+  Eliminated the two-tier Result system. Previously, Results needed to be made combinable via `makeCombinable()`. 
+  Now all Results have built-in combinator methods, making the API simpler and more consistent.
+
+  ## BREAKING CHANGES
+  
+  ### Removed APIs
+  - **`makeCombinable()` function** - No longer exists. All Results are combinable by default.
+  - **`ResultCombinable` interface** - No longer exists. Use `Result<T, E>` directly.
+  
+  ### Changed APIs
+  - **`firstSuccess()` signature changed**
+    - Before: `firstSuccess([result1, result2, result3])`
+    - After: `firstSuccess([() => result1, () => result2, () => result3])`
+    - Now requires functions that return Results for lazy evaluation
+  
+  ### TypeScript Breaking Changes
+  - **Import changes**
+    - `import { makeCombinable } from '@zerothrow/core'` will fail
+    - `import type { ResultCombinable } from '@zerothrow/core'` will fail
+  - **Type incompatibilities**
+    - Functions expecting `ResultCombinable<T, E>` must now accept `Result<T, E>`
+    - Direct Result arrays passed to `firstSuccess` will cause type errors
+  
+  ## Improvements
+  
+  - `ZT.tryAsync` now correctly returns `Promise<Result<T, E>>` instead of the confusing `Result<Promise<T>, E>`
+  - Better TypeScript inference throughout the API
+  
+  ## Migration Guide
+  
+  ### 1. Remove all `makeCombinable()` calls
+  ```typescript
+  // Before
+  const result = makeCombinable(ZT.try(() => risky()));
+  result.map(x => x * 2);
+  
+  // After  
+  const result = ZT.try(() => risky());
+  result.map(x => x * 2);  // Works directly!
+  ```
+  
+  ### 2. Update `firstSuccess()` calls to use functions
+  ```typescript
+  // Before - firstSuccess with direct Results
+  const result = firstSuccess([
+    attempt1(),
+    attempt2(),
+    attempt3()
+  ]);
+  
+  // After - firstSuccess with lazy functions
+  const result = firstSuccess([
+    () => attempt1(),
+    () => attempt2(),
+    () => attempt3()
+  ]);
+  ```
+  
+  ### 3. Update type annotations
+  ```typescript
+  // Before
+  function processData(result: ResultCombinable<Data, Error>) {
+    return result.map(d => d.value);
+  }
+  
+  // After
+  function processData(result: Result<Data, Error>) {
+    return result.map(d => d.value);
+  }
+  ```
+  
+  ### 4. Remove unused imports
+  ```typescript
+  // Before
+  import { ZT, makeCombinable, type ResultCombinable } from '@zerothrow/core';
+  
+  // After
+  import { ZT, type Result } from '@zerothrow/core';
+  ```
+  
+  ## Benefits
+  
+  - Simpler API - no need to think about "plain" vs "combinable" Results
+  - Better ergonomics - all Results work the same way
+  - Cleaner internal architecture
+  - Consistent behavior across the entire API
+
 ## 0.1.0
 
 ### Minor Changes

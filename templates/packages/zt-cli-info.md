@@ -1,0 +1,1 @@
+| [`@zerothrow/zt-cli`](packages/zt-cli) | [![npm](https://img.shields.io/npm/v/@zerothrow/zt-cli.svg?style=flat-square)](https://npm.im/@zerothrow/zt-cli) | ZeroThrow CLI tool for repo-wide workflows |
