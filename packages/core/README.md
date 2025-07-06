@@ -83,25 +83,38 @@ function divide(a: number, b: number): Result<number, Error> {
 
 ## Quick Start
 
+### The Right Mental Model
+
+1. **Write functions that return Results from the beginning** - Don't throw then wrap
+2. **Only use `ZT.try` at absolute boundaries** - When interfacing with code you don't control  
+3. **Results are your primary return type** - Not an afterthought or wrapper
+
+### Basic Example
+
 ```typescript
-import { ZT } from '@zerothrow/core';
+import { ZT, Result } from '@zerothrow/core';
 
-// Wrap any function that might throw
-const result = ZT.try(() => JSON.parse(userInput));
-
-// Handle both success and failure cases
-if (result.ok) {
-  console.log('Parsed:', result.value);
-} else {
-  console.log('Error:', result.error.message);
+// ✅ Write Result-first functions
+function parseConfig(input: string): Result<Config, Error> {
+  if (!input) {
+    return ZT.err('CONFIG_EMPTY', 'Configuration cannot be empty');
+  }
+  
+  // Only use try for code you don't control (JSON.parse)
+  return ZT.try(() => JSON.parse(input))
+    .andThen(data => {
+      if (!data.version) {
+        return ZT.err('CONFIG_INVALID', 'Missing version field');
+      }
+      return ZT.ok(data as Config);
+    });
 }
 
-// Or use functional combinators
-result
-  .map(data => data.userId)
-  .andThen(id => fetchUser(id))
-  .tap(id => console.log('Processing user:', id))
-  .unwrapOr(null);
+// Chain operations cleanly
+const config = parseConfig(rawInput)
+  .map(cfg => ({ ...cfg, timestamp: Date.now() }))
+  .tap(cfg => console.log('Loaded config:', cfg.version))
+  .unwrapOr(defaultConfig);
 ```
 
 ## API Reference
@@ -139,55 +152,68 @@ Run benchmarks yourself: `npm run bench` in the project root.
 
 ## Best Practices
 
-### 1. No More Try/Catch
+### 1. Results Are Your Primary Return Type
 
-ZeroThrow eliminates the need for try/catch blocks in your application code:
+Your functions should return Results from the start:
 
 ```typescript
-// ❌ Traditional approach
-try {
-  const data = JSON.parse(input);
-  const user = await fetchUser(data.userId);
+// ❌ Bad: Throwing inside your own functions
+function getUser(id: string): User {
+  const user = db.find(id);
+  if (!user) throw new Error('User not found');
   return user;
-} catch (error) {
-  console.error('Operation failed:', error);
-  return null;
 }
 
-// ✅ ZeroThrow approach
-ZT.try(() => JSON.parse(input))
-  .andThen(data => fetchUser(data.userId))
-  .tapErr(error => console.error('Operation failed:', error))
-  .unwrapOr(null);
+// ✅ Good: Return Results directly
+function getUser(id: string): Result<User, Error> {
+  const user = db.find(id);
+  if (!user) {
+    return ZT.err('USER_NOT_FOUND', `No user with id ${id}`);
+  }
+  return ZT.ok(user);
+}
+
+// Usage is explicit about error handling
+const userName = getUser('123')
+  .map(user => user.name)
+  .unwrapOr('Guest');
 ```
 
-### 2. ZT.try is for Third-Party Code
+### 2. Only Use ZT.try at Absolute Boundaries
 
-Only use `ZT.try()` when wrapping code that might throw (usually third-party libraries):
+`ZT.try` is ONLY for code you don't control that might throw:
 
 ```typescript
-// ✅ Good - wrapping throwing functions
-const parsed = ZT.try(() => JSON.parse(input));
-const file = await ZT.tryAsync(async () => fs.promises.readFile(path));
+// ✅ Good: Only wrap third-party code that throws
+function loadUserData(jsonString: string): Result<UserData, Error> {
+  // JSON.parse can throw - we don't control it
+  return ZT.try(() => JSON.parse(jsonString))
+    .andThen(data => {
+      // Our validation returns Results, no try needed!
+      return validateUserData(data);
+    });
+}
 
-// ❌ Bad - your functions should return Results
-function calculateTotal(items) {
+// ❌ Bad: Wrapping your own code in try
+function calculateTotal(items: Item[]): Result<number, Error> {
   return ZT.try(() => {
-    // Your logic here
+    // Why are you wrapping your own logic?
     return items.reduce((sum, item) => sum + item.price, 0);
   });
 }
 
-// ✅ Good - return Results directly
-function calculateTotal(items): Result<number, ZeroError> {
+// ✅ Good: Return Results directly from your functions
+function calculateTotal(items: Item[]): Result<number, Error> {
   if (items.length === 0) {
     return ZT.err('EMPTY_CART', 'Cannot calculate total for empty cart');
   }
-  return ZT.ok(items.reduce((sum, item) => sum + item.price, 0));
+  
+  const total = items.reduce((sum, item) => sum + item.price, 0);
+  return ZT.ok(total);
 }
 ```
 
-### 3. Leverage Combinators
+### 3. Compose with Combinators
 
 Chain operations without nested if statements:
 
@@ -210,7 +236,7 @@ return fetchUser(id)
   .andThen(user => validateUser(user));
 ```
 
-### 4. Type-Safe Error Handling
+### 4. Design Error-First
 
 Use ZeroError for rich, type-safe errors:
 
@@ -243,24 +269,38 @@ function findUser(id: string): Result<User, ZeroError> {
 }
 ```
 
-### 5. Async Operations
+### 5. Async Result-First
 
-Use `tryAsync` for cleaner async error handling:
+Write async functions that return Results:
 
 ```typescript
-// ✅ Clear async intent
-const result = await ZT.tryAsync(async () => {
-  const response = await fetch('/api/users');
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-  return response.json();
-});
+// ❌ Bad: Using tryAsync to wrap throwing code
+async function fetchUser(id: string) {
+  return ZT.tryAsync(async () => {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) throw new Error('Failed');
+    return response.json();
+  });
+}
 
-// Chain async operations
-const userData = await ZT.tryAsync(() => fetch('/api/user'))
-  .then(r => r.andThen(res => ZT.tryAsync(() => res.json())))
-  .then(r => r.map(data => data.profile));
+// ✅ Good: Return Results directly
+async function fetchUser(id: string): Promise<Result<User, Error>> {
+  const response = await fetch(`/api/users/${id}`);
+  
+  if (!response.ok) {
+    return ZT.err('FETCH_FAILED', `HTTP ${response.status}`);
+  }
+  
+  // Only use try for the throwing json() method
+  return ZT.try(() => response.json());
+}
+
+// Even better with resilience
+import { Policy } from '@zerothrow/resilience';
+
+const resilientFetch = Policy.retry(3).execute(
+  () => fetchUser('123')
+);
 ```
 
 ## Common Patterns
@@ -312,44 +352,59 @@ function validateUser(data: unknown): Result<ValidUser, ZeroError> {
 ### API Calls
 
 ```typescript
+// ✅ Result-first API calls
 async function apiCall<T>(endpoint: string): Promise<Result<T, Error>> {
-  return ZT.tryAsync(async () => {
-    const response = await fetch(endpoint);
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-    return response.json() as T;
-  });
+  const response = await fetch(endpoint);
+  
+  if (!response.ok) {
+    return ZT.err(
+      'API_ERROR',
+      `Request failed: ${response.status} ${response.statusText}`
+    );
+  }
+  
+  // Only wrap the part that actually throws
+  return ZT.try(() => response.json() as Promise<T>);
 }
 
-// Use it
-const users = await apiCall<User[]>('/api/users')
-  .then(r => r.map(users => users.filter(u => u.active)));
+// Use it with proper error handling
+const activeUsers = await apiCall<User[]>('/api/users')
+  .then(r => r
+    .map(users => users.filter(u => u.active))
+    .tapErr(err => console.error(`Failed to fetch users: ${err.message}`))
+    .unwrapOr([])
+  );
 ```
 
 ### Configuration Loading
 
 ```typescript
-import { ZT, ZeroThrow } from '@zerothrow/core';
-
-const config = ZeroThrow.firstSuccess([
-  () => ZT.try(() => JSON.parse(process.env.CONFIG || 'invalid')),
-  () => ZT.try(() => require('./config.json')),
-  () => ZT.ok({ defaultSetting: true })
-]);
-
-// With error context
-function loadConfig(): Result<Config, ZeroError> {
-  return ZeroThrow.firstSuccess([
-    () => loadFromEnv().mapErr(e => 
-      ZeroThrow.wrap(e, 'ENV_CONFIG_FAILED')
-    ),
-    () => loadFromFile().mapErr(e => 
-      ZeroThrow.wrap(e, 'FILE_CONFIG_FAILED')
-    ),
-    () => ZT.ok(defaultConfig)
-  ]);
+// ✅ Each loader returns a Result
+function loadFromEnv(): Result<Config, Error> {
+  const configStr = process.env.CONFIG;
+  if (!configStr) {
+    return ZT.err('NO_ENV_CONFIG', 'CONFIG environment variable not set');
+  }
+  
+  return ZT.try(() => JSON.parse(configStr))
+    .mapErr(e => new ZeroError('INVALID_ENV_CONFIG', e.message));
 }
+
+function loadFromFile(path: string): Result<Config, Error> {
+  if (!fs.existsSync(path)) {
+    return ZT.err('CONFIG_NOT_FOUND', `No config file at ${path}`);
+  }
+  
+  return ZT.try(() => JSON.parse(fs.readFileSync(path, 'utf8')))
+    .mapErr(e => new ZeroError('INVALID_FILE_CONFIG', e.message));
+}
+
+// Try multiple sources
+const config = ZeroThrow.firstSuccess([
+  () => loadFromEnv(),
+  () => loadFromFile('./config.json'),
+  () => ZT.ok(defaultConfig) // Final fallback
+]);
 ```
 
 ## Full Documentation

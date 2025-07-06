@@ -73,24 +73,28 @@ npm install @zerothrow/resilience
 ### Quick Example
 
 ```typescript
-import { ZT } from '@zerothrow/core'
+import { ZT, Result } from '@zerothrow/core'
 
-// API calls that won't crash your app
-async function fetchUser(id: string) {
-  return ZT.tryAsync(async () => {
-    const response = await fetch(`/api/users/${id}`)
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    return response.json()
-  })
+// Return Results from the start - no throwing!
+async function fetchUser(id: string): Promise<Result<User, Error>> {
+  const response = await fetch(`/api/users/${id}`)
+  
+  if (!response.ok) {
+    return ZT.err(`USER_FETCH_FAILED`, `HTTP ${response.status}`)
+  }
+  
+  // Only use try for third-party code that might throw
+  return ZT.try(() => response.json())
 }
 
-// Graceful error handling
-const user = await fetchUser('123')
-if (user.ok) {
-  console.log('Found:', user.value.name)
-} else {
-  console.log('Failed:', user.error.message)
-}
+// Chain operations without nesting
+const displayName = await fetchUser('123')
+  .then(r => r
+    .map(user => user.name.toUpperCase())
+    .unwrapOr('Guest')
+  )
+
+console.log(`Welcome, ${displayName}!`)
 ```
 
 ## Why ZeroThrow?
@@ -99,6 +103,12 @@ if (user.ok) {
 2. **Fast** - [93× faster](https://github.com/zerothrow/zerothrow/tree/main/benchmarks) than try/catch on error paths
 3. **Composable** - Chain operations without nesting
 4. **Explicit** - No hidden control flow
+
+### The Right Mental Model
+
+1. **Write functions that return Results from the beginning** - Don't throw then wrap
+2. **Only use `ZT.try` at absolute boundaries** - When interfacing with code you don't control
+3. **Results are your primary return type** - Not an afterthought or wrapper
 
 [Learn more →](https://github.com/zerothrow/zerothrow/tree/main/packages/core#why-results-not-throws)
 
