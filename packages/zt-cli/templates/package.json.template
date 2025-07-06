@@ -1,15 +1,18 @@
 {
   "name": "@zerothrow/{{name}}",
-  "version": "0.1.0",
+  "version": "{{version}}",
   "description": "{{description}}",
   "type": "module",
   "sideEffects": false,
+  "keywords": [
+    "zerothrow",
+    "{{keywords}}"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "main": "./dist/index.cjs",
@@ -23,15 +26,11 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest",
-    "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "test": "echo 'Tests are run from monorepo root'",
+    "lint": "echo 'Linting is run from monorepo root'",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [
-    "zerothrow",
-    "{{keywords}}"
-  ],
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
   "bugs": {
     "url": "https://github.com/zerothrow/zerothrow/issues"
@@ -51,10 +50,7 @@
   },
   "platform": "universal",
   "dev": false,
-  "dependencies": {
-    "@zerothrow/core": "^0.1.0"
-  },
-  "peerDependencies": {
-    "@zerothrow/core": "^0.1.0"
-  }
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
 }

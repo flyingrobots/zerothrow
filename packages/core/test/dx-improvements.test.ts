@@ -74,7 +74,7 @@ describe('DX Improvements from Alpha Feedback', () => {
     });
 
     it('should work with ZeroError objects', () => {
-      const zeroError = new ZeroThrow.ZeroError('API_ERROR', 'API call failed', { endpoint: '/users' });
+      const zeroError = new ZeroThrow.ZeroError('API_ERROR', 'API call failed', { context: { endpoint: '/users' } });
       const result = ZT.err(zeroError);
       
       expect(result.ok).toBe(false);

@@ -6,6 +6,7 @@ import { listPackages } from './commands/list.js';
 import { packageCommand } from './commands/package.js';
 import { validateCommand } from './commands/validate.js';
 import { ecosystemCommand } from './commands/ecosystem.js';
+import { docsCommand } from './commands/docs.js';
 
 // Configure program
 program
@@ -104,6 +105,27 @@ Subcommands:
 Examples:
   $ zt ecosystem sync   # Update ECOSYSTEM.md
   $ zt ecosystem check  # Verify in CI
+`);
+
+program
+  .command('docs <subcommand>')
+  .description('Documentation generation utilities')
+  .action(async (subcommand) => {
+    const result = await docsCommand(subcommand);
+    if (!result.ok) {
+      console.error(chalk.red(`Error: ${result.error.message}`));
+      process.exit(2);
+    }
+  })
+  .addHelpText('after', `
+Subcommands:
+  generate - Generate all documentation from templates
+
+Examples:
+  $ zt docs generate   # Generate ECOSYSTEM.md and all READMEs
+
+This uses markdown-transclusion to compose documentation from templates,
+ensuring consistency across all packages and keeping versions in sync.
 `);
 
 // Handle help specially to avoid conflicts

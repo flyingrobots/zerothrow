@@ -1,44 +1,50 @@
-# @zerothrow/expect
+# {{PACKAGE_NAME}}
 
-Shared test matcher logic for ZeroThrow Result types. This package provides the core matcher implementations used by test framework adapters like `@zerothrow/jest` and `@zerothrow/vitest`.
+> **🧠 ZeroThrow Layers**  
+> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+> • **Result** – combinators (`map`, `andThen`, `match`)  
+> • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+> • **@zerothrow/*** – ecosystem packages (resilience, jest, etc)
+
+> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)
+
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+### badge
+![npm](https://img.shields.io/npm/v/@zerothrow/expect)
+![types](https://img.shields.io/npm/types/{{PACKAGE_NAME}})
+![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
+
+### description
+Shared test matcher logic for ZeroThrow Result types
 
 ## Installation
 
 ```bash
-npm install --save-dev @zerothrow/expect @zerothrow/core
+npm install {{PACKAGE_NAME}} @zerothrow/core
+# or: pnpm add {{PACKAGE_NAME}} @zerothrow/core
 ```
 
-## Usage
+## Quick Start
 
-This package is primarily used by test framework adapters. If you're writing tests, you should use:
-- `@zerothrow/jest` for Jest
-- `@zerothrow/vitest` for Vitest
-- `@zerothrow/testing` for a unified interface
+### quickstart
+```typescript
+import { ZT } from '@zerothrow/core';
+// TODO: Add expect specific examples
+```
 
 ## API
 
-### Matcher Functions
+### api
+TODO: Document the @zerothrow/expect API
 
-All matcher functions return a `MatcherResult`:
+## Examples
 
-```typescript
-interface MatcherResult {
-  pass: boolean;
-  message: () => string;
-}
-```
+### examples
+See the [examples directory](https://github.com/zerothrow/zerothrow/tree/main/examples) for full examples.
 
-- `toBeOkMatcher(received, context?)` - Check if Result is Ok
-- `toBeOkWithMatcher(received, expected, context)` - Check if Result is Ok with specific value
-- `toBeErrMatcher(received, context?)` - Check if Result is Err
-- `toBeErrWithMatcher(received, expected, context)` - Check if Result is Err with specific error
-- `toHaveErrorCodeMatcher(received, code)` - Check error code
-- `toHaveErrorMessageMatcher(received, message)` - Check error message
+## Contributing
 
-### Utilities
-
-- `isResult(value)` - Type guard for Result types
-- `formatError(error)` - Format errors for display
+See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
 
 ## License
 

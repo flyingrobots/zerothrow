@@ -1,55 +1,51 @@
-# @zerothrow/testing
+# {{PACKAGE_NAME}}
 
-Unified test matchers for ZeroThrow Result types - supports both Jest and Vitest.
+> **🧠 ZeroThrow Layers**  
+> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+> • **Result** – combinators (`map`, `andThen`, `match`)  
+> • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+> • **@zerothrow/*** – ecosystem packages (resilience, jest, etc)
+
+> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)
+
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+### badge
+![npm](https://img.shields.io/npm/v/@zerothrow/testing)
+![types](https://img.shields.io/npm/types/{{PACKAGE_NAME}})
+![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
+
+### description
+Unified test matchers for ZeroThrow Result types - supports Jest and Vitest
 
 ## Installation
 
 ```bash
-npm install --save-dev @zerothrow/testing
+npm install {{PACKAGE_NAME}} @zerothrow/core
+# or: pnpm add {{PACKAGE_NAME}} @zerothrow/core
 ```
 
-## Usage
+## Quick Start
 
-This package automatically detects your test environment and loads the appropriate matchers.
-
-### Jest
-
+### quickstart
 ```typescript
-import '@zerothrow/testing'
-import { ZT } from '@zerothrow/core'
-
-test('user validation', () => {
-  const result = validateUser(input)
-  
-  expect(result).toBeOk()
-  expect(result).toBeOkWith({ name: 'Alice' })
-})
+import { ZT } from '@zerothrow/core';
+// TODO: Add testing specific examples
 ```
 
-### Vitest
+## API
 
-```typescript
-import '@zerothrow/testing'
-import { ZT } from '@zerothrow/core'
-import { expect, test } from 'vitest'
+### api
+TODO: Document the @zerothrow/testing API
 
-test('user validation', () => {
-  const result = validateUser(input)
-  
-  expect(result).toBeOk()
-  expect(result).toBeOkWith({ name: 'Alice' })
-})
-```
+## Examples
 
-## Available Matchers
+### examples
+See the [examples directory](https://github.com/zerothrow/zerothrow/tree/main/examples) for full examples.
 
-- `toBeOk()` - Asserts the Result is Ok
-- `toBeErr()` - Asserts the Result is Err
-- `toBeOkWith(value)` - Asserts Ok with specific value
-- `toBeErrWith(error)` - Asserts Err with specific error
-- `toHaveErrorCode(code)` - Asserts error has specific code (for ZeroError)
-- `toHaveErrorMessage(message)` - Asserts error has specific message
+## Contributing
+
+See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
 
 ## License
 
-MIT © ZeroThrow
+MIT

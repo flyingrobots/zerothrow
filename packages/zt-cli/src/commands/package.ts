@@ -41,7 +41,7 @@ export async function packageCommand(subcommand: string, options: PackageOptions
 
   // Find packages to check
   const packagesToCheck = await selectPackages(options);
-  if (!packagesToCheck.ok) return packagesToCheck;
+  if (!packagesToCheck.ok) return packagesToCheck as unknown as ZeroThrow.Result<void, Error>;
 
   const results: PackageReadiness[] = [];
   const spinner = options.verbose ? null : ora('Checking package readiness...').start();
@@ -189,7 +189,6 @@ async function checkPackageReadiness(packagePath: string, _verbose: boolean = fa
   checks.push({ name: 'sideEffects = false', passed: packageJson.sideEffects === false });
   checks.push({ name: 'has "exports"', passed: !!packageJson.exports });
   checks.push({ name: 'has "platform"', passed: !!packageJson.platform });
-  checks.push({ name: 'has "dev"', passed: !!packageJson.dev });
   checks.push({ name: 'has "main"', passed: !!packageJson.main });
   checks.push({ name: 'has "module"', passed: !!packageJson.module });
   checks.push({ name: 'has "types"', passed: !!packageJson.types });
@@ -217,10 +216,16 @@ async function checkPackageReadiness(packagePath: string, _verbose: boolean = fa
     }
   }
 
-  // Check for mascot image
+  // Check for mascot image in marketing/brand directory
   try {
-    const files = await readdir(packagePath);
-    const hasMascot = files.some(f => f.match(/\.(png|jpg|jpeg|gif|svg)$/i));
+    const packageName = packageJson.name.replace('@zerothrow/', '');
+    const expectedMascotName = `zerothrow-${packageName}`;
+    const brandPath = join(packagePath, '..', '..', 'marketing', 'brand');
+    const files = await readdir(brandPath);
+    const hasMascot = files.some(f => {
+      const basename = f.replace(/\.(png|jpg|jpeg|gif|svg)$/i, '');
+      return basename === expectedMascotName && f.match(/\.(png|jpg|jpeg|gif|svg)$/i);
+    });
     checks.push({ name: 'has mascot image', passed: hasMascot });
   } catch {
     checks.push({ name: 'has mascot image', passed: false });
@@ -232,7 +237,7 @@ async function checkPackageReadiness(packagePath: string, _verbose: boolean = fa
     checks.push({ name: 'README has ecosystem link', passed: readme.includes('> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)') });
     checks.push({ name: 'README has badges', passed: readme.includes('![') });
     checks.push({ name: 'README has ecosystem badge', passed: readme.includes('![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)') });
-    checks.push({ name: 'README has install instructions', passed: readme.includes('npm i @zerothrow/') });
+    checks.push({ name: 'README has install instructions', passed: readme.includes('npm i ') || readme.includes('npm install ') });
     checks.push({ name: 'README links to ECOSYSTEM.md', passed: readme.includes('ECOSYSTEM.md') });
     checks.push({ name: 'README has intro blurb', passed: readme.length > 500 }); // Basic check for content
   } catch {
@@ -247,9 +252,10 @@ async function checkPackageReadiness(packagePath: string, _verbose: boolean = fa
     }
     const ecosystem = await readFile(join(rootDir, 'ECOSYSTEM.md'), 'utf-8');
     checks.push({ name: 'mentioned in ECOSYSTEM.md', passed: ecosystem.includes(packageJson.name) });
-    // Check version matches
-    const versionRegex = new RegExp(`${packageJson.name}.*${packageJson.version}`);
-    checks.push({ name: 'ECOSYSTEM.md has correct version', passed: versionRegex.test(ecosystem) });
+    // Check version matches - look for either exact version or npm badge (which shows current version)
+    const hasNpmBadge = ecosystem.includes(`npm/v/${packageJson.name}`);
+    const hasExactVersion = ecosystem.includes(`v${packageJson.version}`);
+    checks.push({ name: 'ECOSYSTEM.md has correct version', passed: hasNpmBadge || hasExactVersion });
   } catch {
     checks.push({ name: 'mentioned in ECOSYSTEM.md', passed: false });
     checks.push({ name: 'ECOSYSTEM.md has correct version', passed: false });

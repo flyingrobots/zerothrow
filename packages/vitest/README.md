@@ -1,65 +1,50 @@
-# @zerothrow/vitest
+# {{PACKAGE_NAME}}
 
-Vitest matchers for ZeroThrow Result types.
+> **🧠 ZeroThrow Layers**  
+> • **ZT** – primitives (`try`, `tryAsync`, `ok`, `err`)  
+> • **Result** – combinators (`map`, `andThen`, `match`)  
+> • **ZeroThrow** – utilities (`collect`, `enhanceAsync`)  
+> • **@zerothrow/*** – ecosystem packages (resilience, jest, etc)
+
+> **ZeroThrow Ecosystem** · [Packages ⇢](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)
+
+[![CI](https://github.com/zerothrow/zerothrow/actions/workflows/ci.yml/badge.svg)](https://github.com/zerothrow/zerothrow/actions)
+### badge
+![npm](https://img.shields.io/npm/v/@zerothrow/vitest)
+![types](https://img.shields.io/npm/types/{{PACKAGE_NAME}})
+![ecosystem](https://img.shields.io/badge/zerothrow-ecosystem-blue)
+
+### description
+Vitest matchers for ZeroThrow Result types
 
 ## Installation
 
 ```bash
-npm install --save-dev @zerothrow/vitest @zerothrow/core
+npm install {{PACKAGE_NAME}} @zerothrow/core
+# or: pnpm add {{PACKAGE_NAME}} @zerothrow/core
 ```
 
-## Usage
+## Quick Start
 
-Import the package in your test setup file or at the top of your test files:
-
+### quickstart
 ```typescript
-import '@zerothrow/vitest';
-```
-
-Or manually setup in your Vitest config:
-
-```typescript
-// vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import { setup } from '@zerothrow/vitest';
-
-export default defineConfig({
-  test: {
-    setupFiles: ['./test-setup.ts']
-  }
-});
-
-// test-setup.ts
-import { setup } from '@zerothrow/vitest';
-setup();
-```
-
-## Available Matchers
-
-```typescript
-import { expect } from 'vitest';
 import { ZT } from '@zerothrow/core';
-
-const ok = ZT.ok(42);
-const err = ZT.err('FAIL', 'Something went wrong');
-
-// Result state matchers
-expect(ok).toBeOk();
-expect(err).toBeErr();
-
-// Result value matchers  
-expect(ok).toBeOkWith(42);
-expect(err).toBeErrWith({ code: 'FAIL', message: 'Something went wrong' });
-
-// Error property matchers
-expect(err).toHaveErrorCode('FAIL');
-expect(err).toHaveErrorMessage('Something went wrong');
-expect(err).toHaveErrorMessage(/went wrong/);
-
-// Negation
-expect(ok).not.toBeErr();
-expect(err).not.toBeOk();
+// TODO: Add vitest specific examples
 ```
+
+## API
+
+### api
+TODO: Document the @zerothrow/vitest API
+
+## Examples
+
+### examples
+See the [examples directory](https://github.com/zerothrow/zerothrow/tree/main/examples) for full examples.
+
+## Contributing
+
+See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
 
 ## License
 
