@@ -11,12 +11,25 @@
   Eliminated the two-tier Result system. Previously, Results needed to be made combinable via `makeCombinable()`. 
   Now all Results have built-in combinator methods, making the API simpler and more consistent.
 
-  ## Breaking Changes
+  ## BREAKING CHANGES
   
-  - Removed `makeCombinable()` function - no longer needed
-  - Removed `ResultCombinable` interface - all Results now have these methods
-  - `firstSuccess()` now accepts lazy functions `() => Result<T, E>` instead of direct Results
-  - Internal `_err()` and `_ok()` functions renamed to `err()` and `ok()`
+  ### Removed APIs
+  - **`makeCombinable()` function** - No longer exists. All Results are combinable by default.
+  - **`ResultCombinable` interface** - No longer exists. Use `Result<T, E>` directly.
+  
+  ### Changed APIs
+  - **`firstSuccess()` signature changed**
+    - Before: `firstSuccess([result1, result2, result3])`
+    - After: `firstSuccess([() => result1, () => result2, () => result3])`
+    - Now requires functions that return Results for lazy evaluation
+  
+  ### TypeScript Breaking Changes
+  - **Import changes**
+    - `import { makeCombinable } from '@zerothrow/core'` will fail
+    - `import type { ResultCombinable } from '@zerothrow/core'` will fail
+  - **Type incompatibilities**
+    - Functions expecting `ResultCombinable<T, E>` must now accept `Result<T, E>`
+    - Direct Result arrays passed to `firstSuccess` will cause type errors
   
   ## Improvements
   
@@ -25,6 +38,7 @@
   
   ## Migration Guide
   
+  ### 1. Remove all `makeCombinable()` calls
   ```typescript
   // Before
   const result = makeCombinable(ZT.try(() => risky()));
@@ -33,7 +47,10 @@
   // After  
   const result = ZT.try(() => risky());
   result.map(x => x * 2);  // Works directly!
+  ```
   
+  ### 2. Update `firstSuccess()` calls to use functions
+  ```typescript
   // Before - firstSuccess with direct Results
   const result = firstSuccess([
     attempt1(),
@@ -47,6 +64,28 @@
     () => attempt2(),
     () => attempt3()
   ]);
+  ```
+  
+  ### 3. Update type annotations
+  ```typescript
+  // Before
+  function processData(result: ResultCombinable<Data, Error>) {
+    return result.map(d => d.value);
+  }
+  
+  // After
+  function processData(result: Result<Data, Error>) {
+    return result.map(d => d.value);
+  }
+  ```
+  
+  ### 4. Remove unused imports
+  ```typescript
+  // Before
+  import { ZT, makeCombinable, type ResultCombinable } from '@zerothrow/core';
+  
+  // After
+  import { ZT, type Result } from '@zerothrow/core';
   ```
   
   ## Benefits
