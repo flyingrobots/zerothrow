@@ -1,9 +1,10 @@
 import { ZT, type Result } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
-import { RetryExhaustedError, type RetryOptions } from '../types.js'
+import { RetryExhaustedError, type RetryOptions, type RetryPolicy as IRetryPolicy } from '../types.js'
 import type { Clock } from '../clock.js'
 
-export class RetryPolicy extends BasePolicy {
+export class RetryPolicy extends BasePolicy implements IRetryPolicy {
+  private retryCallback?: (attempt: number, error: unknown, delay: number) => void
   constructor(
     private readonly count: number,
     private readonly options: RetryOptions = {},
@@ -33,7 +34,11 @@ export class RetryPolicy extends BasePolicy {
       
       // If this is the last attempt, don't delay
       if (attempt < this.count) {
-        await this.delay(attempt + 1)
+        const delayTime = this.calculateDelay(attempt + 1)
+        if (this.retryCallback) {
+          this.retryCallback(attempt + 1, lastError, delayTime)
+        }
+        await this.clock.sleep(delayTime)
       }
     }
     
@@ -44,10 +49,11 @@ export class RetryPolicy extends BasePolicy {
     ))
   }
 
-  private async delay(attempt: number): Promise<void> {
-    const delay = this.calculateDelay(attempt)
-    await this.clock.sleep(delay)
+  onRetry(callback: (attempt: number, error: unknown, delay: number) => void): IRetryPolicy {
+    this.retryCallback = callback
+    return this
   }
+
 
   private calculateDelay(attempt: number): number {
     const { backoff = 'constant', delay = 1000, maxDelay = 30000 } = this.options

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react'
 import { ZT } from '@zerothrow/core'
 import type { Result } from '@zerothrow/core'
-// import type { PolicyInterface } from '@zerothrow/resilience' // TODO: Fix when resilience exports proper types
+import type { Policy, RetryPolicyInterface, CircuitBreakerPolicyInterface } from '@zerothrow/resilience'
 
 type CircuitState = 'closed' | 'open' | 'half-open'
 
@@ -142,7 +142,7 @@ function reducer<T, E extends Error>(state: State<T, E>, action: Action<T, E>): 
  */
 export function useResilientResult<T, E extends Error = Error>(
   fn: () => Promise<T>,
-  policy: any, // TODO: Fix when resilience exports proper types
+  policy: Policy,
   options: UseResilientResultOptions = {}
 ): UseResilientResultReturn<T, E> {
   const { immediate = true, deps = [] } = options
@@ -170,20 +170,23 @@ export function useResilientResult<T, E extends Error = Error>(
     
     dispatch({ type: 'LOADING' })
     
-    // Create a wrapped version that tracks retry metadata
-    const wrappedPolicy = policy.onRetry((attempt: number, _error: unknown, delay: number) => {
-      if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
-        dispatch({ 
-          type: 'RETRY_SCHEDULED', 
-          nextRetryAt: Date.now() + delay,
-          retryCount: attempt 
-        })
-      }
-    })
+    // If policy has retry capability, track retry metadata
+    let wrappedPolicy = policy
+    if ('onRetry' in policy) {
+      wrappedPolicy = (policy as RetryPolicyInterface).onRetry((attempt: number, _error: unknown, delay: number) => {
+        if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
+          dispatch({ 
+            type: 'RETRY_SCHEDULED', 
+            nextRetryAt: Date.now() + delay,
+            retryCount: attempt 
+          })
+        }
+      })
+    }
     
     // If policy has circuit breaker, track its state
     if ('onCircuitStateChange' in wrappedPolicy) {
-      (wrappedPolicy as any).onCircuitStateChange((state: CircuitState) => {
+      (wrappedPolicy as CircuitBreakerPolicyInterface).onCircuitStateChange((state: CircuitState) => {
         if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
           dispatch({ type: 'CIRCUIT_STATE_CHANGED', state })
         }
@@ -194,14 +197,14 @@ export function useResilientResult<T, E extends Error = Error>(
       const result = await wrappedPolicy.execute(fn)
       
       if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
-        dispatch({ type: 'SUCCESS', result })
+        dispatch({ type: 'SUCCESS', result: result as Result<T, E> })
       }
     } catch (error) {
       // This should rarely happen with policies, but handle it gracefully
       if (isMountedRef.current && !abortControllerRef.current?.signal.aborted) {
         const errorResult = ZT.err(
           error instanceof Error ? error : new Error(String(error))
-        ) as Result<T, any>
+        ) as unknown as Result<T, E>
         dispatch({ type: 'SUCCESS', result: errorResult })
       }
     }

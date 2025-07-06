@@ -10,7 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@zerothrow/zerothrow': '../../../src/index.ts'
+      '@zerothrow/core': '../../../src/index.ts'
     }
   }
 });

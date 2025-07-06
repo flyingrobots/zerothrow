@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/zerothrow",
-  "version": "0.0.1-alpha",
+  "version": "0.2.2",
   "description": "Rust‑style Result<T,E> & zero‑throw discipline for TypeScript",
   "packageManager": "pnpm@8.15.4",
   "keywords": [

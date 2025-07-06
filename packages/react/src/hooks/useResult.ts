@@ -115,7 +115,9 @@ export function useResult<T, E extends Error = Error>(
       // If fn throws (which it shouldn't if following Result patterns),
       // convert to Result.err
       if (isMountedRef.current && !abortControllerRef.current.signal.aborted) {
-        const errorResult = ZT.err(error instanceof Error ? error : new Error(String(error))) as Result<T, any>
+        const errorResult = ZT.err(
+          error instanceof Error ? error : new Error(String(error))
+        ) as unknown as Result<T, E>
         dispatch({ type: 'SUCCESS', result: errorResult })
       }
     }

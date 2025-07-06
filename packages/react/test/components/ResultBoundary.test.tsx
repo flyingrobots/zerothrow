@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ResultBoundary } from '../../src/components/ResultBoundary'
-import { Result } from '@zerothrow/core'
 
 // Component that throws
 function ThrowingComponent({ error }: { error: Error }) {
@@ -19,7 +18,7 @@ describe('ResultBoundary', () => {
     
     render(
       <ResultBoundary
-        fallback={(result, reset) => <div>Error: {result.error.message}</div>}
+        fallback={(result, _reset) => <div>Error: {result.error.message}</div>}
         onError={onError}
       >
         <NormalComponent />
@@ -39,7 +38,7 @@ describe('ResultBoundary', () => {
     
     render(
       <ResultBoundary
-        fallback={(result, reset) => {
+        fallback={(result, _reset) => {
           expect(result.ok).toBe(false)
           expect(result.error).toBe(error)
           return <div>Error: {result.error.message}</div>
@@ -116,7 +115,7 @@ describe('ResultBoundary', () => {
     expect(() => {
       render(
         <ResultBoundary
-          fallback={(result, reset) => <div>Fallback UI</div>}
+          fallback={(_result, _reset) => <div>Fallback UI</div>}
         >
           <ThrowingComponent error={error} />
         </ResultBoundary>
@@ -142,7 +141,7 @@ describe('ResultBoundary', () => {
     
     const { rerender } = render(
       <ResultBoundary
-        fallback={(result, reset) => <div>Error: {result.error.message}</div>}
+        fallback={(result, _reset) => <div>Error: {result.error.message}</div>}
         onError={onError}
       >
         <DynamicThrow />
@@ -153,11 +152,12 @@ describe('ResultBoundary', () => {
     expect(onError).toHaveBeenCalledTimes(1)
     expect(onError).toHaveBeenCalledWith(error1, expect.any(Object))
     
-    // Change error and re-render
+    // Change error and re-render with a key to reset the boundary
     currentError = error2
     rerender(
       <ResultBoundary
-        fallback={(result, reset) => <div>Error: {result.error.message}</div>}
+        key="error2"
+        fallback={(result, _reset) => <div>Error: {result.error.message}</div>}
         onError={onError}
       >
         <DynamicThrow />
@@ -173,14 +173,14 @@ describe('ResultBoundary', () => {
   
   it('should preserve error info for telemetry', () => {
     const error = new Error('Telemetry test')
-    const errorInfo = { componentStack: '' }
+    const _errorInfo = { componentStack: '' }
     const onError = vi.fn()
     
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     
     render(
       <ResultBoundary
-        fallback={(result, reset) => <div>Error boundary triggered</div>}
+        fallback={(_result, _reset) => <div>Error boundary triggered</div>}
         onError={onError}
       >
         <ThrowingComponent error={error} />

@@ -1,15 +1,16 @@
 import { ZT, type Result } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
-import { CircuitOpenError, type CircuitOptions } from '../types.js'
+import { CircuitOpenError, type CircuitOptions, type CircuitBreakerPolicy as ICircuitBreakerPolicy } from '../types.js'
 import type { Clock } from '../clock.js'
 
 type CircuitState = 'closed' | 'open' | 'half-open'
 
-export class CircuitBreakerPolicy extends BasePolicy {
+export class CircuitBreakerPolicy extends BasePolicy implements ICircuitBreakerPolicy {
   private state: CircuitState = 'closed'
   private failures = 0
   private lastFailureTime?: number
   private nextAllowedTime?: number
+  private stateChangeCallback?: (state: CircuitState) => void
   
   constructor(
     private readonly options: CircuitOptions,
@@ -27,7 +28,7 @@ export class CircuitBreakerPolicy extends BasePolicy {
       
       // Check if we should try half-open
       if (this.nextAllowedTime && now >= this.nextAllowedTime) {
-        this.state = 'half-open'
+        this.setState('half-open')
       } else {
         return ZT.err(new CircuitOpenError(
           this.name,
@@ -86,15 +87,27 @@ export class CircuitBreakerPolicy extends BasePolicy {
   }
   
   private open(): void {
-    this.state = 'open'
+    this.setState('open')
     this.nextAllowedTime = this.clock.now().getTime() + this.options.duration
     this.options.onOpen?.()
   }
   
   private reset(): void {
-    this.state = 'closed'
+    this.setState('closed')
     this.failures = 0
     delete this.lastFailureTime
     delete this.nextAllowedTime
+  }
+
+  private setState(newState: CircuitState): void {
+    if (this.state !== newState) {
+      this.state = newState
+      this.stateChangeCallback?.(newState)
+    }
+  }
+
+  onCircuitStateChange(callback: (state: CircuitState) => void): ICircuitBreakerPolicy {
+    this.stateChangeCallback = callback
+    return this
   }
 }
