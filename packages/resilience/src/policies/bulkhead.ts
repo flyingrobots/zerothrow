@@ -6,11 +6,12 @@ import { BulkheadRejectedError, BulkheadQueueTimeoutError } from '../types.js'
 import type { Clock } from '../clock.js'
 import { SystemClock } from '../clock.js'
 
-interface QueuedOperation<T> {
-  operation: () => Promise<T>
-  resolve: (result: Result<T, Error>) => void
+interface QueuedOperation {
+  operation: () => Promise<unknown>
+  resolve: (result: Result<unknown, Error>) => void
   reject: (error: Error) => void
   enqueuedAt: number
+  timeoutId?: NodeJS.Timeout
 }
 
 export class Bulkhead extends BasePolicy implements BulkheadPolicy {
@@ -20,7 +21,7 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
   
   // Semaphore state
   private activeConcurrent = 0
-  private readonly queue: Array<QueuedOperation<unknown>> = []
+  private readonly queue: Array<QueuedOperation> = []
   
   // Metrics
   private totalExecuted = 0
@@ -86,7 +87,7 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
   private async enqueueOperation<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
     return new Promise<Result<T, Error>>((resolve, reject) => {
       const enqueuedAt = this.clock.now().getTime()
-      const queueItem: QueuedOperation<T> = {
+      const queueItem: QueuedOperation = {
         operation,
         resolve: resolve as (result: Result<unknown, Error>) => void,
         reject,
@@ -112,7 +113,7 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
       }, this.queueTimeout)
       
       // Store timeout ID for cleanup
-      ;(queueItem as Record<string, unknown>).timeoutId = timeoutId
+      queueItem.timeoutId = timeoutId
     })
   }
   
@@ -125,9 +126,8 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
     if (!queueItem) return
     
     // Clear timeout
-    const timeoutId = (queueItem as Record<string, unknown>).timeoutId
-    if (timeoutId) {
-      clearTimeout(timeoutId as NodeJS.Timeout)
+    if (queueItem.timeoutId) {
+      clearTimeout(queueItem.timeoutId)
     }
     
     try {
@@ -173,9 +173,8 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
     while (this.queue.length > this.maxQueue) {
       const queueItem = this.queue.pop()
       if (queueItem) {
-        const timeoutId = (queueItem as Record<string, unknown>).timeoutId
-        if (timeoutId) {
-          clearTimeout(timeoutId as NodeJS.Timeout)
+        if (queueItem.timeoutId) {
+          clearTimeout(queueItem.timeoutId)
         }
         
         this.totalRejected++
