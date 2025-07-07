@@ -15,6 +15,11 @@
 
 Unified test matchers for ZeroThrow Result types - supports both Jest and Vitest with automatic test runner detection.
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-testing.webp" height="300" />
+</div>
+
+
 ## Installation
 
 ```bash

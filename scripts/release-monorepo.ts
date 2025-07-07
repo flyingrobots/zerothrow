@@ -34,11 +34,11 @@ const RELEASE_PHASES = [
 function getPackageVersion(packageName: string, location: 'local' | 'npm'): string {
   try {
     if (location === 'local') {
-      const output = execSync(`npm list ${packageName} --depth=0 --json`, { encoding: 'utf-8' });
+      const output = execSync(`pnpm list ${packageName} --depth=0 --json`, { encoding: 'utf-8' });
       const data = JSON.parse(output);
       return data.dependencies?.[packageName]?.version || 'unknown';
     } else {
-      const output = execSync(`npm view ${packageName} version 2>/dev/null`, { encoding: 'utf-8' });
+      const output = execSync(`pnpm view ${packageName} version 2>/dev/null`, { encoding: 'utf-8' });
       return output.trim();
     }
   } catch {
@@ -97,7 +97,7 @@ async function performDryRun(packages: PackageInfo[]): Promise<boolean> {
     
     const result = ZT.try(() => {
       const pkgShortName = pkg.name.replace('@zerothrow/', '');
-      execSync(`npm publish --dry-run -w packages/${pkgShortName}`, { 
+      execSync(`pnpm publish --dry-run -w packages/${pkgShortName}`, { 
         stdio: 'pipe',
         encoding: 'utf-8' 
       });
@@ -136,7 +136,7 @@ async function publishPackages(packages: PackageInfo[]) {
           execSync('sleep 2');
         }
         
-        execSync(`npm publish -w packages/${pkgShortName}`, { 
+        execSync(`pnpm publish -w packages/${pkgShortName}`, { 
           stdio: 'pipe',
           encoding: 'utf-8' 
         });
@@ -168,10 +168,10 @@ async function main() {
   console.log(chalk.bold.blue('\n🚀 ZeroThrow Monorepo Release Tool\n'));
   
   // Check for npm authentication
-  const authCheck = ZT.try(() => execSync('npm whoami', { encoding: 'utf-8' }));
+  const authCheck = ZT.try(() => execSync('pnpm whoami', { encoding: 'utf-8' }));
   if (!authCheck.ok) {
-    console.error(chalk.red('❌ Not logged in to npm!'));
-    console.error(chalk.yellow('Run: npm login'));
+    console.error(chalk.red('❌ Not logged in to npm registry!'));
+    console.error(chalk.yellow('Run: pnpm login'));
     process.exit(1);
   }
   

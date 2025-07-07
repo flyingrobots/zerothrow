@@ -105,7 +105,7 @@ export async function generateCoverageBadge(
     return ZT.err(new ZeroThrow.ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary not found', {
       context: {
         path: cfg.summaryPath,
-        hint: 'Run tests with coverage first: npm test -- --coverage'
+        hint: 'Run tests with coverage first: pnpm test -- --coverage'
       }
     }));
   }

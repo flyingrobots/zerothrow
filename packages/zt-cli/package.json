@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/zt-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ZeroThrow CLI tool for repo-wide workflows",
   "type": "module",
   "bin": {
@@ -21,15 +21,15 @@
   "license": "MIT",
   "dependencies": {
     "@zerothrow/core": "^0.2.0",
-    "@zerothrow/resilience": "^0.1.0",
+    "@zerothrow/resilience": "^0.2.0",
     "chalk": "^5.4.1",
     "commander": "^14.0.0",
     "inquirer": "^12.6.3",
-    "markdown-transclusion": "^1.1.2",
+    "markdown-transclusion": "^1.2.0",
     "ora": "^8.2.0"
   },
   "engines": {
-    "node": ">=20.17.0"
+    "node": ">=18.17.0"
   },
   "files": [
     "dist",
@@ -39,9 +39,23 @@
     "access": "public"
   },
   "sideEffects": false,
-  "platform": "universal",
+  "platform": "node",
   "dev": false,
   "repository": {
     "directory": "packages/zt-cli"
-  }
+  },
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

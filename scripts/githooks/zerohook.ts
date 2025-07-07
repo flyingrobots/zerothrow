@@ -86,7 +86,7 @@ function runLinter(files: string[]): ZeroThrow.Async<void> {
       if (srcFiles.length === 0) return ZT.ok(undefined);
       
       spinner.text = 'Running strict linting on src files...';
-      return execCmd(`npx eslint ${srcFiles.join(' ')}`)
+      return execCmd(`pnpm exec eslint ${srcFiles.join(' ')}`)
         .void()
         .tapErr(() => {
           spinner.fail('Source file linting failed (strict mode)');
@@ -97,7 +97,7 @@ function runLinter(files: string[]): ZeroThrow.Async<void> {
       if (otherFiles.length === 0) return ZT.ok(undefined);
       
       spinner.text = 'Running linting on test/other files...';
-      return execCmd(`npx eslint ${otherFiles.join(' ')}`)
+      return execCmd(`pnpm exec eslint ${otherFiles.join(' ')}`)
         .void()
         .tapErr(() => {
           spinner.fail('Test/other file linting failed');

@@ -1,5 +1,5 @@
 import React, { useReducer, useCallback } from 'react';
-import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/core';
 const { ZeroError } = ZeroThrow;
 
 // State management with Result types

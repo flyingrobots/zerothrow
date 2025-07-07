@@ -20,5 +20,5 @@
       "outputs": []
     }
   },
-  "globalDependencies": [".npmrc", "package-lock.json", "turbo.json"]
+  "globalDependencies": [".npmrc", "pnpm-lock.yaml", "turbo.json"]
 }

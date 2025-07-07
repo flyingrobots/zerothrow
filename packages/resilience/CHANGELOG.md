@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.2.0 - 2025-07-07
+
+### Breaking Changes
+
+- **Policy hierarchy refactored**: `Policy` is now the base type with specific subtypes:
+  - `RetryPolicy`
+  - `CircuitBreakerPolicy`
+  - `TimeoutPolicy`
+- **Policy renamed to PolicyFactory**: The main factory class is now `PolicyFactory`
+- **New callback methods added**:
+  - `onRetry`: Callback for retry events
+  - `onCircuitStateChange`: Callback for circuit breaker state transitions
+
+### Migration Guide
+- Replace `Policy.retry()` with `PolicyFactory.retry()`
+- Replace `Policy.circuitBreaker()` with `PolicyFactory.circuitBreaker()`
+- Replace `Policy.timeout()` with `PolicyFactory.timeout()`
+- Update type imports if using specific policy types
+
 ## 0.1.1
 
 ### Patch Changes

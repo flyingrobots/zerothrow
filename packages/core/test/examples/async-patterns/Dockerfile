@@ -4,10 +4,11 @@ WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
-RUN npm install
+COPY pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install
 
 # Install async patterns testing dependencies
-RUN npm install --save-dev \
+RUN pnpm install --save-dev \
     @types/node \
     typescript \
     vitest
@@ -23,4 +24,4 @@ COPY examples/async-patterns/ ./examples/async-patterns/
 COPY examples/async-patterns/vitest.config.ts ./vitest.config.ts
 COPY examples/async-patterns/tsconfig.json ./tsconfig.json
 
-CMD ["npm", "test"]
+CMD ["pnpm", "test"]

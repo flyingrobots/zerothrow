@@ -6,6 +6,21 @@ export interface Policy {
   ): Promise<Result<T, Error>>
 }
 
+export interface RetryPolicy extends Policy {
+  onRetry(callback: (attempt: number, error: unknown, delay: number) => void): RetryPolicy
+}
+
+export interface CircuitBreakerPolicy extends Policy {
+  onCircuitStateChange(callback: (state: 'open' | 'closed' | 'half-open') => void): CircuitBreakerPolicy
+}
+
+// TimeoutPolicy is just a Policy with no additional methods
+// Using a type alias instead of an empty interface
+export type TimeoutPolicy = Policy
+
+// Union type for all policies
+export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | Policy
+
 export interface RetryOptions {
   backoff?: 'constant' | 'linear' | 'exponential'
   delay?: number        // Base delay in ms

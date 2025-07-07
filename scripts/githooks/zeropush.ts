@@ -111,43 +111,43 @@ function runLocalTests(): ZeroThrow.Async<void> {
     const tests: TestConfig[] = [
       {
         name: 'TypeScript check',
-        command: 'npx tsc --noEmit',
+        command: 'pnpm exec tsc --noEmit',
         logFile: 'typescript.log',
         displayErrors: true,
         helpText: [
           '💡 Common issues:',
           '  - Type errors: Review the errors above',
-          '  - Missing types: npm install -D @types/package-name',
+          '  - Missing types: pnpm add -D @types/package-name',
           '  - Incorrect type assertions: Fix the types, don\'t cast'
         ]
       },
       {
         name: 'unit tests',
-        command: 'npm test',
+        command: 'pnpm test',
         logFile: 'unit-test.log',
         errorPattern: /(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)/,
-        helpText: ['💡 To debug: npm test -- --reporter=verbose']
+        helpText: ['💡 To debug: pnpm test -- --reporter=verbose']
       },
       // {
       //   name: 'integration tests',
-      //   command: 'npm run test:integration',
+      //   command: 'pnpm run test:integration',
       //   logFile: 'integration-test.log',
       //   errorPattern: /(\u2713|\u00d7|FAIL|Error:|at .*:[0-9]+:[0-9]+)/,
-      //   helpText: ['💡 To debug: npm run test:integration']
+      //   helpText: ['💡 To debug: pnpm run test:integration']
       // },
       {
         name: 'lint checks',
-        command: 'npm run lint',
+        command: 'pnpm run lint',
         logFile: 'lint.log',
         displayErrors: true,
         helpText: [
-          '💡 To auto-fix: npm run lint -- --fix',
-          '💡 To check specific file: npx eslint path/to/file.ts'
+          '💡 To auto-fix: pnpm run lint -- --fix',
+          '💡 To check specific file: pnpm exec eslint path/to/file.ts'
         ]
       },
       {
         name: 'build check',
-        command: 'npm run build',
+        command: 'pnpm run build',
         logFile: 'build.log',
         helpText: [
           '💡 Common issues:',

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-npx tsx scripts/githooks/zeropush.ts
+pnpm exec tsx scripts/githooks/zeropush.ts

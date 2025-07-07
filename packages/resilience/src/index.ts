@@ -1,6 +1,10 @@
 // Core types
 export type {
-  Policy as PolicyInterface,
+  Policy,
+  RetryPolicy as RetryPolicyInterface,
+  CircuitBreakerPolicy as CircuitBreakerPolicyInterface,
+  TimeoutPolicy as TimeoutPolicyInterface,
+  AnyPolicy,
   RetryOptions,
   CircuitOptions,
   TimeoutOptions,
@@ -24,7 +28,7 @@ export { TimeoutPolicy } from './policies/timeout.js'
 export { wrap, compose } from './compose.js'
 
 // Main factory
-export { Policy } from './policy-factory.js'
+export { Policy as PolicyFactory } from './policy-factory.js'
 
 // Clock utilities (for testing)
 export type { Clock } from './clock.js'

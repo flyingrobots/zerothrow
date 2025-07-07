@@ -15,6 +15,10 @@
 
 ZeroThrow CLI tool for repo-wide workflows and package management automation.
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-zt-cli.webp" height="300" />
+</div>
+
 ## Installation
 
 ### As a dev dependency in your project
@@ -63,9 +67,9 @@ zt ls
 ```
 📦 ZeroThrow Packages
 
-  @zerothrow/core         v0.2.0
-  @zerothrow/resilience   v0.1.0
-  @zerothrow/jest         v1.0.0
+  @zerothrow/core         v0.2.3
+  @zerothrow/resilience   v0.2.0
+  @zerothrow/jest         v1.1.0
   ...
 
 Total: 8 packages
@@ -207,7 +211,7 @@ The CLI is built with:
 - [Chalk](https://github.com/chalk/chalk) for terminal colors
 - [Ora](https://github.com/sindresorhus/ora) for spinners
 - [Inquirer](https://github.com/SBoudrias/Inquirer.js/) for interactive prompts
-- [Markdown Transclusion](https://github.com/fosskers/markdown-transclusion) for documentation generation
+- [Markdown Transclusion](https://github.com/flyingrobots/markdown-transclusion) for documentation generation
 
 ## Examples
 

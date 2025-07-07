@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/core",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript",
   "type": "module",
   "sideEffects": false,
@@ -36,7 +36,7 @@
     "test:watch": "echo 'Tests are run from monorepo root'",
     "lint": "echo 'Linting is run from monorepo root'",
     "clean": "rm -rf dist .turbo",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [
     "zerothrow",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Result, ZeroThrow } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow } from '@zerothrow/core';
 const { ok, err } = ZeroThrow;
 
 // Validation types

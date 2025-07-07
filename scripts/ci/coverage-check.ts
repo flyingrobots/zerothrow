@@ -66,7 +66,7 @@ function readCoverageSummary(path: string): ZeroThrow.Promise<CoverageSummary, Z
     .mapErr(() => new ZeroThrow.ZeroError('COVERAGE_FILE_NOT_FOUND', 'Coverage summary file not found', {
       context: {
         path,
-        hint: 'Run tests with coverage first: npm test -- --coverage'
+        hint: 'Run tests with coverage first: pnpm test -- --coverage'
       }
     }))
     .andThen(content =>
@@ -111,7 +111,7 @@ function checkCoverage(summary: CoverageSummary, threshold: number): ZeroThrow.R
     console.error(chalk.red(`❌ Coverage is below the ${threshold}% threshold!`));
     console.error('');
     console.error(chalk.yellow('To see which lines are not covered:'));
-    console.error(chalk.yellow('1. Run: npm test -- --coverage'));
+    console.error(chalk.yellow('1. Run: pnpm test -- --coverage'));
     console.error(chalk.yellow('2. Check the coverage/lcov-report/index.html file'));
     
     const failedMetrics = results.filter(r => !r.passed);
