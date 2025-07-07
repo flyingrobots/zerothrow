@@ -39,6 +39,11 @@ export interface ResultMethods<T, E extends Error = ZeroError> {
   unwrapOrThrow(): T;
 
   /**
+   * Get value or compute fallback
+   */
+  unwrapOrElse(fn: (error: E) => T): T;
+
+  /**
    * Execute side effect without changing the Result
    */
   tap(fn: (value: T) => void): Result<T, E>;
@@ -92,6 +97,10 @@ function createResult<T, E extends Error>(base: Ok<T> | Err<E>): Result<T, E> {
   result.unwrapOrThrow = function(): T {
     if (!result.ok) throw result.error;
     return result.value;
+  };
+
+  result.unwrapOrElse = function(fn: (error: E) => T): T {
+    return result.ok ? result.value : fn(result.error);
   };
 
   result.tap = function(fn: (value: T) => void): Result<T, E> {
