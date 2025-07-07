@@ -36,7 +36,7 @@
     "test:watch": "echo 'Tests are run from monorepo root'",
     "lint": "echo 'Linting is run from monorepo root'",
     "clean": "rm -rf dist .turbo",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [
     "zerothrow",

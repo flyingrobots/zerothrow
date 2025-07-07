@@ -19,4 +19,4 @@ echo "- Missing description"
 echo ""
 
 # Run the command
-npm run dev -- publish ready --package zt-cli --fix --verbose
+pnpm run dev -- publish ready --package zt-cli --fix --verbose

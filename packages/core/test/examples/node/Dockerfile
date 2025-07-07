@@ -4,10 +4,11 @@ WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
-RUN npm install
+COPY pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install
 
 # Install Node.js testing dependencies
-RUN npm install --save-dev \
+RUN pnpm install --save-dev \
     express \
     fastify \
     @types/express \
@@ -27,4 +28,4 @@ COPY examples/node/ ./examples/node/
 COPY examples/node/vitest.config.ts ./vitest.config.ts
 COPY examples/node/tsconfig.json ./tsconfig.json
 
-CMD ["npm", "test"]
+CMD ["pnpm", "test"]

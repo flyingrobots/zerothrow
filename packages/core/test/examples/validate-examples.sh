@@ -100,7 +100,7 @@ if [ ${#failed_examples[@]} -eq 0 ]; then
     echo "  • Framework Examples: Next.js and Remix pattern types"
     echo ""
     echo "To run type checking on examples:"
-    echo "  npm run test:examples"
+    echo "  pnpm run test:examples"
     exit 0
 else
     echo "❌ The following validations failed:"

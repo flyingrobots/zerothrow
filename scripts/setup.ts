@@ -143,8 +143,8 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
   console.log(chalk.gray('  pnpm run test:all      # Run all tests (requires Docker)'));
   console.log(chalk.gray('  pnpm run test:watch    # Run tests in watch mode'));
   console.log(chalk.gray('  pnpm run lint          # Run linter'));
-  console.log(chalk.gray('  npm run bench         # Run benchmarks'));
-  console.log(chalk.gray('  npm run build         # Build the project\n'));
+  console.log(chalk.gray('  pnpm run bench        # Run benchmarks'));
+  console.log(chalk.gray('  pnpm run build        # Build the project\n'));
 
   return ZT.ok(undefined);
 }

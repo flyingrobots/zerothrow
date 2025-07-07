@@ -48,7 +48,7 @@ pnpm install
 pnpm build              # Build all packages
 pnpm test               # Run all tests
 pnpm lint               # Lint check
-npm run ci:local        # Full CI simulation
+pnpm run ci:local       # Full CI simulation
 
 # Package-specific
 pnpm --filter @zerothrow/core test
@@ -75,6 +75,8 @@ gh pr create
 
 (optional) BREAKING CHANGE: {details}
 ```
+
+> [!important] If you can't find a package name that describes your commit, you're probably committing too much at once. Target packages with your commits: one commit affecting one package.
 
 ### Examples
 ```

@@ -70,7 +70,7 @@ graph TB
 
 1. **Install the core package:**
    ```bash
-   npm install @zerothrow/core
+   pnpm add @zerothrow/core
    ```
 
 2. **Start using Result types:**
@@ -87,12 +87,12 @@ graph TB
 
 3. **Add test matchers (optional):**
    ```bash
-   npm install -D @zerothrow/jest  # or @zerothrow/vitest
+   pnpm add -D @zerothrow/jest  # or @zerothrow/vitest
    ```
 
 4. **Add resilience patterns (optional):**
    ```bash
-   npm install @zerothrow/resilience
+   pnpm add @zerothrow/resilience
    ```
 
 ## 🚀 Release Phases

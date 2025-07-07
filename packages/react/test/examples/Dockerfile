@@ -4,10 +4,11 @@ WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
-RUN npm install
+COPY pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install
 
 # Install React testing dependencies
-RUN npm install --save-dev \
+RUN pnpm install --save-dev \
     react@18 \
     react-dom@18 \
     @types/react@18 \
@@ -29,4 +30,4 @@ COPY examples/react/ ./examples/react/
 COPY examples/react/vitest.config.ts ./vitest.config.ts
 COPY examples/react/tsconfig.json ./tsconfig.json
 
-CMD ["npm", "test"]
+CMD ["pnpm", "test"]

@@ -42,7 +42,7 @@ function checkVanillaHooks(): boolean {
 }
 
 async function checkEslint(): Promise<ZeroThrow.Result<boolean, ZeroThrow.ZeroError>> {
-  const localCheck = await execCmd('npx eslint --version');
+  const localCheck = await execCmd('pnpm exec eslint --version');
   const globalCheck = await execCmd('eslint --version');
   
   return ZT.ok(localCheck.ok || globalCheck.ok);
@@ -75,7 +75,7 @@ async function setupHuskyHooks(pkgManager: string): Promise<ZeroThrow.Result<voi
   
   // Write our TypeScript pre-commit hook
   try {
-    writeFileSync('.husky/pre-commit', '#!/usr/bin/env bash\nnpx tsx scripts/githooks/zerohook.ts\n');
+    writeFileSync('.husky/pre-commit', '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/zerohook.ts\n');
     chmodSync('.husky/pre-commit', 0o755);
     console.log(chalk.green('✅ Created .husky/pre-commit hook'));
   } catch (error: any) {
@@ -123,7 +123,7 @@ async function setupVanillaHooks(): Promise<ZeroThrow.Result<void, ZeroThrow.Zer
   
   // Write TypeScript hook
   try {
-    writeFileSync(hookFile, '#!/usr/bin/env bash\nnpx tsx scripts/zerohook.ts\n');
+    writeFileSync(hookFile, '#!/usr/bin/env bash\npnpm exec tsx scripts/zerohook.ts\n');
     chmodSync(hookFile, 0o755);
     console.log(chalk.green('✅ Created .githooks/pre-commit hook'));
     
@@ -158,8 +158,8 @@ async function ensureEslint(pkgManager: string): Promise<ZeroThrow.Result<void, 
     }
     
     const installCmd = pkgManager === 'npm' 
-      ? 'npm install --save-dev eslint'
-      : `${pkgManager} add -D eslint`;
+      ? 'pnpm add -D eslint'
+      : pkgManager === 'pnpm' ? 'pnpm add -D eslint' : `${pkgManager} add -D eslint`;
       
     const installResult = await execCmd(installCmd);
     if (!installResult.ok) return ZT.err(installResult.error);
@@ -178,8 +178,8 @@ async function ensureEslint(pkgManager: string): Promise<ZeroThrow.Result<void, 
       if (shouldInstallTS) {
         const tsPkgs = '@typescript-eslint/parser @typescript-eslint/eslint-plugin';
         const tsInstallCmd = pkgManager === 'npm'
-          ? `npm install --save-dev ${tsPkgs}`
-          : `${pkgManager} add -D ${tsPkgs}`;
+          ? `pnpm add -D ${tsPkgs}`
+          : pkgManager === 'pnpm' ? `pnpm add -D ${tsPkgs}` : `${pkgManager} add -D ${tsPkgs}`;
           
         const tsResult = await execCmd(tsInstallCmd);
         if (!tsResult.ok) return ZT.err(tsResult.error);
@@ -277,8 +277,8 @@ async function main(): Promise<number> {
     
     if (shouldInstall) {
       const installCmd = pkgManager === 'npm'
-        ? 'npm install --save-dev tsx'
-        : `${pkgManager} add -D tsx`;
+        ? 'pnpm add -D tsx'
+        : pkgManager === 'pnpm' ? 'pnpm add -D tsx' : `${pkgManager} add -D tsx`;
         
       const result = await execCmd(installCmd);
       if (!result.ok) {
@@ -323,8 +323,8 @@ async function main(): Promise<number> {
       // Install husky if needed
       if (!existsSync('node_modules/husky')) {
         const installCmd = pkgManager === 'npm'
-          ? 'npm install --save-dev husky'
-          : `${pkgManager} add -D husky`;
+          ? 'pnpm add -D husky'
+          : pkgManager === 'pnpm' ? 'pnpm add -D husky' : `${pkgManager} add -D husky`;
           
         console.log(chalk.blue('Installing husky...'));
         const installResult = await execCmd(installCmd);
@@ -334,7 +334,7 @@ async function main(): Promise<number> {
         }
         
         // Initialize husky
-        const initResult = await execCmd('npx husky init');
+        const initResult = await execCmd('pnpm exec husky init');
         if (!initResult.ok) {
           console.error(chalk.red('Failed to initialize husky'));
           return 1;

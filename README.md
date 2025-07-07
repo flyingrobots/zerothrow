@@ -60,14 +60,14 @@ All packages live under `/packages` — each folder contains its own README, tes
 
 ```bash
 # Core functionality
-npm install @zerothrow/core
+pnpm add @zerothrow/core
 
 # Add test matchers
-npm install --save-dev @zerothrow/jest    # Jest users
-npm install --save-dev @zerothrow/vitest  # Vitest users
+pnpm add --save-dev @zerothrow/jest    # Jest users
+pnpm add --save-dev @zerothrow/vitest  # Vitest users
 
 # Add resilience patterns (recommended for production)
-npm install @zerothrow/resilience
+pnpm add @zerothrow/resilience
 ```
 
 ### Quick Example
