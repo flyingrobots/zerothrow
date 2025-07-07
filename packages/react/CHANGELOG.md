@@ -1,5 +1,16 @@
 # @zerothrow/react
 
+## 0.1.3 - 2025-07-07
+
+### Minor Changes
+
+- Add `useResultContext` hook for safe context access (#44)
+  - Returns Result instead of throwing when context is unavailable
+  - Includes `useResultContextNullable` for null-safe contexts
+  - Adds `createResultContext` helper for Result-based contexts
+- Add comprehensive developer feedback documentation
+- Based on real-world usage in production applications
+
 ## 0.1.2 - 2025-07-07
 
 ### Patch Changes
