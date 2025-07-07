@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/expect",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared test matcher logic for ZeroThrow Result types",
   "author": "ZeroThrow Contributors",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
@@ -17,7 +17,7 @@
     "typescript"
   ],
   "engines": {
-    "node": ">=16.14"
+    "node": ">=18.17.0"
   },
   "repository": {
     "type": "git",
@@ -62,5 +62,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "platform": "universal"
 }
