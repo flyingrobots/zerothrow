@@ -1,23 +1,11 @@
 #!/usr/bin/env tsx
-import { ZT, ZeroThrow, Result } from '../../packages/core/src/index';
+import { ZT, ZeroThrow } from '../../packages/core/src/index';
 import { collect } from '../../packages/core/src/combinators';
 import { execCmd, execCmdInteractive } from '../lib/shared';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
 import { ESLint } from 'eslint';
-
-
-type GitFile = {
-  path: string;
-  isPartiallyStaged: boolean;
-};
-
-type GitDiff = {
-  file: string;
-  diff: string;
-};
-
 
 // Get staged TypeScript files
 function getStagedFiles(): ZeroThrow.Async<string[]> {
@@ -29,9 +17,9 @@ function getStagedFiles(): ZeroThrow.Async<string[]> {
 }
 
 // Get staged TypeScript files that should be linted (using ESLint config)
-async function getStagedFilesForLinting(): Promise<Result<string[]>> {
+async function getStagedFilesForLinting(): Promise<ZeroThrow.Result<string[], ZeroThrow.ZeroError>> {
   const result = await execCmd('git diff --cached --name-only --diff-filter=ACM');
-  if (!result.ok) return result;
+  if (!result.ok) return result as ZeroThrow.Result<string[], ZeroThrow.ZeroError>;
   
   const allFiles = result.value
     .split('\n')
@@ -167,7 +155,7 @@ async function handleFileInteractive(file: string, diff: string): Promise<'stage
 }
 
 // Check partially staged files and collect them
-function checkPartiallyStaged(files: string[]): ZeroThrow.Async<string[]> {
+function checkPartiallyStaged(files: string[]): ZeroThrow.Async<string[], ZeroThrow.ZeroError> {
   // Map each file to a promise that checks if it has unstaged changes
   const checks = files.map(file => 
     hasUnstagedChanges(file)
@@ -179,7 +167,7 @@ function checkPartiallyStaged(files: string[]): ZeroThrow.Async<string[]> {
     const results = await Promise.all(checks);
     const collected = collect(results);
     
-    if (!collected.ok) return collected;
+    if (!collected.ok) return collected as ZeroThrow.Result<string[], ZeroThrow.ZeroError>;
     
     // Filter to only partially staged files
     const partiallyStaged = collected.value
@@ -191,8 +179,8 @@ function checkPartiallyStaged(files: string[]): ZeroThrow.Async<string[]> {
 }
 
 // Handle all partially staged files
-function handlePartiallyStaged(files: string[]): ZeroThrow.Async<void> {
-  if (files.length === 0) return ZeroThrow.enhance(Promise.resolve(ZT.ok(undefined)));
+function handlePartiallyStaged(files: string[]): ZeroThrow.Async<void, ZeroThrow.ZeroError> {
+  if (files.length === 0) return ZeroThrow.fromAsync(async () => ZT.ok(undefined));
   
   console.log(chalk.yellow('⚠️  Detected partially staged files with unstaged changes:\n'));
   files.forEach(file => console.log(`  • ${file}`));
@@ -253,9 +241,64 @@ function handlePartiallyStaged(files: string[]): ZeroThrow.Async<void> {
   });
 }
 
+// Check branch name format
+function checkBranchName(): ZeroThrow.Async<void, ZeroThrow.ZeroError> {
+  return execCmd('git rev-parse --abbrev-ref HEAD')
+    .andThen(branch => {
+      // Skip checks for main/master/release branches
+      if (branch === 'main' || branch === 'master' || branch.startsWith('release/')) {
+        return ZT.ok(undefined);
+      }
+      
+      // Valid branch patterns from CLAUDE.md
+      const branchPattern = /^(feat|fix|chore|docs)\/#[0-9]+-[a-z0-9-]+$/;
+      
+      if (!branchPattern.test(branch)) {
+        console.error(chalk.red('✗ ERROR: Invalid branch name!'));
+        console.error('');
+        console.error(`Current branch: ${branch}`);
+        console.error('');
+        console.error('Expected format:');
+        console.error('  feat/#{issue-number}-{description}');
+        console.error('  fix/#{issue-number}-{description}');
+        console.error('  chore/#{issue-number}-{description}');
+        console.error('  docs/#{issue-number}-{description}');
+        console.error('');
+        console.error('Examples:');
+        console.error('  feat/#69-error-code-standardization');
+        console.error('  fix/#70-tracing-utilities');
+        console.error('  chore/#55-automated-publishing');
+        console.error('');
+        console.error(chalk.red('REMINDER: Every branch MUST reference a GitHub issue!'));
+        console.error('');
+        console.error('To rename your branch:');
+        console.error(`  git branch -m ${branch} feat/#XXX-description`);
+        return ZT.err(new ZeroThrow.ZeroError('INVALID_BRANCH', 'Branch name does not follow convention'));
+      }
+      
+      // Extract issue number and remind about assignment
+      const issueMatch = branch.match(/#([0-9]+)/);
+      if (issueMatch) {
+        const issueNumber = issueMatch[1];
+        console.log(chalk.yellow(`📋 Branch '${branch}' references issue #${issueNumber}`));
+        console.log(chalk.yellow(`   Make sure you're assigned to this issue:`));
+        console.log(chalk.yellow(`   gh issue edit ${issueNumber} --add-assignee @me`));
+        console.log('');
+      }
+      
+      return ZT.ok(undefined);
+    });
+}
+
 // Main pre-commit logic
 async function main(): Promise<number> {
   console.log(chalk.blue('\n🚀 ZeroHook - Pre-commit checks\n'));
+  
+  // First check branch name
+  const branchResult = await checkBranchName();
+  if (!branchResult.ok) {
+    return 1;
+  }
   
   const result = await getStagedFiles()
     .tapErr(e => console.error(chalk.red(`Failed to get staged files: ${e.message}`)))
@@ -263,7 +306,7 @@ async function main(): Promise<number> {
       if (files.length === 0) {
         console.log(chalk.gray('No TypeScript files to check'));
         // Return success with void - no more work to do
-        return ZeroThrow.fromAsync(async () => ZT.ok(undefined));
+        return ZeroThrow.fromAsync(async () => ZT.ok(undefined) as ZeroThrow.Result<void, ZeroThrow.ZeroError>);
       }
       
       // Process files through the pipeline
@@ -273,7 +316,7 @@ async function main(): Promise<number> {
           const result = await getStagedFilesForLinting();
           if (!result.ok) {
             console.error(chalk.red(`Failed to get final staged files: ${result.error.message}`));
-            return result;
+            return ZT.err(result.error) as ZeroThrow.Result<void, ZeroThrow.ZeroError>;
           }
           return runLinter(result.value);
         }))

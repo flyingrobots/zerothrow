@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pnpm exec tsx scripts/githooks/zerohook.ts
+pnpm exec tsx scripts/githooks/pre-commit.ts

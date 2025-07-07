@@ -34,10 +34,38 @@ zerothrow/
 
 ## Development Workflow
 
+### 🎯 CRITICAL: GitHub Issue-Driven Development
+
+**ALL WORK MUST BE TRACKED THROUGH GITHUB ISSUES!**
+
+1. **Before starting ANY work:**
+   - Check if an issue exists: `gh issue list --search "keywords"`
+   - If not, create one: `gh issue create --title "feat: description" --label "appropriate-labels"`
+   - Assign yourself: `gh issue edit {number} --add-assignee @me`
+
+2. **Project Board Workflow:**
+   - New issues → Auto-added to "Backlog"
+   - Starting work → Move to "In Progress" (happens when assigned)
+   - PR created → Auto-moves to "In Review"
+   - PR merged → Auto-moves to "Done" + closes issue
+
+3. **Issue Status Commands:**
+   ```bash
+   # View project board status
+   gh project item-list 1 --owner zerothrow --limit 20
+   
+   # Check your assigned issues
+   gh issue list --assignee @me
+   
+   # View issues in progress
+   gh issue list --label "in-progress"
+   ```
+
 ### Prerequisites
 - Node.js 18+
 - pnpm 9+ (`npm install -g pnpm`)
 - Docker (optional, for full test matrix)
+- GitHub CLI (`gh`) - REQUIRED for issue tracking
 
 ### Common Commands
 ```bash
@@ -55,34 +83,63 @@ pnpm --filter @zerothrow/core test
 pnpm --filter @zerothrow/core build
 ```
 
-### Git Workflow
-```bash
-# Feature development
-git checkout -b feat/feature-name
-git checkout -b fix/issue-name
+### Git Workflow (Issue-Based)
 
-# Create PR
-gh pr create
+**EVERY BRANCH MUST REFERENCE AN ISSUE!**
+
+```bash
+# 1. First, claim your issue
+gh issue edit {number} --add-assignee @me
+
+# 2. Create branch from issue
+git checkout -b feat/#{issue-number}-description
+# Examples:
+#   feat/#69-error-code-standardization
+#   fix/#70-tracing-utilities
+#   chore/#55-automated-publishing
+
+# 3. Link commits to issue
+git commit -m "[package] feat: description (#issue-number)"
+
+# 4. Create PR linked to issue
+gh pr create --title "feat: description" --body "Closes #issue-number"
 ```
+
+**Branch Naming Convention:**
+- `feat/#{number}-{description}` - New features
+- `fix/#{number}-{description}` - Bug fixes
+- `chore/#{number}-{description}` - Maintenance tasks
+- `docs/#{number}-{description}` - Documentation only
 
 ## Commit Guidelines
 
-### Format
+### Format (WITH ISSUE REFERENCE)
 ```
-[{package}] {type}: {subject}
+[{package}] {type}: {subject} (#{issue-number})
 
 {body}
 
+Closes #{issue-number}
 (optional) BREAKING CHANGE: {details}
 ```
 
+**EVERY COMMIT MUST REFERENCE AN ISSUE!**
+
 > [!important] If you can't find a package name that describes your commit, you're probably committing too much at once. Target packages with your commits: one commit affecting one package.
 
-### Examples
+### Examples (WITH ISSUE NUMBERS)
 ```
-[core] feat: add Result.tap method for side effects
-[jest] fix: handle undefined values in toBeOkWith matcher
-[resilience] docs: add circuit breaker examples
+[core] feat: add Result.tap method for side effects (#123)
+[jest] fix: handle undefined values in toBeOkWith matcher (#124)
+[resilience] docs: add circuit breaker examples (#125)
+
+# Commit bodies should close issues:
+[core] feat: implement ErrorCode standardization (#69)
+
+Implements enum-based error codes to replace stringly-typed errors.
+
+Closes #69
+BREAKING CHANGE: ZT.err() now requires ErrorCode enum
 ```
 
 ### Rules
@@ -178,11 +235,52 @@ userResult
   .unwrapOr('Anonymous')
 ```
 
+## GitHub Issue Integration
+
+### Starting Work on ZeroThrow:
+
+1. **Check the project board:**
+   ```bash
+   # View all issues by status
+   gh project item-list 1 --owner zerothrow --limit 30
+   
+   # Find issues in Priority Queue
+   gh issue list --search "project:zerothrow/1 status:Priority Queue"
+   ```
+
+2. **Claim an issue:**
+   ```bash
+   # Assign yourself
+   gh issue edit {number} --add-assignee @me
+   
+   # This automatically moves it to "In Progress" on the board!
+   ```
+
+3. **Create feature branch:**
+   ```bash
+   git checkout -b feat/#{number}-short-description
+   ```
+
+4. **Track progress:**
+   - Comment on the issue with updates
+   - Reference issue in all commits
+   - PR will auto-link when you mention "Closes #{number}"
+
+### Project Board Views:
+- **By Phase** - See Phase 2/3/4 work distribution
+- **By Package** - Work organized by package (Core, Resilience, React, etc.)
+- **By Priority** - Critical → High → Medium → Low
+- **By Status** - Backlog → Priority Queue → In Progress → In Review → Done
+
 ## Memory Integration
 
-When starting work:
+After completing work on an issue:
 ```
-mcp__basic-memory__search "zerothrow"
+mcp__basic-memory__write_note
+  title: "ZeroThrow #{issue} - {title}"
+  folder: "projects/zerothrow/issues"
+  content: {implementation details, decisions, learnings}
+  tags: ["#zerothrow", "#issue-{number}", "#{package}"]
 ```
 
 After significant changes, create a SITREP using POSIX timestamp:
@@ -202,11 +300,41 @@ mcp__basic-memory__write_note
 
 ## Important Notes
 
+### Issue-Driven Development Rules:
+1. **NO WORK WITHOUT AN ISSUE** - Every change must track to an issue
+2. **ASSIGN BEFORE STARTING** - Claims the work and updates project board
+3. **REFERENCE IN COMMITS** - Every commit message includes `(#{number})`
+4. **CLOSE WITH PR** - Use "Closes #{number}" in PR description
+5. **UPDATE ISSUE STATUS** - Comment progress on complex issues
+
+### Technical Requirements:
 - **Check package versions** before releasing
 - **Update documentation** when APIs change
 - **Run tests locally** before pushing
 - **Use pnpm** for all package operations
 - **Follow Result-first patterns** in all examples
+
+### Quick Issue Commands:
+```bash
+# Find something to work on
+gh issue list --label "good first issue"
+gh issue list --label "help wanted"
+gh project item-list 1 --owner zerothrow | grep "Priority Queue"
+
+# Create new issue
+gh issue create --title "feat: amazing feature" \
+  --body "Description of the feature" \
+  --label "enhancement,zt-core" \
+  --milestone "Phase 2: Developer Experience"
+
+# Start work
+gh issue edit 123 --add-assignee @me
+git checkout -b feat/#123-amazing-feature
+
+# Finish work
+git commit -m "[core] feat: implement amazing feature (#123)"
+gh pr create --title "feat: amazing feature" --body "Closes #123"
+```
 
 ## Resources
 
