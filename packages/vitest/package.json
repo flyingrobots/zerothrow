@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/vitest",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Vitest matchers for ZeroThrow Result types",
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
@@ -57,8 +57,8 @@
     "vitest": ">=0.30.0"
   },
   "devDependencies": {
-    "@zerothrow/core": "workspace:*",
-    "@zerothrow/expect": "workspace:*"
+    "@zerothrow/core": "^0.2.3",
+    "@zerothrow/expect": "^0.2.0"
   },
   "publishConfig": {
     "access": "public"

@@ -62,10 +62,10 @@
     "url": "https://github.com/zerothrow/zerothrow/issues"
   },
   "dependencies": {
-    "@zerothrow/core": "workspace:*"
+    "@zerothrow/core": "^0.2.3"
   },
   "devDependencies": {
-    "@zerothrow/resilience": "workspace:*",
+    "@zerothrow/resilience": "^0.2.0",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.0.0",

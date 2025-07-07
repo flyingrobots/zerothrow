@@ -6,15 +6,15 @@ Welcome to the **ZeroThrow** ecosystem – a comprehensive suite of packages tha
 
 | Package | Version | Description | Status |
 |---------|---------|-------------|--------|
-| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) v0.2.3 | Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript | ✅ Published |
-| [`@zerothrow/docker`](packages/docker) | [![npm](https://img.shields.io/npm/v/@zerothrow/docker.svg?style=flat-square)](https://npm.im/@zerothrow/docker) v0.1.2 | Zero-throw Docker utilities for testing and container management | ✅ Published |
-| [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) v0.2.0 | Shared test matcher logic for ZeroThrow Result types | ✅ Published |
-| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) v1.1.0 | Jest matchers for ZeroThrow Result types | ✅ Published |
-| [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) v0.2.0 | Production-grade resilience patterns for ZeroThrow | ✅ Published |
-| [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) v1.1.0 | Unified test matchers for ZeroThrow Result types - supports Jest and Vitest | ✅ Published |
-| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) v1.1.0 | Vitest matchers for ZeroThrow Result types | ✅ Published |
-| [`@zerothrow/react`](packages/react) | [![npm](https://img.shields.io/badge/npm-v0.1.1-brightgreen)](https://npm.im/@zerothrow/react) v0.1.1 | React hooks and utilities for Result types | ✅ Ready to Publish |
-| [`@zerothrow/zt-cli`](packages/zt-cli) | v0.1.2 | ZeroThrow CLI tool for repo-wide workflows | 🚧 Internal |
+| [`@zerothrow/core`](packages/core) | [![npm](https://img.shields.io/npm/v/@zerothrow/core.svg?style=flat-square)](https://npm.im/@zerothrow/core) | Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript | ✅ Published |
+| [`@zerothrow/docker`](packages/docker) | [![npm](https://img.shields.io/npm/v/@zerothrow/docker.svg?style=flat-square)](https://npm.im/@zerothrow/docker) | Zero-throw Docker utilities for testing and container management | ✅ Published |
+| [`@zerothrow/expect`](packages/expect) | [![npm](https://img.shields.io/npm/v/@zerothrow/expect.svg?style=flat-square)](https://npm.im/@zerothrow/expect) | Shared test matcher logic for ZeroThrow Result types | ✅ Published |
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for ZeroThrow Result types | ✅ Published |
+| [`@zerothrow/resilience`](packages/resilience) | [![npm](https://img.shields.io/npm/v/@zerothrow/resilience.svg?style=flat-square)](https://npm.im/@zerothrow/resilience) | Production-grade resilience patterns for ZeroThrow | ✅ Published |
+| [`@zerothrow/testing`](packages/testing) | [![npm](https://img.shields.io/npm/v/@zerothrow/testing.svg?style=flat-square)](https://npm.im/@zerothrow/testing) | Unified test matchers for ZeroThrow Result types - supports Jest and Vitest | ✅ Published |
+| [`@zerothrow/vitest`](packages/vitest) | [![npm](https://img.shields.io/npm/v/@zerothrow/vitest.svg?style=flat-square)](https://npm.im/@zerothrow/vitest) | Vitest matchers for ZeroThrow Result types | ✅ Published |
+| [`@zerothrow/react`](packages/react) | [![npm](https://img.shields.io/npm/v/@zerothrow/react.svg?style=flat-square)](https://npm.im/@zerothrow/react) | React hooks and utilities for Result types | ✅ Published |
+| [`@zerothrow/zt-cli`](packages/zt-cli) | [![npm](https://img.shields.io/npm/v/@zerothrow/zt-cli.svg?style=flat-square)](https://npm.im/@zerothrow/zt-cli) | ZeroThrow CLI tool for repo-wide workflows | ✅ Published |
 
 ## 📦 Unpublished Packages (In Development)
 

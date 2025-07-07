@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.1 - 2025-07-07
+
+### Patch Changes
+
+- Fixed workspace protocol dependencies for npm compatibility
+  - Replaced `workspace:*` with actual version numbers in regular dependencies
+  - This resolves npm installation issues when packages are published
+  - Now correctly depends on `@zerothrow/jest@^1.1.0` and `@zerothrow/vitest@^1.1.0`
+
 ## 1.1.0 - 2025-07-07
 
 ### Minor Changes

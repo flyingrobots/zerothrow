@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/jest",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Jest matchers for ZeroThrow Result types",
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "license": "MIT",
@@ -53,8 +53,8 @@
     }
   },
   "devDependencies": {
-    "@zerothrow/core": "workspace:*",
-    "@zerothrow/expect": "workspace:*"
+    "@zerothrow/core": "^0.2.3",
+    "@zerothrow/expect": "^0.2.0"
   },
   "keywords": [
     "zerothrow",
