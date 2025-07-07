@@ -1,8 +1,9 @@
 import { RetryPolicy } from './policies/retry.js'
 import { CircuitBreakerPolicy } from './policies/circuit.js'
 import { TimeoutPolicy } from './policies/timeout.js'
+import { Bulkhead } from './policies/bulkhead.js'
 import { wrap, compose } from './compose.js'
-import type { RetryOptions, CircuitOptions, TimeoutOptions } from './types.js'
+import type { RetryOptions, CircuitOptions, TimeoutOptions, BulkheadOptions } from './types.js'
 import type { Clock } from './clock.js'
 
 /**
@@ -31,6 +32,16 @@ export const Policy = {
       ? { timeout: options } 
       : options
     return new TimeoutPolicy(opts, clock)
+  },
+
+  /**
+   * Creates a bulkhead isolation policy
+   */
+  bulkhead(options: BulkheadOptions | number, clock?: Clock) {
+    const opts = typeof options === 'number'
+      ? { maxConcurrent: options }
+      : options
+    return new Bulkhead('bulkhead', opts, clock)
   },
 
   /**

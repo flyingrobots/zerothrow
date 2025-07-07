@@ -18,8 +18,14 @@ export interface CircuitBreakerPolicy extends Policy {
 // Using a type alias instead of an empty interface
 export type TimeoutPolicy = Policy
 
+export interface BulkheadPolicy extends Policy {
+  getMetrics(): BulkheadMetrics
+  updateCapacity(maxConcurrent: number): void
+  updateQueueSize(maxQueue: number): void
+}
+
 // Union type for all policies
-export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | Policy
+export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | BulkheadPolicy | Policy
 
 export interface RetryOptions {
   backoff?: 'constant' | 'linear' | 'exponential'
@@ -39,6 +45,21 @@ export interface TimeoutOptions {
   timeout: number       // Ms before timeout
 }
 
+export interface BulkheadOptions {
+  maxConcurrent: number    // Maximum concurrent executions
+  maxQueue?: number        // Maximum queued executions (0 = no queue)
+  queueTimeout?: number    // Ms to wait in queue before timeout
+}
+
+export interface BulkheadMetrics {
+  activeConcurrent: number
+  queuedCount: number
+  totalExecuted: number
+  totalRejected: number
+  totalQueued: number
+  totalQueueTimeout: number
+}
+
 // Policy error types
 export interface PolicyError extends Error {
   type: PolicyErrorType
@@ -50,6 +71,8 @@ export type PolicyErrorType =
   | 'retry-exhausted'
   | 'circuit-open'
   | 'timeout'
+  | 'bulkhead-rejected'
+  | 'bulkhead-queue-timeout'
 
 export class RetryExhaustedError extends Error implements PolicyError {
   readonly type = 'retry-exhausted' as const
@@ -90,5 +113,35 @@ export class TimeoutError extends Error implements PolicyError {
   ) {
     super(`Operation timed out after ${elapsed}ms (limit: ${timeout}ms)`)
     this.name = 'TimeoutError'
+  }
+}
+
+export class BulkheadRejectedError extends Error implements PolicyError {
+  readonly type = 'bulkhead-rejected' as const
+  
+  constructor(
+    public readonly policyName: string,
+    public readonly maxConcurrent: number,
+    public readonly maxQueue: number,
+    public readonly activeConcurrent: number,
+    public readonly queuedCount: number,
+    public readonly context?: unknown
+  ) {
+    super(`Bulkhead rejected: ${activeConcurrent} active, ${queuedCount} queued (limits: ${maxConcurrent} concurrent, ${maxQueue} queue)`)
+    this.name = 'BulkheadRejectedError'
+  }
+}
+
+export class BulkheadQueueTimeoutError extends Error implements PolicyError {
+  readonly type = 'bulkhead-queue-timeout' as const
+  
+  constructor(
+    public readonly policyName: string,
+    public readonly queueTimeout: number,
+    public readonly waitTime: number,
+    public readonly context?: unknown
+  ) {
+    super(`Bulkhead queue timeout: waited ${waitTime}ms (limit: ${queueTimeout}ms)`)
+    this.name = 'BulkheadQueueTimeoutError'
   }
 }
