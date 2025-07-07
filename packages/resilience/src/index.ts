@@ -7,6 +7,7 @@ export type {
   ConditionalPolicy,
   AnyPolicy,
   RetryOptions,
+  RetryContext,
   CircuitOptions,
   TimeoutOptions,
   ConditionalPolicyOptions,

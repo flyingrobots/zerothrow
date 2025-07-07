@@ -21,11 +21,37 @@ export type TimeoutPolicy = Policy
 // Union type for all policies
 export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | Policy
 
+/**
+ * Context provided to the shouldRetry predicate for making informed retry decisions.
+ */
+export interface RetryContext {
+  /** Current attempt number (1-based) */
+  attempt: number
+  /** The error that occurred in the current attempt */
+  error: Error
+  /** Delay used before this attempt in milliseconds (undefined for first retry) */
+  lastDelay?: number
+  /** Total delay accumulated so far in milliseconds */
+  totalDelay: number
+  /** Optional metadata passed through from RetryOptions for complex scenarios */
+  metadata?: Record<string, unknown>
+}
+
 export interface RetryOptions {
   backoff?: 'constant' | 'linear' | 'exponential'
   delay?: number        // Base delay in ms
   maxDelay?: number     // Cap for exponential
   handle?: (error: Error) => boolean
+  /**
+   * Advanced conditional retry predicate with full context access.
+   * If provided, this takes precedence over the `handle` function.
+   * Return true to retry, false to stop retrying.
+   */
+  shouldRetry?: (context: RetryContext) => boolean | Promise<boolean>
+  /**
+   * Optional metadata to pass through to the shouldRetry function
+   */
+  metadata?: Record<string, unknown>
 }
 
 export interface CircuitOptions {
