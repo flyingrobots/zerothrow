@@ -57,6 +57,7 @@
     "vitest": ">=0.30.0"
   },
   "devDependencies": {
+    "@zerothrow/core": "workspace:*",
     "@zerothrow/expect": "workspace:*"
   },
   "publishConfig": {

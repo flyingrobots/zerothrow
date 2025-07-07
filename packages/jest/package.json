@@ -53,6 +53,7 @@
     }
   },
   "devDependencies": {
+    "@zerothrow/core": "workspace:*",
     "@zerothrow/expect": "workspace:*"
   },
   "keywords": [
