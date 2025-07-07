@@ -15,6 +15,13 @@
 
 React hooks for type-safe error handling with Result types. Stop throwing, start returning.
 
+## 🎉 Initial Release - v0.1.1
+
+We're excited to release @zerothrow/react! This package brings the power of Result types to React applications with:
+- `useResult` - Async operations with Result types
+- `useResilientResult` - Integration with @zerothrow/resilience policies
+- `ResultBoundary` - Error boundaries that return Results instead of crashing
+
 ## Why @zerothrow/react?
 
 React error handling is fragmented:
