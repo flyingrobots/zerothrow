@@ -36,6 +36,15 @@ export type {
   EventEmitterOptions
 } from './types.js'
 
+// Jitter types
+export type {
+  JitterStrategy,
+  JitterOptions
+} from './jitter.js'
+
+// Jitter calculator
+export { JitterCalculator } from './jitter.js'
+
 // Error classes
 export {
   RetryExhaustedError,

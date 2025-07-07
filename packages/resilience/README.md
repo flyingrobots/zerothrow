@@ -24,7 +24,6 @@ Production-grade resilience patterns for ZeroThrow: retry policies, circuit brea
 **New resilience features coming Q1 2025:**
 - **Conditional Retry Logic** (#71) - `shouldRetry` predicates to skip retries for specific errors
 - **Retry Progress Events** (#72) - Lifecycle callbacks for retry visibility and monitoring
-- **Jitter Support** (#77) - Built-in jitter strategies to prevent thundering herds
 - **Conditional Policies** (#53) - Context-aware policy selection for dynamic strategies
 - **Bulkhead Policy** (#47) - Resource isolation and double-submit protection
 - **Hedge Policy** (#48) - Latency optimization with parallel request hedging
@@ -111,6 +110,41 @@ const retryLinear = PolicyFactory.retry(4, {
 // Selective retry - only retry specific errors
 const retryNetwork = PolicyFactory.retry(3, {
   handle: (error) => error.message.includes('ECONNREFUSED')
+});
+```
+
+#### Jitter Support
+
+Jitter prevents thundering herd problems by randomizing retry delays. Multiple jitter strategies are available:
+
+```typescript
+// Full jitter: random delay between 0 and calculated delay
+const retryFullJitter = PolicyFactory.retry(3, {
+  delay: 1000,
+  backoff: 'exponential',
+  jitter: 'full'  // 0-1000ms, 0-2000ms, 0-4000ms...
+});
+
+// Equal jitter: delay between 50% and 100% of calculated delay  
+const retryEqualJitter = PolicyFactory.retry(3, {
+  delay: 1000,
+  backoff: 'exponential', 
+  jitter: 'equal'  // 500-1000ms, 1000-2000ms, 2000-4000ms...
+});
+
+// Decorrelated jitter: AWS-style jitter with state between attempts
+const retryDecorrelated = PolicyFactory.retry(3, {
+  delay: 1000,
+  jitter: 'decorrelated'  // Stateful randomization
+});
+
+// Custom randomness for testing
+const retryTestable = PolicyFactory.retry(3, {
+  delay: 1000,
+  jitter: {
+    strategy: 'full',
+    random: () => 0.5  // Deterministic for tests
+  }
 });
 ```
 
