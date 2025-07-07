@@ -1,10 +1,10 @@
 {
-  "extends": "../../.config/tsconfig.base.json",
+  "extends": "./.config/tsconfig.base.json",
   "compilerOptions": {
     "module": "Node16",
     "moduleResolution": "node16",
     "outDir": "./dist",
     "rootDir": "."
   },
-  "include": ["src/**/*", "test/**/*", "*.config.ts", "vitest.config.ts"]
+  "include": ["src/**/*", "test/**/*", "*.config.ts", "vitest.config.ts", "packages/*/src/**/*", "packages/*/test/**/*"]
 }

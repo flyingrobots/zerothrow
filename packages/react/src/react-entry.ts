@@ -8,4 +8,4 @@
  *   import { useResult } from '@zerothrow/zerothrow/react';
  */
 
-export { type UseResultState, useResult } from './react-hooks.js';
+export { useResult, type UseResultReturn as UseResultState } from './hooks/useResult.js';

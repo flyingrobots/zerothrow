@@ -55,7 +55,7 @@ async function runTests(options: TestRunnerOptions = {}): Promise<ZeroThrow.Resu
           if (!startResult.ok) {
             spinner.fail('Failed to start Docker');
             console.log(chalk.red('\n❌ Integration tests cannot run without Docker.'));
-            console.log(chalk.gray('   Run unit tests only with: npm run test:unit'));
+            console.log(chalk.gray('   Run unit tests only with: pnpm run test:unit'));
             return startResult;
           }
           spinner.succeed('Docker started successfully');

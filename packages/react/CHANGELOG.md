@@ -1,5 +1,12 @@
 # @zerothrow/react
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependency on @zerothrow/resilience to ^0.2.0 to support new Policy hierarchy
+- No API changes in this package
+
 ## 0.1.0
 
 ### Minor Changes

@@ -193,7 +193,7 @@ importers:
         specifier: ^18.3.17
         version: 18.3.23
       '@zerothrow/resilience':
-        specifier: workspace:*
+        specifier: workspace:^0.2.0
         version: link:../resilience
       jsdom:
         specifier: ^26.0.0
@@ -276,7 +276,7 @@ importers:
         version: link:../core
       '@zerothrow/resilience':
         specifier: ^0.1.0
-        version: link:../resilience
+        version: 0.1.1(@zerothrow/core@packages+core)
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
@@ -2897,6 +2897,15 @@ packages:
       loupe: 3.1.4
       tinyrainbow: 2.0.0
     dev: true
+
+  /@zerothrow/resilience@0.1.1(@zerothrow/core@packages+core):
+    resolution: {integrity: sha512-zqTgp2HStNqxaKWz/Wc/y3VNuUkEwAaO/Uf+DFAPkBTDH+eLTsyJ3GhZC3TT/x0P3gSQWT+95B0myXQjYuiySg==}
+    engines: {node: '>=18.17.0'}
+    peerDependencies:
+      '@zerothrow/core': '>=0.1.0'
+    dependencies:
+      '@zerothrow/core': link:packages/core
+    dev: false
 
   /abstract-logging@2.0.1:
     resolution: {integrity: sha512-2BjRTZxTPvheOvGbBslFSYOUkr+SjPtOnrLP33f+VIWLzezQpZcqVg7ja3L4dBXmzzgwT+a029jRx5PCi3JuiA==}
