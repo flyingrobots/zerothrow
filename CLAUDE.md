@@ -25,7 +25,7 @@ zerothrow/
 │   ├── docker/         # Docker utilities (v0.1.3)
 │   ├── zt-cli/         # CLI tooling (v0.1.3)
 │   ├── eslint-plugin/  # ESLint rules (unpublished)
-│   └── react/          # React hooks (v0.1.1)
+│   └── react/          # React hooks (v0.1.2)
 ├── docs-src/           # Source for transcluded documentation
 ├── scripts/            # Build and release scripts
 ├── README.md           # Monorepo control tower

@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React hooks for type-safe error handling with Result types. Stop throwing, start returning.",
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
@@ -65,7 +65,7 @@
     "@zerothrow/core": "^0.2.3"
   },
   "devDependencies": {
-    "@zerothrow/resilience": "^0.2.0",
+    "@zerothrow/resilience": "^0.2.1",
     "@testing-library/jest-dom": "^6.0.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.0.0",

@@ -1,5 +1,11 @@
 # @zerothrow/react
 
+## 0.1.2 - 2025-07-07
+
+### Patch Changes
+
+- Version bump to align with other package releases
+
 ## 0.1.1 - 2025-07-07
 
 ### Patch Changes

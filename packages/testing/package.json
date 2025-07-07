@@ -34,8 +34,8 @@
     "test": "echo 'Tests run from monorepo root'"
   },
   "dependencies": {
-    "@zerothrow/jest": "^1.1.0",
-    "@zerothrow/vitest": "^1.1.0"
+    "@zerothrow/jest": "^1.1.1",
+    "@zerothrow/vitest": "^1.1.1"
   },
   "peerDependencies": {
     "@zerothrow/core": ">=0.1.0",
