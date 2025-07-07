@@ -66,6 +66,7 @@
     "node": ">=18.17.0",
     "npm": ">=9.0.0"
   },
+  "enginesStrict": true,
   "workspaces": [
     "packages/*"
   ],
