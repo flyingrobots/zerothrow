@@ -87,11 +87,39 @@ pnpm --filter @zerothrow/core build
 
 **EVERY BRANCH MUST REFERENCE AN ISSUE!**
 
+#### ⚠️ v0.3.0 Release Branch Workflow (ACTIVE UNTIL v0.3.0 RELEASE)
+
 ```bash
 # 1. First, claim your issue
 gh issue edit {number} --add-assignee @me
 
-# 2. Create branch from issue
+# 2. Create branch FROM release/v0.3.0 (not main!)
+git checkout release/v0.3.0
+git pull origin release/v0.3.0
+git checkout -b feat/#{issue-number}-description
+
+# 3. Keep your branch updated
+git checkout release/v0.3.0
+git pull origin release/v0.3.0
+git checkout feat/#{issue-number}-description
+git rebase release/v0.3.0
+
+# 4. Link commits to issue
+git commit -m "[package] feat: description (#issue-number)"
+
+# 5. Create PR targeting release/v0.3.0 (not main!)
+gh pr create --base release/v0.3.0 --title "feat: description" --body "Closes #issue-number"
+```
+
+**This ensures all v0.3.0 features are integrated together before merging to main.**
+
+#### Standard Workflow (POST v0.3.0)
+
+```bash
+# 1. First, claim your issue
+gh issue edit {number} --add-assignee @me
+
+# 2. Create branch from main
 git checkout -b feat/#{issue-number}-description
 # Examples:
 #   feat/#69-error-code-standardization

@@ -301,6 +301,15 @@ import { vitestMatchers } from '@zerothrow/vitest';
 expect.extend(vitestMatchers);
 ```
 
+## 🚧 Coming Soon in v0.3.0
+
+**Enhanced Vitest testing support in v0.3.0:**
+- **New Result Matchers** - Support for enhanced Result combinator testing with `.match()`, `.isOk()`, `.isErr()`, `.expect()`
+- **Error Code Testing** - Specialized matchers for standardized `ErrorCode` enum validation
+- **Improved Error Messages** - Better diff output and error reporting for complex Result chains
+
+See [ROADMAP.md](../../project/ROADMAP.md) for full details.
+
 ## Contributing
 
 See the [main repository](https://github.com/zerothrow/zerothrow) for contribution guidelines.
