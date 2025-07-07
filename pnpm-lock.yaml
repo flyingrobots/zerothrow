@@ -148,12 +148,13 @@ importers:
       '@zerothrow/core':
         specifier: '>=0.1.0'
         version: link:../core
-      '@zerothrow/expect':
-        specifier: '>=0.1.0'
-        version: link:../expect
       jest:
         specifier: '>=27.0.0'
         version: 29.7.0(@types/node@24.0.10)
+    devDependencies:
+      '@zerothrow/expect':
+        specifier: workspace:*
+        version: link:../expect
 
   packages/react:
     dependencies:
@@ -193,12 +194,13 @@ importers:
       '@zerothrow/core':
         specifier: '>=0.1.0'
         version: link:../core
-      '@zerothrow/expect':
-        specifier: '>=0.1.0'
-        version: link:../expect
       vitest:
         specifier: '>=0.30.0'
         version: 3.2.4(@types/node@24.0.10)(jiti@2.4.2)(tsx@4.20.3)
+    devDependencies:
+      '@zerothrow/expect':
+        specifier: workspace:*
+        version: link:../expect
 
   packages/zt-cli:
     dependencies:

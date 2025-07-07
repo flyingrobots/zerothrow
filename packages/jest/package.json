@@ -52,6 +52,9 @@
       "optional": true
     }
   },
+  "devDependencies": {
+    "@zerothrow/expect": "workspace:*"
+  },
   "keywords": [
     "zerothrow",
     "jest",
