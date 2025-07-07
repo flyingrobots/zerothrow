@@ -185,14 +185,20 @@ When starting work:
 mcp__basic-memory__search "zerothrow"
 ```
 
-After significant changes:
+After significant changes, create a SITREP using POSIX timestamp:
 ```
 mcp__basic-memory__write_note
-  title: "ZeroThrow SITREP {date}"
-  folder: "projects/zerothrow"
+  title: "ZeroThrow SITREP $(date +%s)_{subject}"
+  folder: "projects/zerothrow/sitreps"
   content: {summary of changes}
   tags: ["#zerothrow", "#sitrep"]
 ```
+
+### SITREP File Naming Convention
+- Use POSIX timestamps to avoid date/timezone confusion
+- Format: `{timestamp}_{subject}.md`
+- Example: `1736219729_release-v0.2.3-preparation.md`
+- This ensures chronological sorting and unique filenames
 
 ## Important Notes
 

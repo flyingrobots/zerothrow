@@ -118,9 +118,6 @@ importers:
 
   packages/docker:
     dependencies:
-      '@zerothrow/core':
-        specifier: '>=0.1.0'
-        version: link:../core
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
@@ -133,11 +130,15 @@ importers:
       ora:
         specifier: ^8.2.0
         version: 8.2.0
+    devDependencies:
+      '@zerothrow/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/expect:
-    dependencies:
+    devDependencies:
       '@zerothrow/core':
-        specifier: '>=0.1.0'
+        specifier: workspace:*
         version: link:../core
 
   packages/jest:
@@ -166,9 +167,9 @@ importers:
         version: 18.3.1
 
   packages/resilience:
-    dependencies:
+    devDependencies:
       '@zerothrow/core':
-        specifier: '>=0.1.0'
+        specifier: workspace:*
         version: link:../core
 
   packages/testing:

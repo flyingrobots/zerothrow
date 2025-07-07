@@ -40,6 +40,9 @@
   "peerDependencies": {
     "@zerothrow/core": ">=0.1.0"
   },
+  "devDependencies": {
+    "@zerothrow/core": "workspace:*"
+  },
   "publishConfig": {
     "access": "public"
   },
