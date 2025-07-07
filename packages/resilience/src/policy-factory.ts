@@ -4,11 +4,13 @@ import { TimeoutPolicy } from './policies/timeout.js'
 import { ConditionalPolicyImpl } from './policies/conditional.js'
 import { BranchPolicyImpl } from './policies/branch.js'
 import { AdaptivePolicyImpl } from './policies/adaptive.js'
+import { hedge as createHedge } from './policies/hedge.js'
 import { wrap, compose } from './compose.js'
 import type { 
   RetryOptions, 
   CircuitOptions, 
   TimeoutOptions,
+  HedgeOptions,
   ConditionalPolicyOptions,
   BranchPolicyOptions,
   AdaptivePolicyOptions
@@ -41,6 +43,13 @@ export const Policy = {
       ? { timeout: options } 
       : options
     return new TimeoutPolicy(opts, clock)
+  },
+
+  /**
+   * Creates a hedge policy for tail latency reduction
+   */
+  hedge(options: HedgeOptions) {
+    return createHedge(options)
   },
 
   /**
