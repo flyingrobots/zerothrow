@@ -67,9 +67,9 @@ zt ls
 ```
 📦 ZeroThrow Packages
 
-  @zerothrow/core         v0.2.0
-  @zerothrow/resilience   v0.1.0
-  @zerothrow/jest         v1.0.0
+  @zerothrow/core         v0.2.3
+  @zerothrow/resilience   v0.2.0
+  @zerothrow/jest         v1.1.0
   ...
 
 Total: 8 packages
