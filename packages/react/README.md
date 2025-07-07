@@ -162,6 +162,42 @@ function App() {
 }
 ```
 
+### Safe Context Access
+
+```tsx
+import { useResultContext, createResultContext } from '@zerothrow/react'
+
+// Using with existing context
+const ThemeContext = createContext<Theme | undefined>(undefined)
+
+function ThemedButton() {
+  const themeResult = useResultContext(ThemeContext)
+  
+  return themeResult.match({
+    ok: (theme) => (
+      <button style={{ background: theme.primary }}>
+        Click me
+      </button>
+    ),
+    err: (error) => (
+      <button>Default Button (no theme)</button>
+    )
+  })
+}
+
+// Creating a Result-based context
+const { Provider, useContext } = createResultContext<UserSettings>('UserSettings')
+
+function SettingsForm() {
+  const settingsResult = useContext()
+  
+  return settingsResult.match({
+    ok: (settings) => <Form initialValues={settings} />,
+    err: () => <Alert>Please configure settings first</Alert>
+  })
+}
+```
+
 ## Core API
 
 ### `useResult`
@@ -218,6 +254,29 @@ interface ResultBoundaryProps {
   fallback: (result: Result<never, Error>, reset: () => void) => ReactNode
   onError?: (error: Error, errorInfo: ErrorInfo) => void
   children: ReactNode
+}
+```
+
+### `useResultContext`
+
+Safe context access that returns Results instead of throwing.
+
+```typescript
+function useResultContext<T>(
+  context: Context<T | undefined | null>,
+  options?: { contextName?: string }
+): Result<T, ContextError>
+```
+
+### `createResultContext`
+
+Helper to create Result-based contexts with companion hooks.
+
+```typescript
+function createResultContext<T>(contextName: string): {
+  Provider: React.Provider<T | undefined>
+  useContext: () => Result<T, ContextError>
+  Context: React.Context<T | undefined>
 }
 ```
 
