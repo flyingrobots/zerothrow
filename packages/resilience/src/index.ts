@@ -4,17 +4,10 @@ export type {
   RetryPolicy as RetryPolicyInterface,
   CircuitBreakerPolicy as CircuitBreakerPolicyInterface,
   TimeoutPolicy as TimeoutPolicyInterface,
-  ConditionalPolicy,
   AnyPolicy,
   RetryOptions,
   CircuitOptions,
   TimeoutOptions,
-  ConditionalPolicyOptions,
-  BranchPolicyOptions,
-  AdaptivePolicyOptions,
-  PolicyContext,
-  PolicyCondition,
-  BranchCase,
   PolicyError,
   PolicyErrorType
 } from './types.js'
@@ -23,17 +16,13 @@ export type {
 export {
   RetryExhaustedError,
   CircuitOpenError,
-  TimeoutError,
-  MutablePolicyContext
+  TimeoutError
 } from './types.js'
 
 // Policy implementations
 export { RetryPolicy } from './policies/retry.js'
 export { CircuitBreakerPolicy } from './policies/circuit.js'
 export { TimeoutPolicy } from './policies/timeout.js'
-export { ConditionalPolicyImpl } from './policies/conditional.js'
-export { BranchPolicyImpl } from './policies/branch.js'
-export { AdaptivePolicyImpl } from './policies/adaptive.js'
 
 // Composition utilities
 export { wrap, compose } from './compose.js'
