@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 - 2025-07-07
+
+### Minor Changes
+
+- Added minimum Node.js version requirement of 18.17.0
+  - Previously had no explicit engine requirement
+  - Aligns with core package and test framework requirements
+  - Node 16 reached end-of-life in September 2023
+- Added `platform: "node"` to package.json for clarity
+
 ## 1.0.1
 
 ### Patch Changes
