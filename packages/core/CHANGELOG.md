@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.3 - 2025-07-07
+
+### Patch Changes
+
+- Updated minimum Node.js version from 16.14 to 18.17.0
+  - Node 16 reached end-of-life in September 2023
+  - Enables use of modern Node.js features without polyfills
+  - Aligns with ecosystem-wide engine requirements
+- Added `platform: "universal"` to package.json for clarity
+
 ## 0.2.2
 
 ### Patch Changes
