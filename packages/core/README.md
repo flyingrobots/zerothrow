@@ -39,6 +39,8 @@ See [ROADMAP.md](../../project/ROADMAP.md) for full details.
 - [Why Results, not Throws?](#why-results-not-throws)
 - [Quick Start](#quick-start)
 - [API Reference](#api-reference)
+  - [Quick Reference](#quick-reference)
+  - [Debugging Features](#debugging-features-new-in-v030)
 - [Performance](#performance)
 - [Best Practices](#best-practices)
 - [Common Patterns](#common-patterns)
@@ -147,9 +149,53 @@ ZT.ok(value)                       // Result<T, never>
 ZT.err(error)                      // Result<never, Error>
 ZT.err('CODE')                     // Result<never, ZeroError>
 ZT.err('CODE', 'message')          // Result<never, ZeroError>
+
+// Debug utilities (NEW in v0.3.0)
+ZT.debug.enable()                  // Enable debug mode
+ZT.debug.disable()                 // Disable debug mode
+ZT.debug('label', ...args)         // Log debug info
+ZT.debug.error('label', err)       // Log debug errors
 ```
 
+### Debugging Features (NEW in v0.3.0)
 
+ZeroThrow now includes powerful debugging utilities with zero cost when disabled:
+
+```typescript
+// Enable debugging via environment variable
+process.env.ZEROTHROW_DEBUG = '1';  // Node.js
+localStorage.setItem('ZEROTHROW_DEBUG', '1');  // Browser
+
+// Or programmatically
+import { ZT } from '@zerothrow/core';
+ZT.debug.enable();
+
+// Trace Result chains
+const result = ZT.try(() => JSON.parse(input))
+  .trace('parse-input')           // Logs: [parse-input] Result.Ok: {...}
+  .andThen(data => validate(data))
+  .trace('after-validation')      // Logs: [after-validation] Result.Ok: {...}
+  .mapErr(err => wrapError(err))
+  .trace('final');                // Logs: [final] Result.Err: Error...
+
+// Debug logging
+ZT.debug('api', 'Fetching user', userId);
+ZT.debug.error('api', error, 'Failed to fetch');
+
+// Conditional debug execution
+ZT.debug.do(() => {
+  console.log('This only runs when debug is enabled');
+});
+
+// Advanced tracing with context
+import { TraceContext } from '@zerothrow/core';
+
+const ctx = TraceContext.createTraceContext('user-flow');
+TraceContext.addTraceEntry(ctx, result, 'step-1');
+// ... more operations
+const analysis = TraceContext.analyzeTraceContext(ctx);
+console.log(`Error rate: ${analysis.errorRate * 100}%`);
+```
 
 ## Performance
 

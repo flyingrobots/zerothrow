@@ -1,4 +1,5 @@
 import { ZeroError, type ErrorContext, type ErrorCode } from './error.js';
+import { isDebugEnabled } from './debug.js';
 
 export type Ok<T> = { ok: true; value: T };
 export type Err<E extends Error = ZeroError> = { ok: false; error: E };
@@ -57,6 +58,11 @@ export interface ResultMethods<T, E extends Error = ZeroError> {
    * Discard the value and return void
    */
   void(): Result<void, E>;
+
+  /**
+   * Log debug information and return self for chaining
+   */
+  trace(label?: string): Result<T, E>;
 }
 
 /**
@@ -113,6 +119,24 @@ function createResult<T, E extends Error>(base: Ok<T> | Err<E>): Result<T, E> {
   result.void = function(): Result<void, E> {
     if (!result.ok) return createResult({ ok: false, error: result.error } as Err<E>) as Result<void, E>;
     return createResult({ ok: true, value: undefined as void });
+  };
+
+  result.trace = function(label?: string): Result<T, E> {
+    if (isDebugEnabled()) {
+      const prefix = label ? `[${label}] ` : '';
+      if (result.ok) {
+        // Use globalThis for universal compatibility
+        if (typeof globalThis !== 'undefined' && 'console' in globalThis) {
+          (globalThis as any).console.log(`${prefix}Result.Ok:`, result.value);
+        }
+      } else {
+        // Use globalThis for universal compatibility
+        if (typeof globalThis !== 'undefined' && 'console' in globalThis) {
+          (globalThis as any).console.error(`${prefix}Result.Err:`, result.error);
+        }
+      }
+    }
+    return result;
   };
 
   return result;
