@@ -19,6 +19,26 @@
 
 Production-grade resilience patterns for ZeroThrow: retry policies, circuit breakers, and timeouts with full Result<T,E> integration.
 
+## What's New in v0.2.0 🎉
+
+**Breaking Changes:**
+- **Policy Hierarchy**: `Policy` is now the base type with specific subtypes:
+  - `RetryPolicy` for retry operations
+  - `CircuitBreakerPolicy` for circuit breaker patterns  
+  - `TimeoutPolicy` for timeout handling
+- **Factory Renamed**: `Policy` static methods are now on `PolicyFactory`
+- **New Callbacks**: Added `onRetry` and `onCircuitStateChange` for better observability
+
+```typescript
+// Old (v0.1.x)
+import { Policy } from '@zerothrow/resilience';
+const retry = Policy.retry(3);
+
+// New (v0.2.0)
+import { PolicyFactory } from '@zerothrow/resilience';
+const retry = PolicyFactory.retry(3);
+```
+
 ## Installation
 
 ```bash
@@ -29,14 +49,14 @@ npm install @zerothrow/resilience @zerothrow/core
 ## Quick Start
 
 ```typescript
-import { Policy } from '@zerothrow/resilience';
+import { PolicyFactory } from '@zerothrow/resilience';
 import { ZT } from '@zerothrow/core';
 
 // Create a resilient API call with retry, circuit breaker, and timeout
-const resilientFetch = Policy.compose(
-  Policy.retry(3, { backoff: 'exponential', delay: 1000 }),
-  Policy.circuitBreaker({ threshold: 5, duration: 60000 }),
-  Policy.timeout(5000)
+const resilientFetch = PolicyFactory.compose(
+  PolicyFactory.retry(3, { backoff: 'exponential', delay: 1000 }),
+  PolicyFactory.circuitBreaker({ threshold: 5, duration: 60000 }),
+  PolicyFactory.timeout(5000)
 );
 
 const result = await resilientFetch.execute(async () => {
@@ -61,23 +81,23 @@ Automatically retry failed operations with configurable backoff strategies.
 
 ```typescript
 // Basic retry - 3 attempts with constant 1s delay
-const retry = Policy.retry(3);
+const retry = PolicyFactory.retry(3);
 
 // Exponential backoff: 1s, 2s, 4s, 8s...
-const retryExp = Policy.retry(5, { 
+const retryExp = PolicyFactory.retry(5, { 
   backoff: 'exponential',
   delay: 1000,      // Base delay
   maxDelay: 30000   // Cap at 30 seconds
 });
 
 // Linear backoff: 1s, 2s, 3s, 4s...
-const retryLinear = Policy.retry(4, { 
+const retryLinear = PolicyFactory.retry(4, { 
   backoff: 'linear',
   delay: 1000 
 });
 
 // Selective retry - only retry specific errors
-const retryNetwork = Policy.retry(3, {
+const retryNetwork = PolicyFactory.retry(3, {
   handle: (error) => error.message.includes('ECONNREFUSED')
 });
 ```
@@ -88,7 +108,7 @@ Fail fast when a service is down to prevent cascading failures.
 
 ```typescript
 // Open circuit after 5 failures, stay open for 60 seconds
-const breaker = Policy.circuitBreaker({
+const breaker = PolicyFactory.circuitBreaker({
   threshold: 5,        // Failures before opening
   duration: 60000,     // Stay open for 1 minute
   onOpen: () => console.log('Circuit opened!'),
@@ -107,10 +127,10 @@ Prevent operations from hanging indefinitely.
 
 ```typescript
 // Timeout after 5 seconds
-const timeout = Policy.timeout(5000);
+const timeout = PolicyFactory.timeout(5000);
 
 // Or with options object
-const timeout = Policy.timeout({ timeout: 5000 });
+const timeout = PolicyFactory.timeout({ timeout: 5000 });
 
 // Operations that exceed the timeout will fail with TimeoutError
 const result = await timeout.execute(async () => {
@@ -124,16 +144,16 @@ Combine multiple policies for defense in depth. Policies compose from left to ri
 
 ```typescript
 // Method 1: Using compose
-const resilient = Policy.compose(
-  Policy.retry(3, { backoff: 'exponential' }),
-  Policy.circuitBreaker({ threshold: 5, duration: 60000 }),
-  Policy.timeout(5000)
+const resilient = PolicyFactory.compose(
+  PolicyFactory.retry(3, { backoff: 'exponential' }),
+  PolicyFactory.circuitBreaker({ threshold: 5, duration: 60000 }),
+  PolicyFactory.timeout(5000)
 );
 
 // Method 2: Using wrap (for two policies)
-const retryWithTimeout = Policy.wrap(
-  Policy.retry(3),
-  Policy.timeout(5000)
+const retryWithTimeout = PolicyFactory.wrap(
+  PolicyFactory.retry(3),
+  PolicyFactory.timeout(5000)
 );
 
 // Execution order (for compose example):
@@ -175,12 +195,12 @@ if (!result.ok) {
 ### Resilient HTTP Client
 
 ```typescript
-import { Policy } from '@zerothrow/resilience';
+import { PolicyFactory } from '@zerothrow/resilience';
 
 // Create a reusable HTTP client with resilience
 class ResilientHttpClient {
-  private policy = Policy.compose(
-    Policy.retry(3, { 
+  private policy = PolicyFactory.compose(
+    PolicyFactory.retry(3, { 
       backoff: 'exponential',
       handle: (error) => {
         // Only retry network and 5xx errors
@@ -188,11 +208,11 @@ class ResilientHttpClient {
                (error.status >= 500 && error.status < 600);
       }
     }),
-    Policy.circuitBreaker({ 
+    PolicyFactory.circuitBreaker({ 
       threshold: 10, 
       duration: 30000 
     }),
-    Policy.timeout(10000)
+    PolicyFactory.timeout(10000)
   );
 
   async get<T>(url: string): Promise<Result<T, Error>> {
@@ -213,17 +233,17 @@ class ResilientHttpClient {
 
 ```typescript
 // Resilient database connection with retry and timeout
-const dbPolicy = Policy.compose(
-  Policy.retry(5, { 
+const dbPolicy = PolicyFactory.compose(
+  PolicyFactory.retry(5, { 
     backoff: 'linear',
     delay: 500,
     handle: (error) => error.code === 'ECONNREFUSED'
   }),
-  Policy.timeout(30000)
+  PolicyFactory.timeout(30000)
 );
 
 async function queryDatabase(sql: string) {
-  const result = await dbPolicy.execute(async () => {
+  const result = await dbPolicyFactory.execute(async () => {
     const conn = await getConnection();
     return conn.query(sql);
   });
@@ -240,15 +260,15 @@ async function queryDatabase(sql: string) {
 
 ```typescript
 // Different policies for different service criticality
-const criticalServicePolicy = Policy.compose(
-  Policy.retry(5, { backoff: 'exponential', maxDelay: 10000 }),
-  Policy.circuitBreaker({ threshold: 3, duration: 60000 }),
-  Policy.timeout(5000)
+const criticalServicePolicy = PolicyFactory.compose(
+  PolicyFactory.retry(5, { backoff: 'exponential', maxDelay: 10000 }),
+  PolicyFactory.circuitBreaker({ threshold: 3, duration: 60000 }),
+  PolicyFactory.timeout(5000)
 );
 
-const nonCriticalServicePolicy = Policy.compose(
-  Policy.retry(1),  // Only one retry
-  Policy.timeout(2000)  // Shorter timeout
+const nonCriticalServicePolicy = PolicyFactory.compose(
+  PolicyFactory.retry(1),  // Only one retry
+  PolicyFactory.timeout(2000)  // Shorter timeout
 );
 
 // Use appropriate policy based on service with result chaining
@@ -277,7 +297,7 @@ import { Policy, TestClock } from '@zerothrow/resilience';
 // Use TestClock for deterministic tests
 test('retry with exponential backoff', async () => {
   const clock = new TestClock();
-  const retry = Policy.retry(3, { 
+  const retry = PolicyFactory.retry(3, { 
     backoff: 'exponential',
     delay: 1000 
   }, clock);
@@ -314,10 +334,10 @@ All policies work seamlessly with ZeroThrow's Result type and combinators:
 
 ```typescript
 import { ZT, Result, ZeroThrow } from '@zerothrow/core';
-import { Policy } from '@zerothrow/resilience';
+import { PolicyFactory } from '@zerothrow/resilience';
 
 // Policies always return Result<T, Error>
-const policy = Policy.retry(3);
+const policy = PolicyFactory.retry(3);
 const result: Result<Data, Error> = await policy.execute(fetchData);
 
 // Chain multiple transformations
