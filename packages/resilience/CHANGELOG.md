@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 - 2025-07-07
+
+### Patch Changes
+
+- Fixed workspace protocol dependencies for npm compatibility
+  - Replaced `workspace:*` with actual version numbers in devDependencies
+  - This resolves npm installation issues when packages are published
+
 ## 0.2.0 - 2025-07-07
 
 ### Breaking Changes

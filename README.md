@@ -43,8 +43,8 @@ All packages live under `/packages` — each folder contains its own README, tes
 | **[@zerothrow/testing](packages/testing)** | ![npm](https://img.shields.io/npm/v/@zerothrow/testing) | Unified test matchers (Jest + Vitest) | 🟢 Beta |
 | **[@zerothrow/expect](packages/expect)** | ![npm](https://img.shields.io/npm/v/@zerothrow/expect) | Shared test matcher logic | 🔧 Internal |
 | **[@zerothrow/docker](packages/docker)** | ![npm](https://img.shields.io/npm/v/@zerothrow/docker) | Docker test utilities | 🟢 Beta |
-| **[@zerothrow/react](packages/react)** | ![npm](https://img.shields.io/badge/npm-v0.1.1-brightgreen) | React hooks and utilities for Result types | 🟢 Beta |
-| **[@zerothrow/zt-cli](packages/zt-cli)** | ![unreleased](https://img.shields.io/badge/npm-unreleased-lightgrey) | CLI tooling | 🔧 Internal |
+| **[@zerothrow/react](packages/react)** | ![npm](https://img.shields.io/npm/v/@zerothrow/react) | React hooks and utilities for Result types | 🟢 Beta |
+| **[@zerothrow/zt-cli](packages/zt-cli)** | ![npm](https://img.shields.io/npm/v/@zerothrow/zt-cli) | CLI tooling | 🟢 Beta |
 
 ### In Development
 

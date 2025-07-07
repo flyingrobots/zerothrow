@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 - 2025-07-07
+
+### Patch Changes
+
+- Updated dependencies to latest versions
+  - `@zerothrow/core`: ^0.2.0 → ^0.2.3
+  - `@zerothrow/resilience`: ^0.2.0 → ^0.2.1
+  - Ensures compatibility with latest package versions
+
 ## 0.1.2 - 2025-07-07
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/expect",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shared test matcher logic for ZeroThrow Result types",
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
@@ -55,7 +55,7 @@
     "@zerothrow/core": ">=0.1.0"
   },
   "devDependencies": {
-    "@zerothrow/core": "workspace:*"
+    "@zerothrow/core": "^0.2.3"
   },
   "publishConfig": {
     "access": "public"

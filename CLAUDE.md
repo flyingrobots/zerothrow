@@ -17,15 +17,15 @@ ZeroThrow is a TypeScript error handling library that replaces exceptions with t
 zerothrow/
 ├── packages/
 │   ├── core/           # Core Result<T,E> type (v0.2.3)
-│   ├── resilience/     # Retry, circuit breaker, timeout (v0.2.0)
-│   ├── jest/           # Jest matchers (v1.1.0)
-│   ├── vitest/         # Vitest matchers (v1.1.0)
-│   ├── testing/        # Unified test package (v1.1.0)
-│   ├── expect/         # Shared matcher logic (v0.2.0)
-│   ├── docker/         # Docker utilities (v0.1.2)
-│   ├── zt-cli/         # CLI tooling (internal)
+│   ├── resilience/     # Retry, circuit breaker, timeout (v0.2.1)
+│   ├── jest/           # Jest matchers (v1.1.1)
+│   ├── vitest/         # Vitest matchers (v1.1.1)
+│   ├── testing/        # Unified test package (v1.1.1)
+│   ├── expect/         # Shared matcher logic (v0.2.1)
+│   ├── docker/         # Docker utilities (v0.1.3)
+│   ├── zt-cli/         # CLI tooling (v0.1.3)
 │   ├── eslint-plugin/  # ESLint rules (unpublished)
-│   └── react/          # React hooks (unpublished)
+│   └── react/          # React hooks (v0.1.1)
 ├── docs-src/           # Source for transcluded documentation
 ├── scripts/            # Build and release scripts
 ├── README.md           # Monorepo control tower
