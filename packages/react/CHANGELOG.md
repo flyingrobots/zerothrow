@@ -1,6 +1,6 @@
 # @zerothrow/react
 
-## 0.1.3 - 2025-07-07
+## 0.2.0 - 2025-07-07
 
 ### Minor Changes
 
