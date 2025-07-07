@@ -4,10 +4,13 @@ export type {
   RetryPolicy as RetryPolicyInterface,
   CircuitBreakerPolicy as CircuitBreakerPolicyInterface,
   TimeoutPolicy as TimeoutPolicyInterface,
+  BulkheadPolicy as BulkheadPolicyInterface,
   AnyPolicy,
   RetryOptions,
   CircuitOptions,
   TimeoutOptions,
+  BulkheadOptions,
+  BulkheadMetrics,
   PolicyError,
   PolicyErrorType
 } from './types.js'
@@ -16,13 +19,16 @@ export type {
 export {
   RetryExhaustedError,
   CircuitOpenError,
-  TimeoutError
+  TimeoutError,
+  BulkheadRejectedError,
+  BulkheadQueueTimeoutError
 } from './types.js'
 
 // Policy implementations
 export { RetryPolicy } from './policies/retry.js'
 export { CircuitBreakerPolicy } from './policies/circuit.js'
 export { TimeoutPolicy } from './policies/timeout.js'
+export { Bulkhead } from './policies/bulkhead.js'
 
 // Composition utilities
 export { wrap, compose } from './compose.js'
