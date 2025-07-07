@@ -17,7 +17,19 @@ export type {
   PolicyCondition,
   BranchCase,
   PolicyError,
-  PolicyErrorType
+  PolicyErrorType,
+  // Event types
+  RetryEvent,
+  RetryEventType,
+  RetryStartedEvent,
+  RetryAttemptEvent,
+  RetryFailedEvent,
+  RetryBackoffEvent,
+  RetrySucceededEvent,
+  RetryExhaustedEvent,
+  RetryEventHandler,
+  RetryEventHandlers,
+  EventEmitterOptions
 } from './types.js'
 
 // Error classes
@@ -45,3 +57,7 @@ export { Policy as PolicyFactory } from './policy-factory.js'
 // Clock utilities (for testing)
 export type { Clock } from './clock.js'
 export { SystemClock, TestClock } from './clock.js'
+
+// Event utilities
+export { RetryEventEmitter } from './event-emitter.js'
+export { RetryEventManager } from './retry-events.js'

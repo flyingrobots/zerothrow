@@ -52,6 +52,8 @@ export interface RetryOptions {
    * Optional metadata to pass through to the shouldRetry function
    */
   metadata?: Record<string, unknown>
+  events?: RetryEventHandlers
+  eventOptions?: EventEmitterOptions
 }
 
 export interface CircuitOptions {
@@ -193,4 +195,88 @@ export class TimeoutError extends Error implements PolicyError {
     super(`Operation timed out after ${elapsed}ms (limit: ${timeout}ms)`)
     this.name = 'TimeoutError'
   }
+}
+
+// Retry Event Types
+export type RetryEventType = 
+  | 'retry:started'
+  | 'retry:attempt'
+  | 'retry:failed'
+  | 'retry:backoff'
+  | 'retry:succeeded'
+  | 'retry:exhausted'
+
+export interface RetryEventBase {
+  type: RetryEventType
+  timestamp: number
+  policyName: string
+  operationId?: string
+}
+
+export interface RetryStartedEvent extends RetryEventBase {
+  type: 'retry:started'
+  maxAttempts: number
+  options: RetryOptions
+}
+
+export interface RetryAttemptEvent extends RetryEventBase {
+  type: 'retry:attempt'
+  attemptNumber: number
+  elapsed: number
+}
+
+export interface RetryFailedEvent extends RetryEventBase {
+  type: 'retry:failed'
+  attemptNumber: number
+  error: Error
+  elapsed: number
+  willRetry: boolean
+}
+
+export interface RetryBackoffEvent extends RetryEventBase {
+  type: 'retry:backoff'
+  attemptNumber: number
+  delay: number
+  nextAttemptAt: number
+}
+
+export interface RetrySucceededEvent extends RetryEventBase {
+  type: 'retry:succeeded'
+  attemptNumber: number
+  totalAttempts: number
+  totalElapsed: number
+}
+
+export interface RetryExhaustedEvent extends RetryEventBase {
+  type: 'retry:exhausted'
+  totalAttempts: number
+  lastError: Error
+  totalElapsed: number
+}
+
+export type RetryEvent =
+  | RetryStartedEvent
+  | RetryAttemptEvent
+  | RetryFailedEvent
+  | RetryBackoffEvent
+  | RetrySucceededEvent
+  | RetryExhaustedEvent
+
+// Event Handler Types
+export type RetryEventHandler<T extends RetryEvent = RetryEvent> = (event: T) => void
+
+export interface RetryEventHandlers {
+  onStarted?: RetryEventHandler<RetryStartedEvent>
+  onAttempt?: RetryEventHandler<RetryAttemptEvent>
+  onFailed?: RetryEventHandler<RetryFailedEvent>
+  onBackoff?: RetryEventHandler<RetryBackoffEvent>
+  onSucceeded?: RetryEventHandler<RetrySucceededEvent>
+  onExhausted?: RetryEventHandler<RetryExhaustedEvent>
+  onEvent?: RetryEventHandler<RetryEvent>
+}
+
+// Event Emitter Options
+export interface EventEmitterOptions {
+  buffered?: boolean
+  bufferSize?: number
 }
