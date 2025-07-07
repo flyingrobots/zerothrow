@@ -57,6 +57,66 @@ export interface ResultMethods<T, E extends Error = ZeroError> {
    * Discard the value and return void
    */
   void(): Result<void, E>;
+
+  // Rust-style sugar methods
+  
+  /**
+   * Pattern matching - handle both ok and error cases
+   */
+  match<U>(cases: {
+    ok: (value: T) => U;
+    err: (error: E) => U;
+  }): U;
+
+  /**
+   * Type guard to check if Result is Ok
+   */
+  isOk(): this is Ok<T>;
+
+  /**
+   * Type guard to check if Result is Err
+   */
+  isErr(): this is Err<E>;
+
+  /**
+   * Get value or panic with custom message
+   */
+  expect(message: string): T;
+
+  /**
+   * Flatten nested Results
+   */
+  flatten<U, F extends Error>(this: Result<Result<U, F>, E>): Result<U, E | F>;
+
+  /**
+   * Combine two Results into a tuple
+   */
+  zip<U>(other: Result<U, E>): Result<[T, U], E>;
+
+  /**
+   * Get success value or null (Rust-style)
+   */
+  okValue(): T | null;
+
+  /**
+   * Get error value or null (Rust-style)
+   */
+  errValue(): E | null;
+
+  /**
+   * Alias for unwrapOrThrow (Rust-style)
+   */
+  unwrap(): T;
+
+  /**
+   * Check if Result contains specific success value
+   */
+  contains(value: T): boolean;
+
+  /**
+   * Check if Result contains specific error
+   */
+  containsErr(error: E): boolean;
 }
 
 /**
@@ -113,6 +173,70 @@ function createResult<T, E extends Error>(base: Ok<T> | Err<E>): Result<T, E> {
   result.void = function(): Result<void, E> {
     if (!result.ok) return createResult({ ok: false, error: result.error } as Err<E>) as Result<void, E>;
     return createResult({ ok: true, value: undefined as void });
+  };
+
+  // Rust-style sugar methods
+
+  result.match = function<U>(cases: { ok: (value: T) => U; err: (error: E) => U }): U {
+    const baseResult = result as Ok<T> | Err<E>;
+    if (baseResult.ok) return cases.ok(baseResult.value);
+    return cases.err(baseResult.error);
+  };
+
+  result.isOk = function(): this is Ok<T> {
+    const baseResult = result as Ok<T> | Err<E>;
+    return baseResult.ok;
+  };
+
+  result.isErr = function(): this is Err<E> {
+    const baseResult = result as Ok<T> | Err<E>;
+    return !baseResult.ok;
+  };
+
+  result.expect = function(message: string): T {
+    const baseResult = result as Ok<T> | Err<E>;
+    if (!baseResult.ok) {
+      throw new Error(`${message}: ${baseResult.error.message}`);
+    }
+    return baseResult.value;
+  };
+
+  result.flatten = function<U, F extends Error>(this: Result<Result<U, F>, E>): Result<U, E | F> {
+    const baseResult = result as Ok<T> | Err<E>;
+    if (!baseResult.ok) return createResult({ ok: false, error: baseResult.error }) as Result<U, E | F>;
+    return baseResult.value as Result<U, F>;
+  };
+
+  result.zip = function<U>(other: Result<U, E>): Result<[T, U], E> {
+    const baseResult = result as Ok<T> | Err<E>;
+    const baseOther = other as Ok<U> | Err<E>;
+    if (!baseResult.ok) return createResult({ ok: false, error: baseResult.error }) as Result<[T, U], E>;
+    if (!baseOther.ok) return createResult({ ok: false, error: baseOther.error }) as Result<[T, U], E>;
+    return createResult({ ok: true, value: [baseResult.value, baseOther.value] as [T, U] });
+  };
+
+  result.okValue = function(): T | null {
+    const baseResult = result as Ok<T> | Err<E>;
+    return baseResult.ok ? baseResult.value : null;
+  };
+
+  result.errValue = function(): E | null {
+    const baseResult = result as Ok<T> | Err<E>;
+    return baseResult.ok ? null : baseResult.error;
+  };
+
+  result.unwrap = function(): T {
+    return result.unwrapOrThrow();
+  };
+
+  result.contains = function(value: T): boolean {
+    const baseResult = result as Ok<T> | Err<E>;
+    return baseResult.ok && baseResult.value === value;
+  };
+
+  result.containsErr = function(error: E): boolean {
+    const baseResult = result as Ok<T> | Err<E>;
+    return !baseResult.ok && baseResult.error === error;
   };
 
   return result;
