@@ -1,5 +1,11 @@
 # @zerothrow/react
 
+## 0.2.1 - 2025-07-07
+
+### Patch Changes
+
+- Updated README documentation
+
 ## 0.2.0 - 2025-07-07
 
 ### Minor Changes
