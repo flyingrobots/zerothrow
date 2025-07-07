@@ -54,18 +54,20 @@
       "optional": true
     }
   },
-  "devDependencies": {
-    "@zerothrow/core": "file:../core",
-    "@zerothrow/jest": "file:../jest",
-    "@zerothrow/vitest": "file:../vitest",
-    "tsup": "^8.5.0",
-    "typescript": "^5.7.2"
-  },
   "publishConfig": {
     "access": "public"
   },
   "engines": {
     "node": ">=18.17.0"
   },
-  "platform": "node"
+  "platform": "node",
+  "sideEffects": false,
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

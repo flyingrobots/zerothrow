@@ -2,7 +2,7 @@
   "name": "@zerothrow/vitest",
   "version": "1.1.0",
   "description": "Vitest matchers for ZeroThrow Result types",
-  "author": "ZeroThrow Contributors",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
   "bugs": {
     "url": "https://github.com/zerothrow/zerothrow/issues"
@@ -56,15 +56,9 @@
     "@zerothrow/expect": ">=0.1.0",
     "vitest": ">=0.30.0"
   },
-  "devDependencies": {
-    "@zerothrow/core": "file:../core",
-    "@zerothrow/expect": "file:../expect",
-    "tsup": "^8.5.0",
-    "typescript": "^5.7.2",
-    "vitest": "^3.2.4"
-  },
   "publishConfig": {
     "access": "public"
   },
-  "platform": "node"
+  "platform": "node",
+  "sideEffects": false
 }

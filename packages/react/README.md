@@ -21,6 +21,11 @@
 
 React hooks for type-safe error handling with Result types. Stop throwing, start returning.
 
+<div align="center">
+<img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-react.webp" height="300" />
+</div>
+
+
 ## 🎉 Initial Release - v0.1.1
 
 We're excited to release @zerothrow/react! This package brings the power of Result types to React applications with:
