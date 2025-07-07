@@ -132,13 +132,13 @@ importers:
         version: 8.2.0
     devDependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
 
   packages/expect:
     devDependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
 
   packages/jest:
@@ -151,16 +151,16 @@ importers:
         version: 29.7.0(@types/node@24.0.10)
     devDependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
       '@zerothrow/expect':
-        specifier: workspace:*
+        specifier: ^0.2.0
         version: link:../expect
 
   packages/react:
     dependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
     devDependencies:
       '@testing-library/jest-dom':
@@ -179,7 +179,7 @@ importers:
         specifier: ^18.0.0
         version: 18.3.7(@types/react@18.3.23)
       '@zerothrow/resilience':
-        specifier: workspace:*
+        specifier: ^0.2.1
         version: link:../resilience
       jsdom:
         specifier: ^24.0.0
@@ -194,7 +194,7 @@ importers:
   packages/resilience:
     devDependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
 
   packages/testing:
@@ -203,10 +203,10 @@ importers:
         specifier: '>=0.1.0'
         version: link:../core
       '@zerothrow/jest':
-        specifier: workspace:*
+        specifier: ^1.1.1
         version: link:../jest
       '@zerothrow/vitest':
-        specifier: workspace:*
+        specifier: ^1.1.1
         version: link:../vitest
       jest:
         specifier: '>=26.0.0'
@@ -222,19 +222,19 @@ importers:
         version: 3.2.4(@types/node@24.0.10)(jiti@2.4.2)(tsx@4.20.3)
     devDependencies:
       '@zerothrow/core':
-        specifier: workspace:*
+        specifier: ^0.2.3
         version: link:../core
       '@zerothrow/expect':
-        specifier: workspace:*
+        specifier: ^0.2.0
         version: link:../expect
 
   packages/zt-cli:
     dependencies:
       '@zerothrow/core':
-        specifier: ^0.2.0
+        specifier: ^0.2.3
         version: link:../core
       '@zerothrow/resilience':
-        specifier: ^0.2.0
+        specifier: ^0.2.1
         version: link:../resilience
       chalk:
         specifier: ^5.4.1
