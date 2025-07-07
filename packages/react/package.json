@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "React hooks for type-safe error handling with Result types. Stop throwing, start returning.",
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
-  "homepage": "https://github.com/zerothrow/zerothrow/tree/main/packages/react",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -67,19 +67,8 @@
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.1.0",
-    "@testing-library/react-hooks": "^8.0.1",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^18.3.17",
-    "@zerothrow/resilience": "workspace:^0.2.0",
-    "jsdom": "^26.0.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "vitest": "^3.2.4"
-  },
   "engines": {
-    "node": ">=18"
-  }
+    "node": ">=18.17.0"
+  },
+  "platform": "browser"
 }
