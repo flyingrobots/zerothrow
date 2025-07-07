@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/vitest",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Vitest matchers for ZeroThrow Result types",
   "author": "ZeroThrow Contributors",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
@@ -17,7 +17,7 @@
     "typescript"
   ],
   "engines": {
-    "node": ">=16.14"
+    "node": ">=18.17.0"
   },
   "repository": {
     "type": "git",
@@ -65,5 +65,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "platform": "node"
 }
