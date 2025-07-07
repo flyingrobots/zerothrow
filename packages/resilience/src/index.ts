@@ -6,6 +6,7 @@ export type {
   TimeoutPolicy as TimeoutPolicyInterface,
   AnyPolicy,
   RetryOptions,
+  RetryContext,
   CircuitOptions,
   TimeoutOptions,
   PolicyError,
