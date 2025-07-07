@@ -19,6 +19,18 @@
 
 Production-grade resilience patterns for ZeroThrow: retry policies, circuit breakers, and timeouts with full Result<T,E> integration.
 
+## 🚧 Coming Soon in v0.3.0
+
+**New resilience features coming Q1 2025:**
+- **Conditional Retry Logic** (#71) - `shouldRetry` predicates to skip retries for specific errors
+- **Retry Progress Events** (#72) - Lifecycle callbacks for retry visibility and monitoring
+- **Jitter Support** (#77) - Built-in jitter strategies to prevent thundering herds
+- **Conditional Policies** (#53) - Context-aware policy selection for dynamic strategies
+- **Bulkhead Policy** (#47) - Resource isolation and double-submit protection
+- **Hedge Policy** (#48) - Latency optimization with parallel request hedging
+
+See [ROADMAP.md](../../project/ROADMAP.md) for full details.
+
 ## What's New in v0.2.0 🎉
 
 **Breaking Changes:**

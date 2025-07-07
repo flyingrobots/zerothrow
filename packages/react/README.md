@@ -21,6 +21,14 @@
 
 React hooks for type-safe error handling with Result types. Stop throwing, start returning.
 
+## 🚧 Coming Soon in v0.3.0
+
+**New React features coming Q1 2025:**
+- **useResultForm** (#73) - Official form handling with Result types and built-in Bulkhead protection against double-submits
+- **Advanced State Introspection** (#76) - Granular loading states (`idle`, `executing`, `retrying`, `settled`) beyond simple boolean flags
+
+See [ROADMAP.md](../../project/ROADMAP.md) for full details.
+
 <div align="center">
 <img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-react.webp" height="300" />
 </div>

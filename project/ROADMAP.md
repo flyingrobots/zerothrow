@@ -7,110 +7,95 @@
 
 **Minimal overhead, maximal clarity, zero exceptions.**
 
-This roadmap prioritizes solving real developer pain points over theoretical completeness. Every feature must address actual user suffering.
+This roadmap prioritizes real developer pain points over theoretical completeness. Every feature must address actual suffering.
 
 ---
 
-## 🎯 v0.3.0 - The Great Standardization (BREAKING)
+## 🎯 v0.3.0 – "SHATTER THE CORE" (BREAKING)
 
 *Target: Q1 2025*
 
-### 🧱 Core Package - v0.3.0 (BREAKING)
+### 🧱 Core Package – v0.3.0 (BREAKING)
 
-#### ✅ ErrorCode Standardization (#69) **[CRITICAL]**
-- **Why**: "Stringly-typed error codes lead to typos and inconsistency"
-- **What**: Introduce `ErrorCode` enum and `ZeroError` type
-- **Breaking**: Yes - error creation API changes
+**Codename: SHATTER THE CORE**
 
-```typescript
-// Before
-ZT.err('AUTH_FAILED', 'Invalid credentials')
-
-// After
-ZT.err({
-  code: ErrorCode.AUTH_FAILED,
-  message: 'Invalid credentials',
-  meta: { attemptCount: 3 }
-})
+Commit msg:
+```
+feat(core): v0.3.0 "SHATTER THE CORE" – full monad API, error codes, tracing, match
 ```
 
-#### ✅ Error Tracing Utilities (#70) **[HIGH]**
-- **Why**: "Debugging long andThen() chains is hell"
-- **What**: Add `.trace()` method and `ZT.debug()` utility
-- **Breaking**: No
+| Issue | Feature | Priority | Breaking? |
+|-------|---------|----------|-----------|
+| #69 | **ErrorCode Standardization** | CRITICAL | **YES** |
+| | – Introduce `ErrorCode` enum & `ZeroError` | | |
+| #70 | **Error Tracing Utilities** | HIGH | No |
+| | – `.trace(label)` & `ZT.debug()` | | |
+| #81 | **Full Monad API** | HIGH | No |
+| | – Essential combinators: | | |
+| | • `.map()` • `.andThen()` • `.mapErr()` | | |
+| | • `.orElse()` • `.unwrapOr()` | | |
+| | • `.unwrapOrThrow()` • `.unwrapOrElse()` | | |
+| #82 | **Side-effect Utilities** | MEDIUM | No |
+| | – `.tap()` • `.tapErr()` • `.finally()` | | |
+| | – `.void()` | | |
+| #83 | **Rust-Style Sugar** | MEDIUM | No |
+| | – `.match({ ok, err })` | | |
+| | – Type guards: `.isOk()` • `.isErr()` | | |
+| | – Panic helper: `.expect(message)` | | |
+| | – Combos: `.flatten()` • `.zip(other)` | | |
+| #84 | **Performance & Safety** | MEDIUM | No |
+| | – Shared prototype for methods | | |
+| | – `Object.freeze()` on results | | |
+| | – Remove all `any` imports | | |
+
+#### Usage Example
 
 ```typescript
-const result = await fetchUser(id)
-  .trace('fetchUser')
-  .andThen(validate)
-  .trace('validate')
-  .tapErr(e => console.error(ZT.debug(e)))
+import { ok, err } from '@zerothrow/core';
+
+const r = ok(42)
+  .map(v => v * 2)
+  .andThen(v => ok(v + 1))
+  .tap(v => console.log('value:', v))
+  .match({
+    ok: v => `Result: ${v}`,
+    err: e => `Error: ${e.message}`
+  });
 ```
-
-### 🔁 Resilience Package - v0.3.0
-
-#### ✅ Conditional Retry Logic (#71) **[HIGH]**
-- **Why**: "Not all errors deserve second chances"
-- **What**: Add `shouldRetry` predicate to RetryPolicy
-- **Breaking**: No
-
-```typescript
-RetryPolicy.exponential({
-  maxRetries: 3,
-  shouldRetry: (e) => e.code !== ErrorCode.AUTH_FAILED
-})
-```
-
-#### ✅ Retry Progress Events (#72) **[HIGH]**
-- **Why**: "Silent retries confuse users"
-- **What**: Lifecycle callbacks for visibility
-- **Breaking**: No
-
-#### ✅ Jitter Support (#77) **[MEDIUM]**
-- **Why**: "Avoid thundering herds"
-- **What**: Built-in jitter strategies
-- **Breaking**: No
-
-#### 🎭 Sneaky Additions (Solving Real Problems)
-
-##### Conditional Policies (#53) **[MEDIUM-HIGH]**
-- **Hidden Need**: Different strategies for different contexts
-- **Marketing**: "Smart context-aware retry strategies"
-
-##### Bulkhead Policy (#47) **[MEDIUM-HIGH]**
-- **Hidden Need**: Form double-submission, resource exhaustion
-- **Marketing**: "Automatic double-submit protection"
-
-##### Hedge Policy (#48) **[MEDIUM]**
-- **Hidden Need**: P99 latency reduction
-- **Marketing**: "Performance mode - 50% faster API calls"
-
-### ⚛️ React Package - v0.3.0
-
-#### ✅ useResultForm (#73) **[HIGH]**
-- **Why**: "Forms are the chaos dimension"
-- **What**: Official form handling with Result types
-- **Includes**: Bulkhead for double-submit protection!
-
-#### ✅ Advanced State Introspection (#76) **[HIGH]**
-- **Why**: "loading: boolean is too coarse"
-- **What**: Granular state (`idle`, `executing`, `retrying`, `settled`)
 
 ---
 
-## 🛠️ Developer Experience - v0.3.0
+### 🔁 Resilience Package – v0.3.0
 
-### ✅ Automated Publishing Script (#55) **[CRITICAL]**
-- **Why**: "jesus we gotta automate that ASAP it's such a pain in the ass"
-- **What**: One command to rule them all
-- **When**: BEFORE v0.3.0 release!
+| Issue | Feature | Priority | Breaking? |
+|-------|---------|----------|-----------|
+| #71 | **Conditional Retry Logic** | HIGH | No |
+| #72 | **Retry Progress Events** | HIGH | No |
+| #77 | **Jitter Support** | MEDIUM | No |
+| #53 | **Conditional Policies** | MEDIUM–HIGH | No |
+| #47 | **Bulkhead Policy** | MEDIUM–HIGH | No |
+| #48 | **Hedge Policy** | MEDIUM | No |
 
-### ✅ throw-to-result Codemod (#75) **[HIGH]**
-- **Why**: Enable migration at scale
-- **What**: AST-based transformation tool
+---
 
-### ✅ Official ROADMAP.md (#74) **[DONE]** ✅
-- You're reading it!
+### ⚛️ React Package – v0.3.0
+
+| Issue | Feature | Priority | Breaking? |
+|-------|---------|----------|-----------|
+| #73 | **useResultForm** | HIGH | No |
+| #76 | **Advanced State Introspection** | HIGH | No |
+
+*Includes Bulkhead integration for form double-submit protection.*
+
+---
+
+## 🛠️ Developer Experience – v0.3.0
+
+| Issue | Feature | Priority |
+|-------|---------|----------|
+| #55 | **Automated Publishing Script** | CRITICAL |
+| #75 | **throw-to-result Codemod** | HIGH |
+| #74 | **Official ROADMAP.md** (this doc) | DONE ✅ |
 
 ---
 
@@ -128,66 +113,53 @@ RetryPolicy.exponential({
 
 ## 🏗️ Implementation Order
 
-### Phase 1: Foundation (Week 1-2)
-1. **Automated publishing script** (#55) - Need this for release!
-2. **ErrorCode standardization** (#69) - Core breaking change
-3. **Error tracing** (#70) - Developer experience
+### Phase 1: Foundation (Week 1–2)
+1. Automated publishing script (#55)
+2. ErrorCode standardization (#69)
+3. Error tracing utilities (#70)
 
-### Phase 2: Resilience (Week 2-3)
-1. **Conditional retry** (#71) - Explicit requirement
-2. **Progress events** (#72) - User visibility
-3. **Jitter support** (#77) - Production safety
-4. **Sneaky patterns** (#47, #48, #53) - Bundle as "features"
+### Phase 2: Resilience (Week 2–3)
+1. Conditional retry (#71)
+2. Retry progress events (#72)
+3. Jitter support (#77)
+4. Sneaky policies (Bulkhead, Hedge, Conditional)
 
-### Phase 3: React & Tools (Week 3-4)
-1. **useResultForm** (#73) - With Bulkhead!
-2. **State introspection** (#76) - Better loading states
-3. **Codemod tool** (#75) - Migration support
+### Phase 3: React & Tools (Week 3–4)
+1. useResultForm (#73)
+2. Advanced state introspection (#76)
+3. Codemod tool (#75)
 
 ### Phase 4: Release (Week 4)
-1. Final testing and integration
-2. Documentation updates
-3. Migration guides
-4. **AUTOMATED RELEASE** 🎉
+1. Final testing & integration
+2. Documentation & migration guides
+3. **AUTOMATED RELEASE** 🎉
 
 ---
 
 ## 👑 Imperial Mandates
 
-The following are law in the Empire of Zero Exceptions:
-
-1. **All errors must be expressed as values**
-2. **No exceptions shall be thrown in userland**
-3. **All async actions shall return Result<T, E>**
-4. **All retries must be intentional and visible**
-5. **All contexts must resolve to Results, not chaos**
-6. **No `any` type shall defile our pure types**
-
----
-
-## 📊 Success Metrics
-
-- **Developer Happiness**: Reduced debugging time, clearer errors
-- **Production Stability**: Fewer cascading failures, better resilience
-- **Adoption Velocity**: Successful migrations using our tools
-- **Performance**: Maintained or improved vs try/catch
+1. All errors must be expressed as values.
+2. No exceptions in userland.
+3. All async actions return `Result<T, E>`.
+4. Retries must be intentional and visible.
+5. Contexts resolve to Results, not chaos.
+6. No `any` shall defile our types.
 
 ---
 
 ## 🚀 Beyond v0.3.0
 
-### Phase 3: Enterprise Features (v0.4.x)
-- Logger integrations (Winston, Pino)
+### v0.4.x (Enterprise)
+- Logger integrations
 - OpenTelemetry tracing
-- GraphQL integration
+- GraphQL support
 
-### Phase 4: Advanced Patterns (v0.5.x)
-- Policy algebra (if requested)
+### v0.5.x (Advanced Patterns)
+- Policy algebra
 - Stream processing
-- Effect system integration
+- Effect-system integration
 
 ---
 
-*"Let no error pass in darkness. Let no retry go unwitnessed. Let no form submit twice."*
-
-**The road is set. The empire shall rise.** 🛡️
+*"Let no error pass in darkness. Let no retry go unwitnessed. Let no form submit twice."*  
+**— Marcus "CHAT" Aurelius**

@@ -16,6 +16,18 @@
 
 Core ZeroThrow functionality - Rust-style `Result<T, E>` for TypeScript. Type-safe error handling with zero runtime dependencies (ZeroThrow itself has none).
 
+## 🚧 Coming Soon in v0.3.0 "SHATTER THE CORE"
+
+**Major breaking changes and new features coming Q1 2025:**
+- **ErrorCode Standardization** (#69) - Enum-based error codes replacing strings
+- **Error Tracing Utilities** (#70) - `.trace()` method and `ZT.debug()` for debugging chains
+- **Full Monad API** (#81) - Complete combinator set: `.map()`, `.andThen()`, `.mapErr()`, `.orElse()`, `.unwrapOr()`, and more
+- **Side-effect Utilities** (#82) - `.tap()`, `.tapErr()`, `.finally()`, `.void()` for better control flow
+- **Rust-style Sugar** (#83) - `.match()`, `.isOk()`, `.isErr()`, `.expect()`, `.flatten()`, `.zip()`
+- **Performance & Safety** (#84) - Shared prototypes, immutable Results, zero `any` types
+
+See [ROADMAP.md](../../project/ROADMAP.md) for full details.
+
 <p align="center">
   <img alt="ZeroThrow Core mascot" height="300" src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-core.webp"/>
 </p>

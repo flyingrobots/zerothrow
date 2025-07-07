@@ -13,6 +13,19 @@
   <img src="https://img.shields.io/badge/TypeScript-5.0%2B-blue" alt="TypeScript">
 </p>
 
+## 🚧 v0.3.0 Development Active
+
+We're currently working towards **v0.3.0**, which includes **breaking changes** to the core package and significant enhancements across the ecosystem. See [ROADMAP.md](project/ROADMAP.md) for the full vision.
+
+**Affected packages in v0.3.0:**
+- `@zerothrow/core` (0.2.3 → **0.3.0**) - **BREAKING**: ErrorCode standardization, error tracing utilities
+- `@zerothrow/resilience` (0.2.1 → 0.3.0) - Conditional retry logic, progress events, jitter support
+- `@zerothrow/react` (0.2.1 → 0.3.0) - New `useResultForm` hook, advanced state introspection
+- `@zerothrow/jest` (1.1.1 → 1.2.0) - Enhanced matchers
+- `@zerothrow/vitest` (1.1.1 → 1.2.0) - Enhanced matchers
+
+All feature development should target the `release/v0.3.0` branch. See [CONTRIBUTING.md](CONTRIBUTING.md#-v030-release-branch-workflow-active-until-v030-release) for workflow details.
+
 ## Quick Taste
 
 ```typescript
