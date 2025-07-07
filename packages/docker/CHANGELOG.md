@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 - 2025-07-07
+
+### Patch Changes
+
+- Lowered minimum Node.js version from 20.17.0 to 18.17.0
+  - Expands compatibility to Node 18 LTS users
+  - No features required Node 20 specifically
+  - Aligns with monorepo standard
+- Added `platform: "node"` to package.json for clarity
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/docker",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Zero-throw Docker utilities for testing and container management",
   "type": "module",
   "sideEffects": false,
@@ -60,7 +60,7 @@
   "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
   "homepage": "https://github.com/zerothrow/zerothrow#readme",
   "engines": {
-    "node": ">=20.17.0"
+    "node": ">=18.17.0"
   },
   "repository": {
     "type": "git",
@@ -69,5 +69,6 @@
   },
   "bugs": {
     "url": "https://github.com/zerothrow/zerothrow/issues"
-  }
+  },
+  "platform": "node"
 }
