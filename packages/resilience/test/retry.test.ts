@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { RetryPolicy, RetryExhaustedError } from '../src/index.js'
-import { TestClock } from '../src/clock.js'
 
 describe('RetryPolicy', () => {
   it('should return success on first attempt', async () => {
