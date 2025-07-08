@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.3.0 - 2025-07-08
+
+### Breaking Changes
+
+- **MAJOR API OVERHAUL**: All policies now accept Result-returning operations instead of throwing operations
+  - **Policy execute method**: Changed from `execute<T>(operation: () => Promise<T>)` to `execute<T, E>(operation: () => ZeroThrow.Async<T, E>)`
+  - **No more internal ZT.tryAsync()**: Operations are expected to return Results directly
+  - **Generic error types**: All error types are now generic over `E extends Error` instead of hardcoded `Error`
+  - **Result-first philosophy**: Fully embraces "Stop throwing, start returning" principle
+
+### Migration Guide
+
+**Before (v0.2.x)**:
+```typescript
+// Operations throw exceptions
+const operation = async () => {
+  const result = await someApiCall();
+  if (result.status !== 'ok') {
+    throw new Error('API failed');
+  }
+  return result.data;
+};
+
+const retried = await PolicyFactory.retry(3).execute(operation);
+```
+
+**After (v0.3.0)**:
+```typescript
+// Operations return Results
+const operation = async () => {
+  const result = await someApiCall();
+  if (result.status !== 'ok') {
+    return ZT.err(new Error('API failed'));
+  }
+  return ZT.ok(result.data);
+};
+
+const retried = await PolicyFactory.retry(3).execute(operation);
+```
+
+### What Changed
+
+- **All policy implementations** (retry, circuit breaker, timeout, bulkhead, hedge) now work with Result-returning operations
+- **Error handling** is now type-safe and compositional
+- **Policy errors** now wrap original error types instead of always using `Error`
+- **Tests updated** to use Result patterns throughout
+- **No more exceptions** in the resilience library - everything is Result-based
+
+### Why This Change
+
+The previous implementation violated ZeroThrow's core principle by expecting operations to throw exceptions and then internally wrapping them with `ZT.tryAsync()`. This forced users to write throwing code in a library called "ZeroThrow". The new implementation properly embraces the Result-first philosophy where operations return Results from the beginning.
+
 ## 0.2.1 - 2025-07-07
 
 ### Patch Changes

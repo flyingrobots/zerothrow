@@ -1,4 +1,4 @@
-import { ZT, type Result } from '@zerothrow/core'
+import { ZT, ZeroThrow, ZeroError } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
 import { CircuitOpenError, type CircuitOptions, type CircuitBreakerPolicy as ICircuitBreakerPolicy } from '../types.js'
 import type { Clock } from '../clock.js'
@@ -19,9 +19,15 @@ export class CircuitBreakerPolicy extends BasePolicy implements ICircuitBreakerP
     super('circuit-breaker', clock)
   }
 
-  async execute<T>(
-    operation: () => Promise<T>
-  ): Promise<Result<T, Error>> {
+  execute<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(this.executeAsync(operation))
+  }
+
+  private async executeAsync<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): Promise<ZeroThrow.Result<T, E>> {
     // Check if circuit is open
     if (this.state === 'open') {
       const now = this.clock.now().getTime()
@@ -30,16 +36,20 @@ export class CircuitBreakerPolicy extends BasePolicy implements ICircuitBreakerP
       if (this.nextAllowedTime && now >= this.nextAllowedTime) {
         this.setState('half-open')
       } else {
-        return ZT.err(new CircuitOpenError(
+        // When circuit is open, we need to return an error of type E
+        // SAFE_CAST: CircuitOpenError is a valid error type
+        const circuitError = new CircuitOpenError<E>(
           this.name,
           new Date(this.lastFailureTime || now),
           this.failures
-        ))
+        )
+        // SAFE_CAST: Type assertion necessary - CircuitOpenError extends Error
+        return ZT.err(circuitError as unknown as E) as unknown as ZeroThrow.Result<T, E>
       }
     }
     
-    // Try the operation
-    const result = await this.runOperation(operation)
+    // Execute the operation directly - it returns a Result
+    const result = await operation()
     
     if (result.ok) {
       this.onSuccess()
@@ -53,11 +63,16 @@ export class CircuitBreakerPolicy extends BasePolicy implements ICircuitBreakerP
       const currentState = this.state as CircuitState
       if (currentState === 'open') {
         // Circuit just opened, return circuit error instead of original error
-        return ZT.err(new CircuitOpenError(
+        // Circuit just opened due to this failure, wrap the original error
+        const circuitError = new CircuitOpenError<E>(
           this.name,
           new Date(this.lastFailureTime || Date.now()),
-          this.failures
-        ))
+          this.failures,
+          undefined,
+          result.error  // Preserve the original error
+        )
+        // SAFE_CAST: Type assertion necessary - CircuitOpenError extends Error
+        return ZT.err(circuitError as unknown as E) as unknown as ZeroThrow.Result<T, E>
       }
       
       return result

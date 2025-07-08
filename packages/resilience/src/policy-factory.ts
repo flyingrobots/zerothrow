@@ -2,8 +2,21 @@ import { RetryPolicy } from './policies/retry.js'
 import { CircuitBreakerPolicy } from './policies/circuit.js'
 import { TimeoutPolicy } from './policies/timeout.js'
 import { Bulkhead } from './policies/bulkhead.js'
+import { ConditionalPolicyImpl } from './policies/conditional.js'
+import { BranchPolicyImpl } from './policies/branch.js'
+import { AdaptivePolicyImpl } from './policies/adaptive.js'
+import { hedge as createHedge } from './policies/hedge.js'
 import { wrap, compose } from './compose.js'
-import type { RetryOptions, CircuitOptions, TimeoutOptions, BulkheadOptions } from './types.js'
+import type { 
+  RetryOptions, 
+  CircuitOptions, 
+  TimeoutOptions,
+  BulkheadOptions,
+  HedgeOptions,
+  ConditionalPolicyOptions,
+  BranchPolicyOptions,
+  AdaptivePolicyOptions
+} from './types.js'
 import type { Clock } from './clock.js'
 
 /**
@@ -45,6 +58,13 @@ export const Policy = {
   },
 
   /**
+   * Creates a hedge policy for tail latency reduction
+   */
+  hedge(options: HedgeOptions) {
+    return createHedge(options)
+  },
+
+  /**
    * Wraps one policy with another
    * The outer policy executes first
    */
@@ -54,5 +74,26 @@ export const Policy = {
    * Composes multiple policies from left to right
    * The leftmost policy is the outermost wrapper
    */
-  compose
+  compose,
+
+  /**
+   * Creates a conditional policy that chooses between two policies based on a condition
+   */
+  conditional(options: ConditionalPolicyOptions) {
+    return new ConditionalPolicyImpl(options)
+  },
+
+  /**
+   * Creates a branch policy that selects from multiple policies based on conditions
+   */
+  branch(options: BranchPolicyOptions) {
+    return new BranchPolicyImpl(options)
+  },
+
+  /**
+   * Creates an adaptive policy that dynamically selects policies based on runtime metrics
+   */
+  adaptive(options: AdaptivePolicyOptions) {
+    return new AdaptivePolicyImpl(options)
+  }
 } as const

@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { CircuitBreakerPolicy, CircuitOpenError, TestClock } from '../src/index.js'
+import { ZT } from '@zerothrow/core'
 
 describe('CircuitBreakerPolicy', () => {
   it('should allow successful operations through', async () => {
     const policy = new CircuitBreakerPolicy({ threshold: 3, duration: 1000 })
-    const operation = vi.fn().mockResolvedValue('success')
+    const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
     
     const result = await policy.execute(operation)
     
@@ -21,7 +22,7 @@ describe('CircuitBreakerPolicy', () => {
       onOpen 
     })
     
-    const operation = vi.fn().mockRejectedValue(new Error('fail'))
+    const operation = vi.fn().mockResolvedValue(ZT.err(new Error('fail')))
     
     // First two failures count towards threshold
     await policy.execute(operation)
@@ -49,8 +50,8 @@ describe('CircuitBreakerPolicy', () => {
     }, clock)
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue('success')
+      .mockResolvedValueOnce(ZT.err(new Error('fail')))
+      .mockResolvedValue(ZT.ok('success'))
     
     // Open the circuit
     await policy.execute(operation)
@@ -77,7 +78,7 @@ describe('CircuitBreakerPolicy', () => {
       duration: 1000 
     }, clock)
     
-    const operation = vi.fn().mockRejectedValue(new Error('always fails'))
+    const operation = vi.fn().mockResolvedValue(ZT.err(new Error('always fails')))
     
     // Open the circuit
     await policy.execute(operation)

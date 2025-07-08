@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { useCallback } from 'react'
 import { ZT } from '@zerothrow/core'
 import { useResult } from '../../src/hooks/useResult'
+import { LoadingPhase } from '../../src/types/loading'
 
 describe('useResult', () => {
   afterEach(() => {
@@ -179,6 +180,222 @@ describe('useResult', () => {
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
       expect(result.current.result?.value).toBe('sync-success')
+    })
+  })
+
+  describe('Enhanced State Introspection', () => {
+    it('should provide granular loading states', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('success'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      // Initial state when immediate=true
+      expect(result.current.loadingState.type).toBe('pending')
+      expect(result.current.state.phase).toBe(LoadingPhase.Executing)
+      expect(result.current.state.attempt).toBe(1)
+      
+      await waitFor(() => {
+        expect(result.current.loadingState.type).toBe('success')
+        expect(result.current.state.phase).toBe(LoadingPhase.Settled)
+        expect(result.current.state.attempt).toBe(1)
+      })
+    })
+
+    it('should track retry attempts', async () => {
+      let attemptCount = 0
+      const fn = vi.fn().mockImplementation(async () => {
+        attemptCount++
+        if (attemptCount < 2) {
+          return ZT.err(new Error('Temporary failure'))
+        }
+        return ZT.ok('success')
+      })
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      await waitFor(() => {
+        expect(result.current.result).toBeDefined()
+        expect(result.current.result!.ok).toBe(false)
+        expect(result.current.state.attempt).toBe(1)
+      })
+      
+      // Trigger retry
+      act(() => {
+        result.current.reload()
+      })
+      
+      await waitFor(() => {
+        expect(result.current.result).toBeDefined()
+        expect(result.current.result!.ok).toBe(true)
+        expect(result.current.state.attempt).toBe(1) // Note: manual reload doesn't increment attempt
+      })
+    })
+
+    it('should provide introspection data when enabled', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test data'))
+      
+      const { result } = renderHook(() => 
+        useResult(fn, { 
+          introspection: { 
+            name: 'TestHook',
+            historyLimit: 5 
+          } 
+        })
+      )
+      
+      await waitFor(() => {
+        expect(result.current.introspect).toBeDefined()
+        expect(result.current.introspect?.debug.componentName).toBe('TestHook')
+        expect(result.current.introspect?.current?.value).toBe('test data')
+        expect(result.current.introspect?.history).toHaveLength(1)
+      })
+    })
+
+    it('should not provide introspection data when disabled', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test data'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      await waitFor(() => {
+        expect(result.current.introspect).toBeUndefined()
+      })
+    })
+
+    it('should differentiate between refresh and initial load', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('data'))
+      
+      const { result } = renderHook(() => 
+        useResult(fn, { introspection: true })
+      )
+      
+      await waitFor(() => {
+        expect(result.current.result?.value).toBe('data')
+      })
+      
+      // Trigger refresh
+      act(() => {
+        result.current.reload()
+      })
+      
+      // Should transition to refreshing state
+      expect(result.current.loadingState.type).toBe('refreshing')
+      
+      await waitFor(() => {
+        expect(result.current.loadingState.type).toBe('success')
+      })
+    })
+
+    it('should provide development tools in development mode', async () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'development'
+      
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      expect(result.current.devTools).toBeDefined()
+      expect(result.current.devTools?.pause).toBeTypeOf('function')
+      expect(result.current.devTools?.resume).toBeTypeOf('function')
+      expect(result.current.devTools?.setMockResult).toBeTypeOf('function')
+      
+      process.env.NODE_ENV = originalEnv
+    })
+
+    it('should not provide development tools in production mode', async () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'production'
+      
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      expect(result.current.devTools).toBeUndefined()
+      
+      process.env.NODE_ENV = originalEnv
+    })
+
+    it('should support mocking results in development', async () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'development'
+      
+      const fn = vi.fn().mockResolvedValue(ZT.ok('real'))
+      const mockResult = ZT.ok('mocked')
+      
+      const { result } = renderHook(() => useResult(fn, { immediate: false }))
+      
+      // Set mock result
+      act(() => {
+        result.current.devTools?.setMockResult(mockResult)
+      })
+      
+      // Execute function
+      act(() => {
+        result.current.reload()
+      })
+      
+      await waitFor(() => {
+        expect(result.current.result?.value).toBe('mocked')
+      })
+      
+      process.env.NODE_ENV = originalEnv
+    })
+
+    it('should support pausing execution in development', async () => {
+      const originalEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'development'
+      
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test'))
+      
+      const { result } = renderHook(() => useResult(fn, { immediate: false }))
+      
+      // Pause execution
+      act(() => {
+        result.current.devTools?.pause()
+      })
+      
+      // Try to execute - should be ignored
+      act(() => {
+        result.current.reload()
+      })
+      
+      // Should not execute
+      expect(fn).not.toHaveBeenCalled()
+      expect(result.current.loading).toBe(false)
+      
+      process.env.NODE_ENV = originalEnv
+    })
+
+    it('should maintain backward compatibility with loading boolean', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('success'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      // Initially loading
+      expect(result.current.loading).toBe(true)
+      
+      await waitFor(() => {
+        expect(result.current.loading).toBe(false)
+        expect(result.current.result?.value).toBe('success')
+      })
+      
+      // Should be equivalent to executing or retrying phases
+      const isLoadingPhase = result.current.state.phase === LoadingPhase.Executing || 
+                             result.current.state.phase === LoadingPhase.Retrying
+      expect(result.current.loading).toBe(isLoadingPhase)
+    })
+
+    it('should track state flags correctly', async () => {
+      const fn = vi.fn().mockResolvedValue(ZT.ok('test'))
+      
+      const { result } = renderHook(() => useResult(fn))
+      
+      // Check initial flags when immediate=true
+      expect(result.current.state.phase).toBe(LoadingPhase.Executing)
+      expect(result.current.state.isRetrying).toBe(false)
+      
+      await waitFor(() => {
+        expect(result.current.state.phase).toBe(LoadingPhase.Settled)
+      })
     })
   })
 })
