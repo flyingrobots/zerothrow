@@ -15,6 +15,31 @@
 
 Unified test matchers for ZeroThrow Result types - supports both Jest and Vitest with automatic test runner detection.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+  - [Automatic Setup](#automatic-setup)
+  - [Manual Setup for Jest](#manual-setup-for-jest)
+  - [Manual Setup for Vitest](#manual-setup-for-vitest)
+- [API](#api)
+  - [Test Matchers](#test-matchers)
+    - [`toBeOk()`](#tobeok)
+    - [`toBeOkWith(value)`](#tobeokwithvalue)
+    - [`toBeErr()`](#tobeerr)
+    - [`toBeErrWith(error)`](#tobeerrwitherror)
+    - [`toHaveErrorCode(code)`](#tohaveerrorcodecode)
+    - [`toHaveErrorMessage(message)`](#tohaveerrormessagemessage)
+- [Examples](#examples)
+  - [Testing Async Operations](#testing-async-operations)
+  - [Testing with Custom Error Types](#testing-with-custom-error-types)
+  - [Framework-Specific Configuration](#framework-specific-configuration)
+    - [Jest Configuration](#jest-configuration)
+    - [Vitest Configuration](#vitest-configuration)
+- [How It Works](#how-it-works)
+- [Contributing](#contributing)
+- [License](#license)
+
 <div align="center">
 <img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-testing.webp" height="300" />
 </div>

@@ -19,6 +19,28 @@
 
 Vitest matchers for ZeroThrow Result types - write expressive tests for Result-based error handling with zero-cost abstractions.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [API](#api)
+  - [Matchers](#matchers)
+    - [`toBeOk()`](#tobeok)
+    - [`toBeOkWith(expected)`](#tobeokwithexpected)
+    - [`toBeErr()`](#tobeerr)
+    - [`toBeErrWith(error)`](#tobeerrwitherror)
+    - [`toHaveErrorCode(code)`](#tohaveerrorcodecode)
+    - [`toHaveErrorMessage(message)`](#tohaveerrormessagemessage)
+  - [TypeScript Support](#typescript-support)
+- [Examples](#examples)
+  - [Testing async operations with combinators](#testing-async-operations-with-combinators)
+  - [Testing with ZeroError codes](#testing-with-zeroerror-codes)
+  - [Testing Result chains and combinators](#testing-result-chains-and-combinators)
+- [Manual Setup](#manual-setup)
+- [🚧 Coming Soon in v0.3.0](#-coming-soon-in-v030)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```bash

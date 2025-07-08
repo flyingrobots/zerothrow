@@ -149,15 +149,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## Philosophy
 
-Explicit errors. No hidden control flow. Small, composable packages. [Read more →](https://github.com/zerothrow/zerothrow/tree/main/docs/philosophy.md)
+Explicit errors. No hidden control flow. Small, composable packages. [Read more →](docs/philosophy.md)
 
 ## Documentation
 
 - 📖 **[Core Library Guide](packages/core)** - Start here
-- 🏗️ **[Architecture](https://github.com/zerothrow/zerothrow/tree/main/docs/architecture.md)** - How it all fits together
+- 🏗️ **[Architecture](docs/architecture.md)** - How it all fits together
 - 📦 **[Package Ecosystem](https://github.com/zerothrow/zerothrow/blob/main/ECOSYSTEM.md)** - All packages explained
 - 🔄 **[Migration Guide](https://github.com/zerothrow/zerothrow/blob/main/packages/core/CHANGELOG.md#migration-guide)** - Upgrading from v0.1.x
-- 📊 **[Benchmarks](https://github.com/zerothrow/zerothrow/tree/main/benchmarks)** - Performance data (`pnpm benchmark`)
+- 📊 **[Benchmarks](scripts/benchmarks)** - Performance data (`pnpm benchmark`)
 
 ## Community
 

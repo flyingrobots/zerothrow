@@ -21,6 +21,31 @@
 
 React hooks for type-safe error handling with Result types. Stop throwing, start returning.
 
+## Table of Contents
+
+- [🚧 Coming Soon in v0.3.0](#-coming-soon-in-v030)
+- [🎉 What's New?](#-whats-new)
+- [Why @zerothrow/react?](#why-zerothrowreact)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+  - [Basic Async Operations](#basic-async-operations)
+  - [Resilient Operations](#resilient-operations)
+  - [Error Boundaries](#error-boundaries)
+  - [Safe Context Access](#safe-context-access)
+- [Core API](#core-api)
+  - [`useResult`](#useresult)
+  - [`useResilientResult`](#useresilientresult)
+  - [`ResultBoundary`](#resultboundary)
+  - [`useResultContext`](#useresultcontext)
+  - [`createResultContext`](#createresultcontext)
+- [Patterns](#patterns)
+  - [Form Validation](#form-validation)
+  - [Parallel Data Fetching](#parallel-data-fetching)
+  - [Dependent Queries](#dependent-queries)
+- [Testing](#testing)
+- [Best Practices](#best-practices)
+- [License](#license)
+
 ## 🚧 Coming Soon in v0.3.0
 
 **New React features coming Q1 2025:**
