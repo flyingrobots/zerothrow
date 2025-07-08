@@ -103,12 +103,12 @@ export class ErrorFormatter {
   formatResult<T, E extends Error>(result: ZeroThrow.Result<T, E>): string {
     if (result.ok) {
       const { colors } = this.options;
-      const valueStr = JSON.stringify(result.value);
+      const valueStr = JSON.stringify((result as any).value);
       return colors
         ? `${COLORS.green}✓ Success: ${valueStr}${COLORS.reset}`
         : `✓ Success: ${valueStr}`;
     } else {
-      const error = result.error;
+      const error = (result as any).error;
       if (error instanceof ZeroThrow.ZeroError) {
         return this.formatZeroError(error);
       } else {
