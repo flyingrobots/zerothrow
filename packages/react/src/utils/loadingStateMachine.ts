@@ -115,6 +115,9 @@ export class LoadingStateMachine {
     attempt?: number
     maxAttempts?: number
     previousData?: unknown
+    value?: unknown
+    error?: Error
+    canRetry?: boolean
   }): boolean {
     const previousState = this.iterator.current
     const newState = this.iterator.go(event)
@@ -139,15 +142,18 @@ export class LoadingStateMachine {
    * Simple, straightforward logic
    */
   private updateContext(
-    from: LoadingStateType, 
+    _from: LoadingStateType, 
     to: LoadingStateType, 
-    event: LoadingEvent,
+    _event: LoadingEvent,
     data?: {
       result?: Result<unknown, Error>
       duration?: number
       attempt?: number
       maxAttempts?: number
       previousData?: unknown
+      value?: unknown
+      error?: Error
+      canRetry?: boolean
     }
   ): void {
     const now = Date.now()
@@ -200,9 +206,8 @@ export class LoadingStateMachine {
           ...this.context,
           data: {
             type: 'success',
-            value: data?.result?.ok ? data.result.value : undefined,
             completedAt: now,
-            duration: this.context.startTime ? now - this.context.startTime : 0
+            duration: data?.duration || (this.context.startTime ? now - this.context.startTime : 0)
           }
         }
         break
@@ -212,10 +217,10 @@ export class LoadingStateMachine {
           ...this.context,
           data: {
             type: 'error',
-            error: data?.result?.err ? data.result.error : new Error('Operation failed'),
+            error: data?.error || (data?.result?.match ? data.result.match({ ok: () => new Error('Operation failed'), err: e => e }) : new Error('Operation failed')),
             failedAt: now,
-            canRetry: true,
-            duration: this.context.startTime ? now - this.context.startTime : 0
+            canRetry: data?.canRetry !== undefined ? data.canRetry : true,
+            duration: data?.duration || (this.context.startTime ? now - this.context.startTime : 0)
           }
         }
         break

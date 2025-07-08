@@ -104,11 +104,24 @@ export const LoadingStateUtils = {
    * Create a LoadingFlags object from a LoadingState
    */
   toFlags(state: LoadingState): LoadingFlags {
+    const getPhase = (state: LoadingState): LoadingPhase => {
+      switch (state.type) {
+        case 'idle':
+          return LoadingPhase.Idle
+        case 'pending':
+        case 'refreshing':
+          return LoadingPhase.Executing
+        case 'retrying':
+          return LoadingPhase.Retrying
+        case 'success':
+        case 'error':
+          return LoadingPhase.Settled
+      }
+    }
+    
     return {
-      idle: state.type === 'idle',
-      executing: state.type === 'pending' || state.type === 'refreshing',
-      retrying: state.type === 'retrying',
-      settled: state.type === 'success' || state.type === 'error'
+      phase: getPhase(state),
+      isRetrying: state.type === 'retrying'
     }
   }
 }
