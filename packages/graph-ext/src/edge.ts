@@ -58,11 +58,11 @@ export class SimpleEdge<TState extends number, TEvent extends number, TContext =
     super(from, to, event)
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     return !this.guard || this.guard(context)
   }
   
-  clone(): SimpleEdge<TState, TEvent, TContext> {
+  override clone(): SimpleEdge<TState, TEvent, TContext> {
     return new SimpleEdge(this.from, this.to, this.event, this.guard)
   }
 }
@@ -83,15 +83,15 @@ export class ContextEdge<TState extends number, TEvent extends number, TContext 
     super(from, to, event)
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     return !this.guard || this.guard(context)
   }
   
-  onTraverse(context: TContext): TContext {
+  override onTraverse(context: TContext): TContext {
     return this.action ? this.action(context) : context
   }
   
-  clone(): ContextEdge<TState, TEvent, TContext> {
+  override clone(): ContextEdge<TState, TEvent, TContext> {
     return new ContextEdge(this.from, this.to, this.event, this.guard, this.action)
   }
 }
@@ -115,7 +115,7 @@ export class TimedEdge<TState extends number, TEvent extends number, TContext = 
     super(from, to, event)
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     if (this.guard && !this.guard(context)) {
       return false
     }
@@ -135,12 +135,12 @@ export class TimedEdge<TState extends number, TEvent extends number, TContext = 
     return true
   }
   
-  onTraverse(context: TContext): TContext {
+  override onTraverse(context: TContext): TContext {
     this.lastTraversed = Date.now()
     return context
   }
   
-  getMetadata(): Record<string, any> {
+  override getMetadata(): Record<string, any> {
     return {
       ...super.getMetadata(),
       minDelay: this.minDelay,
@@ -149,7 +149,7 @@ export class TimedEdge<TState extends number, TEvent extends number, TContext = 
     }
   }
   
-  clone(): TimedEdge<TState, TEvent, TContext> {
+  override clone(): TimedEdge<TState, TEvent, TContext> {
     return new TimedEdge(this.from, this.to, this.event, this.minDelay, this.maxDelay, this.guard)
   }
 }
@@ -173,7 +173,7 @@ export class RetryEdge<TState extends number, TEvent extends number, TContext = 
     super(from, to, event)
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     if (this.guard && !this.guard(context)) {
       return false
     }
@@ -181,7 +181,7 @@ export class RetryEdge<TState extends number, TEvent extends number, TContext = 
     return this.attempts < this.maxAttempts
   }
   
-  onTraverse(context: TContext): TContext {
+  override onTraverse(context: TContext): TContext {
     this.attempts++
     return context
   }
@@ -190,7 +190,7 @@ export class RetryEdge<TState extends number, TEvent extends number, TContext = 
     this.attempts = 0
   }
   
-  getMetadata(): Record<string, any> {
+  override getMetadata(): Record<string, any> {
     return {
       ...super.getMetadata(),
       attempts: this.attempts,
@@ -199,7 +199,7 @@ export class RetryEdge<TState extends number, TEvent extends number, TContext = 
     }
   }
   
-  clone(): RetryEdge<TState, TEvent, TContext> {
+  override clone(): RetryEdge<TState, TEvent, TContext> {
     return new RetryEdge(this.from, this.to, this.event, this.maxAttempts, this.resetOn, this.guard)
   }
 }
@@ -223,7 +223,7 @@ export class ProbabilisticEdge<TState extends number, TEvent extends number, TCo
     }
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     if (this.guard && !this.guard(context)) {
       return false
     }
@@ -231,14 +231,14 @@ export class ProbabilisticEdge<TState extends number, TEvent extends number, TCo
     return Math.random() < this.probability
   }
   
-  getMetadata(): Record<string, any> {
+  override getMetadata(): Record<string, any> {
     return {
       ...super.getMetadata(),
       probability: this.probability
     }
   }
   
-  clone(): ProbabilisticEdge<TState, TEvent, TContext> {
+  override clone(): ProbabilisticEdge<TState, TEvent, TContext> {
     return new ProbabilisticEdge(this.from, this.to, this.event, this.probability, this.guard)
   }
 }
@@ -259,7 +259,7 @@ export class CompositeEdge<TState extends number, TEvent extends number, TContex
     super(from, to, event)
   }
   
-  canTraverse(context: TContext): boolean {
+  override canTraverse(context: TContext): boolean {
     if (this.mode === 'all') {
       return this.edges.every(edge => edge.canTraverse(context))
     } else {
@@ -267,12 +267,12 @@ export class CompositeEdge<TState extends number, TEvent extends number, TContex
     }
   }
   
-  onTraverse(context: TContext): TContext {
+  override onTraverse(context: TContext): TContext {
     // Apply all edge effects in sequence
     return this.edges.reduce((ctx, edge) => edge.onTraverse(ctx), context)
   }
   
-  getMetadata(): Record<string, any> {
+  override getMetadata(): Record<string, any> {
     return {
       ...super.getMetadata(),
       mode: this.mode,
@@ -280,7 +280,7 @@ export class CompositeEdge<TState extends number, TEvent extends number, TContex
     }
   }
   
-  clone(): CompositeEdge<TState, TEvent, TContext> {
+  override clone(): CompositeEdge<TState, TEvent, TContext> {
     return new CompositeEdge(
       this.from, 
       this.to, 

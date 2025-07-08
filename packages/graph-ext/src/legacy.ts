@@ -210,7 +210,7 @@ export class ObservableStateMachine<TState extends number, TEvent extends number
     super(initialState, transitions, initialContext)
   }
   
-  send(event: TEvent, eventContext?: Partial<TContext>): TState | undefined {
+  override send(event: TEvent, eventContext?: Partial<TContext>): TState | undefined {
     const previousState = this.getState()
     const result = super.send(event, eventContext)
     

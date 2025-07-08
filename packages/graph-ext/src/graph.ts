@@ -9,9 +9,9 @@ import { EdgeBase } from './edge.js'
  */
 export interface Node<TState extends number> {
   state: TState
-  metadata?: Record<string, any>
-  onEnter?: () => void
-  onExit?: () => void
+  metadata?: Record<string, any> | undefined
+  onEnter?: (() => void) | undefined
+  onExit?: (() => void) | undefined
 }
 
 /**
@@ -228,7 +228,7 @@ export class StateGraph<TState extends number, TEvent extends number, TContext =
     
     // Add nodes
     for (const [state, node] of this.nodes) {
-      const label = node.metadata?.label || `State ${state}`
+      const label = node.metadata?.['label'] || `State ${state}`
       lines.push(`  ${state} [label="${label}"];`)
     }
     
@@ -236,7 +236,7 @@ export class StateGraph<TState extends number, TEvent extends number, TContext =
     for (const edges of this.edges.values()) {
       for (const edge of edges) {
         const metadata = edge.getMetadata()
-        const label = metadata.type || 'Edge'
+        const label = metadata['type'] || 'Edge'
         lines.push(`  ${edge.from} -> ${edge.to} [label="${label}"];`)
       }
     }

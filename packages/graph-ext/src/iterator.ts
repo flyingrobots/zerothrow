@@ -199,7 +199,7 @@ export class StateIterator<TState extends number, TEvent extends number, TContex
 export class PollingIterator<TState extends number, TEvent extends number, TContext = any> 
   extends StateIterator<TState, TEvent, TContext> {
   
-  private pollInterval?: NodeJS.Timeout
+  private pollInterval?: NodeJS.Timeout | undefined
   private conditions: Array<{
     check: (context: TContext, state: TState) => TEvent | undefined
     priority: number

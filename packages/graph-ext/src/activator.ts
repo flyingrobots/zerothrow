@@ -3,7 +3,7 @@
  */
 
 import { StateIterator } from './iterator.js'
-import { Edge } from './graph.js'
+import { EdgeBase } from './edge.js'
 
 /**
  * Activates a specific edge in the state graph
@@ -13,7 +13,7 @@ export class EdgeActivator<TState extends number, TEvent extends number, TContex
   
   constructor(
     iterator: StateIterator<TState, TEvent, TContext>,
-    private edge: Edge<TState, TEvent, TContext>
+    private edge: EdgeBase<TState, TEvent, TContext>
   ) {
     this.iteratorRef = new WeakRef(iterator)
   }

@@ -33,7 +33,7 @@ export class EnhancedStateMachine<TState extends number, TEvent extends number>
     this.afterListeners = hooks.after || new Map()
   }
   
-  send(event: TEvent): boolean {
+  override send(event: TEvent): boolean {
     const fromState = this.getState()
     
     // Pre-check if transition is valid to call before listeners
