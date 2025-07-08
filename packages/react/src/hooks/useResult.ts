@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { ZT } from '@zerothrow/core'
 import type { Result } from '@zerothrow/core'
-import { LoadingStateManager, type LoadingState, type LoadingFlags } from '../types/loading.js'
+import { type LoadingState, type LoadingFlags, LoadingPhase } from '../types/loading.js'
 import { useStateIntrospection, type UseStateIntrospectionOptions, type IntrospectionData } from './useStateIntrospection.js'
 
 export interface UseResultOptions {
@@ -40,13 +40,11 @@ export interface UseResultReturn<T, E extends Error> {
   loadingState: LoadingState
   
   /**
-   * Convenient boolean flags derived from loading state
+   * Convenient state information derived from loading state
    */
   state: LoadingFlags & {
     /** Current attempt number (1-based) */
     attempt: number
-    /** Whether currently retrying */
-    isRetrying: boolean
   }
   
   /**
@@ -155,17 +153,14 @@ export function useResult<T, E extends Error = Error>(
     attempt: 0
   })
   
-  const isMountedRef = useRef(true)
   const abortControllerRef = useRef<AbortController>()
-  const [loadingManager] = useState(() => new LoadingStateManager())
   const [loadingState, setLoadingState] = useState<LoadingState>({ type: 'idle' })
   const [isPaused, setIsPaused] = useState(false)
   const [mockResult, setMockResult] = useState<Result<T, E> | null>(null)
   
-  // Subscribe to loading state changes
-  useEffect(() => {
-    return loadingManager.subscribe(setLoadingState)
-  }, [loadingManager])
+  // Use ref to access current state without causing re-renders
+  const stateRef = useRef(state)
+  stateRef.current = state
   
   const execute = useCallback(async (isRetry = false) => {
     if (isPaused) return
@@ -179,22 +174,23 @@ export function useResult<T, E extends Error = Error>(
     const startTime = Date.now()
     
     // Update loading state based on context
+    const currentState = stateRef.current
     if (isRetry) {
-      loadingManager.transition({
+      setLoadingState({
         type: 'retrying',
-        attempt: state.attempt + 1,
+        attempt: currentState.attempt + 1,
         maxAttempts: 3, // Could be configurable
         nextRetryAt: Date.now() + 1000, // Could be configurable
         startedAt: startTime
       })
-    } else if (state.result) {
-      loadingManager.transition({
+    } else if (currentState.result) {
+      setLoadingState({
         type: 'refreshing',
-        previousData: state.result.ok ? state.result.value : undefined,
+        previousData: currentState.result.ok ? currentState.result.value : undefined,
         startedAt: startTime
       })
     } else {
-      loadingManager.transition({
+      setLoadingState({
         type: 'pending',
         startedAt: startTime
       })
@@ -203,12 +199,12 @@ export function useResult<T, E extends Error = Error>(
     try {
       const result = mockResult || await fn()
       
-      // Only update state if component is still mounted
-      if (isMountedRef.current && !abortControllerRef.current.signal.aborted) {
+      // Only update state if not aborted
+      if (!abortControllerRef.current.signal.aborted) {
         dispatch({ type: 'SUCCESS', result })
         
         const duration = Date.now() - startTime
-        loadingManager.transition({
+        setLoadingState({
           type: 'success',
           completedAt: Date.now(),
           duration
@@ -217,14 +213,14 @@ export function useResult<T, E extends Error = Error>(
     } catch (error) {
       // If fn throws (which it shouldn't if following Result patterns),
       // convert to Result.err
-      if (isMountedRef.current && !abortControllerRef.current.signal.aborted) {
+      if (!abortControllerRef.current.signal.aborted) {
         const errorResult = ZT.err(
           error instanceof Error ? error : new Error(String(error))
         ) as unknown as Result<T, E>
         dispatch({ type: 'SUCCESS', result: errorResult })
         
         const duration = Date.now() - startTime
-        loadingManager.transition({
+        setLoadingState({
           type: 'error',
           failedAt: Date.now(),
           error: error instanceof Error ? error : new Error(String(error)),
@@ -233,14 +229,14 @@ export function useResult<T, E extends Error = Error>(
         })
       }
     }
-  }, [fn, ...deps, isPaused, mockResult, state.attempt, state.result])
+  }, [fn, isPaused, mockResult, ...deps])
   
   const reset = useCallback(() => {
     abortControllerRef.current?.abort()
     dispatch({ type: 'RESET' })
-    loadingManager.reset()
+    setLoadingState({ type: 'idle' })
     setMockResult(null)
-  }, [loadingManager])
+  }, [])
   
   useEffect(() => {
     if (immediate) {
@@ -248,8 +244,9 @@ export function useResult<T, E extends Error = Error>(
     }
     
     return () => {
-      isMountedRef.current = false
       abortControllerRef.current?.abort()
+      // Reset to idle when component unmounts/effect re-runs
+      setLoadingState({ type: 'idle' })
     }
   }, [execute, immediate])
   
@@ -267,12 +264,30 @@ export function useResult<T, E extends Error = Error>(
     introspectionOptions
   )
   
-  // Derived state flags
-  const flags = loadingManager.getFlags()
+  // Derive phase from loading state
+  const getPhase = (loadingState: LoadingState): LoadingPhase => {
+    switch (loadingState.type) {
+      case 'idle':
+        return LoadingPhase.Idle
+      case 'pending':
+      case 'refreshing':
+        return LoadingPhase.Executing
+      case 'retrying':
+        return LoadingPhase.Retrying
+      case 'success':
+      case 'error':
+        return LoadingPhase.Settled
+    }
+  }
+  
+  const flags: LoadingFlags = {
+    phase: getPhase(loadingState),
+    isRetrying: loadingState.type === 'retrying'
+  }
+  
   const enhancedState = {
     ...flags,
-    attempt: state.attempt,
-    isRetrying: loadingState.type === 'retrying'
+    attempt: state.attempt
   }
   
   // Development tools

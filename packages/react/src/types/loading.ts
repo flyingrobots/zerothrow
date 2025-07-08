@@ -57,70 +57,18 @@ export interface ErrorState {
 /**
  * Computed convenience booleans derived from LoadingState
  */
-export interface LoadingFlags {
-  idle: boolean
-  executing: boolean
-  retrying: boolean
-  settled: boolean
+export enum LoadingPhase {
+  Idle = 'idle',
+  Executing = 'executing', 
+  Retrying = 'retrying',
+  Settled = 'settled'
 }
 
-/**
- * Manages loading state transitions with event notification
- */
-export class LoadingStateManager {
-  private state: LoadingState = { type: 'idle' }
-  private listeners: Set<(state: LoadingState) => void> = new Set()
-  
-  /**
-   * Transition to a new loading state and notify listeners
-   */
-  transition(to: LoadingState): void {
-    this.state = to
-    this.notify()
-  }
-  
-  /**
-   * Get the current loading state
-   */
-  getState(): LoadingState {
-    return this.state
-  }
-  
-  /**
-   * Get computed convenience flags
-   */
-  getFlags(): LoadingFlags {
-    const state = this.state
-    return {
-      idle: state.type === 'idle',
-      executing: state.type === 'pending' || state.type === 'refreshing',
-      retrying: state.type === 'retrying',
-      settled: state.type === 'success' || state.type === 'error'
-    }
-  }
-  
-  /**
-   * Subscribe to state changes
-   */
-  subscribe(listener: (state: LoadingState) => void): () => void {
-    this.listeners.add(listener)
-    return () => this.listeners.delete(listener)
-  }
-  
-  /**
-   * Notify all listeners of state change
-   */
-  private notify(): void {
-    this.listeners.forEach(listener => listener(this.state))
-  }
-  
-  /**
-   * Reset to idle state
-   */
-  reset(): void {
-    this.transition({ type: 'idle' })
-  }
+export interface LoadingFlags {
+  phase: LoadingPhase
+  isRetrying: boolean // This can coexist with phase since retry is a specific type of execution
 }
+
 
 /**
  * Utility functions for working with loading states

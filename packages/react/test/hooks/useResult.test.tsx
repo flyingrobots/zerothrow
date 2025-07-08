@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { useCallback } from 'react'
 import { ZT } from '@zerothrow/core'
 import { useResult } from '../../src/hooks/useResult'
+import { LoadingPhase } from '../../src/types/loading'
 
 describe('useResult', () => {
   afterEach(() => {
@@ -188,15 +189,14 @@ describe('useResult', () => {
       
       const { result } = renderHook(() => useResult(fn))
       
-      // Initial state
-      expect(result.current.loadingState.type).toBe('idle')
-      expect(result.current.state.idle).toBe(true)
-      expect(result.current.state.executing).toBe(false)
-      expect(result.current.state.attempt).toBe(0)
+      // Initial state when immediate=true
+      expect(result.current.loadingState.type).toBe('pending')
+      expect(result.current.state.phase).toBe(LoadingPhase.Executing)
+      expect(result.current.state.attempt).toBe(1)
       
       await waitFor(() => {
         expect(result.current.loadingState.type).toBe('success')
-        expect(result.current.state.settled).toBe(true)
+        expect(result.current.state.phase).toBe(LoadingPhase.Settled)
         expect(result.current.state.attempt).toBe(1)
       })
     })
@@ -214,7 +214,8 @@ describe('useResult', () => {
       const { result } = renderHook(() => useResult(fn))
       
       await waitFor(() => {
-        expect(result.current.result?.isErr()).toBe(true)
+        expect(result.current.result).toBeDefined()
+        expect(result.current.result!.ok).toBe(false)
         expect(result.current.state.attempt).toBe(1)
       })
       
@@ -224,7 +225,8 @@ describe('useResult', () => {
       })
       
       await waitFor(() => {
-        expect(result.current.result?.isOk()).toBe(true)
+        expect(result.current.result).toBeDefined()
+        expect(result.current.result!.ok).toBe(true)
         expect(result.current.state.attempt).toBe(1) // Note: manual reload doesn't increment attempt
       })
     })
@@ -276,7 +278,7 @@ describe('useResult', () => {
       })
       
       // Should transition to refreshing state
-      expect(result.current.loadingState.type).toBe('pending') // Would be 'refreshing' in real implementation
+      expect(result.current.loadingState.type).toBe('refreshing')
       
       await waitFor(() => {
         expect(result.current.loadingState.type).toBe('success')
@@ -376,8 +378,10 @@ describe('useResult', () => {
         expect(result.current.result?.value).toBe('success')
       })
       
-      // Should be equivalent to state flags
-      expect(result.current.loading).toBe(result.current.state.executing || result.current.state.retrying)
+      // Should be equivalent to executing or retrying phases
+      const isLoadingPhase = result.current.state.phase === LoadingPhase.Executing || 
+                             result.current.state.phase === LoadingPhase.Retrying
+      expect(result.current.loading).toBe(isLoadingPhase)
     })
 
     it('should track state flags correctly', async () => {
@@ -385,16 +389,12 @@ describe('useResult', () => {
       
       const { result } = renderHook(() => useResult(fn))
       
-      // Check initial flags
-      expect(result.current.state.idle).toBe(true)
-      expect(result.current.state.executing).toBe(false)
-      expect(result.current.state.retrying).toBe(false)
-      expect(result.current.state.settled).toBe(false)
+      // Check initial flags when immediate=true
+      expect(result.current.state.phase).toBe(LoadingPhase.Executing)
       expect(result.current.state.isRetrying).toBe(false)
       
       await waitFor(() => {
-        expect(result.current.state.settled).toBe(true)
-        expect(result.current.state.idle).toBe(false)
+        expect(result.current.state.phase).toBe(LoadingPhase.Settled)
       })
     })
   })
