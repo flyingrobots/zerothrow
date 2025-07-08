@@ -1,4 +1,5 @@
 import type { Result } from '@zerothrow/core'
+import type { JitterStrategy } from './jitter.js'
 
 export interface Policy {
   execute<T>(
@@ -59,6 +60,10 @@ export interface RetryOptions {
   metadata?: Record<string, unknown>
   events?: RetryEventHandlers
   eventOptions?: EventEmitterOptions
+  jitter?: JitterStrategy | {
+    strategy: JitterStrategy
+    random?: () => number
+  }
 }
 
 export interface CircuitOptions {

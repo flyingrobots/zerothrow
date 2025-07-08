@@ -3,6 +3,7 @@ import { BasePolicy } from '../policy.js'
 import { RetryExhaustedError, type RetryOptions, type RetryPolicy as IRetryPolicy, type RetryContext } from '../types.js'
 import type { Clock } from '../clock.js'
 import { RetryEventManager } from '../retry-events.js'
+import { JitterCalculator } from '../jitter.js'
 
 /**
  * Retry policy that handles transient failures by retrying operations with configurable backoff strategies.
@@ -33,6 +34,7 @@ import { RetryEventManager } from '../retry-events.js'
 export class RetryPolicy extends BasePolicy implements IRetryPolicy {
   private retryCallback?: (attempt: number, error: unknown, delay: number) => void
   private eventManager?: RetryEventManager
+  private readonly jitterCalculator: JitterCalculator
   
   constructor(
     private readonly count: number,
@@ -50,6 +52,9 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
         this.options.eventOptions
       )
     }
+    
+    // Initialize jitter calculator
+    this.jitterCalculator = this.createJitterCalculator()
   }
 
   /**
@@ -180,6 +185,21 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
         calculatedDelay = delay
     }
     
-    return Math.min(calculatedDelay, maxDelay)
+    const baseDelay = Math.min(calculatedDelay, maxDelay)
+    return this.jitterCalculator.calculate(baseDelay, maxDelay)
+  }
+
+  private createJitterCalculator(): JitterCalculator {
+    const { jitter } = this.options
+    
+    if (!jitter) {
+      return new JitterCalculator({ strategy: 'none' })
+    }
+    
+    if (typeof jitter === 'string') {
+      return new JitterCalculator({ strategy: jitter })
+    }
+    
+    return new JitterCalculator(jitter)
   }
 }

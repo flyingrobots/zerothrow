@@ -294,4 +294,122 @@ describe('RetryPolicy', () => {
       expect(operation2).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('jitter integration', () => {
+    it('should use no jitter by default', async () => {
+      const mockRandom = vi.fn().mockReturnValue(0.5)
+      
+      const policy = new RetryPolicy(2, { 
+        delay: 1, // Use small delay to avoid timeout
+        jitter: { strategy: 'none', random: mockRandom }
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(2)
+      expect(mockRandom).not.toHaveBeenCalled()
+    })
+
+    it('should apply full jitter when configured', async () => {
+      const mockRandom = vi.fn().mockReturnValue(0.5)
+      
+      const policy = new RetryPolicy(2, { 
+        delay: 1, // Use small delay to avoid timeout
+        jitter: { strategy: 'full', random: mockRandom }
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(2)
+      expect(mockRandom).toHaveBeenCalledTimes(1)
+    })
+
+    it('should apply equal jitter when configured', async () => {
+      const mockRandom = vi.fn().mockReturnValue(0.5)
+      
+      const policy = new RetryPolicy(2, { 
+        delay: 1, // Use small delay to avoid timeout
+        jitter: { strategy: 'equal', random: mockRandom }
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(2)
+      expect(mockRandom).toHaveBeenCalledTimes(1)
+    })
+
+    it('should apply decorrelated jitter across multiple retries', async () => {
+      const mockRandom = vi.fn()
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0.5)
+      
+      const policy = new RetryPolicy(3, { 
+        delay: 1, // Use small delay to avoid timeout
+        jitter: { strategy: 'decorrelated', random: mockRandom }
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail 1'))
+        .mockRejectedValueOnce(new Error('fail 2'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(3)
+      expect(mockRandom).toHaveBeenCalledTimes(2)
+    })
+
+    it('should respect maxDelay with jitter', async () => {
+      const mockRandom = vi.fn().mockReturnValue(1)
+      
+      const policy = new RetryPolicy(2, { 
+        delay: 1, // Use small delay to avoid timeout
+        backoff: 'exponential',
+        maxDelay: 2,
+        jitter: { strategy: 'full', random: mockRandom }
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(2)
+      expect(mockRandom).toHaveBeenCalledTimes(1)
+    })
+
+    it('should accept jitter as string shorthand', async () => {
+      const policy = new RetryPolicy(2, { 
+        delay: 1, // Use small delay to avoid timeout
+        jitter: 'full'
+      })
+      
+      const operation = vi.fn()
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValue('success')
+      
+      const result = await policy.execute(operation)
+      
+      expect(result.ok).toBe(true)
+      expect(operation).toHaveBeenCalledTimes(2)
+    })
+  })
 })
