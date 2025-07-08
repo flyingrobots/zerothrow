@@ -3,6 +3,7 @@ import { ZT } from '@zerothrow/core'
 import type { Result } from '@zerothrow/core'
 import { type LoadingState, type LoadingFlags, LoadingPhase } from '../types/loading.js'
 import { useStateIntrospection, type UseStateIntrospectionOptions, type IntrospectionData } from './useStateIntrospection.js'
+import { LoadingStateMachine, LoadingEvent } from '../utils/loadingStateMachine.js'
 
 export interface UseResultOptions {
   /**
@@ -154,9 +155,15 @@ export function useResult<T, E extends Error = Error>(
   })
   
   const abortControllerRef = useRef<AbortController>()
-  const [loadingState, setLoadingState] = useState<LoadingState>({ type: 'idle' })
+  const [stateMachine] = useState(() => new LoadingStateMachine())
+  const [loadingState, setLoadingState] = useState<LoadingState>(stateMachine.getState())
   const [isPaused, setIsPaused] = useState(false)
   const [mockResult, setMockResult] = useState<Result<T, E> | null>(null)
+  
+  // Subscribe to state machine changes
+  useEffect(() => {
+    return stateMachine.subscribe(setLoadingState)
+  }, [stateMachine])
   
   // Use ref to access current state without causing re-renders
   const stateRef = useRef(state)
@@ -173,28 +180,37 @@ export function useResult<T, E extends Error = Error>(
     
     const startTime = Date.now()
     
-    // Update loading state based on context
+    // Determine which event to send
     const currentState = stateRef.current
+    let event: 'START' | 'REFRESH' | 'RETRY'
+    let eventData: {
+      attempt?: number
+      maxAttempts?: number
+      previousData?: unknown
+    } = {}
+    
     if (isRetry) {
-      setLoadingState({
-        type: 'retrying',
+      event = 'RETRY'
+      eventData = {
         attempt: currentState.attempt + 1,
-        maxAttempts: 3, // Could be configurable
-        nextRetryAt: Date.now() + 1000, // Could be configurable
-        startedAt: startTime
-      })
+        maxAttempts: 3 // Could be configurable
+      }
     } else if (currentState.result) {
-      setLoadingState({
-        type: 'refreshing',
-        previousData: currentState.result.ok ? currentState.result.value : undefined,
-        startedAt: startTime
-      })
+      event = 'REFRESH'
+      eventData = {
+        previousData: currentState.result.ok ? currentState.result.value : undefined
+      }
     } else {
-      setLoadingState({
-        type: 'pending',
-        startedAt: startTime
-      })
+      event = 'START'
     }
+    
+    // Transition to loading state
+    const eventMap = {
+      'START': LoadingEvent.Start,
+      'REFRESH': LoadingEvent.Refresh,
+      'RETRY': LoadingEvent.Retry
+    }
+    stateMachine.send(eventMap[event], eventData)
     
     try {
       const result = mockResult || await fn()
@@ -204,11 +220,7 @@ export function useResult<T, E extends Error = Error>(
         dispatch({ type: 'SUCCESS', result })
         
         const duration = Date.now() - startTime
-        setLoadingState({
-          type: 'success',
-          completedAt: Date.now(),
-          duration
-        })
+        stateMachine.send(LoadingEvent.Success, { duration, value: result.ok ? result.value : undefined })
       }
     } catch (error) {
       // If fn throws (which it shouldn't if following Result patterns),
@@ -220,23 +232,21 @@ export function useResult<T, E extends Error = Error>(
         dispatch({ type: 'SUCCESS', result: errorResult })
         
         const duration = Date.now() - startTime
-        setLoadingState({
-          type: 'error',
-          failedAt: Date.now(),
+        stateMachine.send(LoadingEvent.Error, { 
           error: error instanceof Error ? error : new Error(String(error)),
-          canRetry: true,
-          duration
+          duration,
+          canRetry: true
         })
       }
     }
-  }, [fn, isPaused, mockResult, ...deps])
+  }, [fn, isPaused, mockResult, stateMachine, ...deps])
   
   const reset = useCallback(() => {
     abortControllerRef.current?.abort()
     dispatch({ type: 'RESET' })
-    setLoadingState({ type: 'idle' })
+    stateMachine.send(LoadingEvent.Reset)
     setMockResult(null)
-  }, [])
+  }, [stateMachine])
   
   useEffect(() => {
     if (immediate) {
@@ -246,7 +256,7 @@ export function useResult<T, E extends Error = Error>(
     return () => {
       abortControllerRef.current?.abort()
       // Reset to idle when component unmounts/effect re-runs
-      setLoadingState({ type: 'idle' })
+      stateMachine.send(LoadingEvent.Reset)
     }
   }, [execute, immediate])
   

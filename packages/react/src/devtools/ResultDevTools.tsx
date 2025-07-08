@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react'
 import type { IntrospectionData } from '../hooks/useStateIntrospection.js'
+import { LoadingPhase } from '../types/loading.js'
 
 /**
  * Position options for the DevTools panel
@@ -288,12 +289,12 @@ export function ResultDevTools({
                     {/* Current State */}
                     <div style={{ marginBottom: '12px' }}>
                       <strong>State:</strong> {selectedData.loading.type}
-                      {selectedData.flags.executing && (
+                      {selectedData.flags.phase === LoadingPhase.Executing && (
                         <span style={{ color: '#3b82f6', marginLeft: '8px' }}>
                           (executing)
                         </span>
                       )}
-                      {selectedData.flags.retrying && (
+                      {selectedData.flags.phase === LoadingPhase.Retrying && (
                         <span style={{ color: '#f59e0b', marginLeft: '8px' }}>
                           (retrying)
                         </span>

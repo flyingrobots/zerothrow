@@ -62,7 +62,8 @@
     "url": "https://github.com/zerothrow/zerothrow/issues"
   },
   "dependencies": {
-    "@zerothrow/core": "^0.2.3"
+    "@zerothrow/core": "^0.2.3",
+    "@zerothrow/graph": "workspace:*"
   },
   "devDependencies": {
     "@zerothrow/resilience": "^0.2.1",
