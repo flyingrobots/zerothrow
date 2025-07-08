@@ -19,6 +19,28 @@
 
 Production-grade resilience patterns for ZeroThrow: retry policies, circuit breakers, and timeouts with full Result<T,E> integration.
 
+## Table of Contents
+
+- [🚧 Coming Soon in v0.3.0](#-coming-soon-in-v030)
+- [What's New in v0.2.0 🎉](#whats-new-in-v020-)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [API](#api)
+  - [Retry Policy](#retry-policy)
+    - [Jitter Support](#jitter-support)
+  - [Circuit Breaker Policy](#circuit-breaker-policy)
+  - [Timeout Policy](#timeout-policy)
+  - [Policy Composition](#policy-composition)
+  - [Error Types](#error-types)
+- [Examples](#examples)
+  - [Resilient HTTP Client](#resilient-http-client)
+  - [Database Operations](#database-operations)
+  - [Microservice Communication](#microservice-communication)
+  - [Testing with TestClock](#testing-with-testclock)
+- [Integration with ZeroThrow Core](#integration-with-zerothrow-core)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## 🚧 Coming Soon in v0.3.0
 
 **New resilience features coming Q1 2025:**

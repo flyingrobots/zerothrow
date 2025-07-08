@@ -2,6 +2,45 @@
 
 This document describes the technical architecture of the ZeroThrow ecosystem, how packages fit together, and the key design patterns that enable type-safe error handling without exceptions.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Core Architecture Principles](#core-architecture-principles)
+  - [1. Zero Dependencies](#1-zero-dependencies)
+  - [2. Layered API Design](#2-layered-api-design)
+  - [3. Discriminated Union Pattern](#3-discriminated-union-pattern)
+- [Package Architecture](#package-architecture)
+  - [Core Package](#core-package-zerothrowcore)
+  - [Resilience Package](#resilience-package-zerothrowresilience)
+  - [Testing Packages](#testing-packages-zerothrowjest-zerothrowvitest)
+  - [React Package](#react-package-zerothrowreact)
+- [Key Architectural Patterns](#key-architectural-patterns)
+  - [1. Factory Pattern](#1-factory-pattern)
+  - [2. Fluent Interface](#2-fluent-interface)
+  - [3. Strategy Pattern](#3-strategy-pattern)
+  - [4. Decorator Pattern](#4-decorator-pattern)
+  - [5. Clock Abstraction](#5-clock-abstraction)
+- [Type System Architecture](#type-system-architecture)
+  - [Generic Constraints](#generic-constraints)
+  - [Type Guards](#type-guards)
+  - [Contextual Error Types](#contextual-error-types)
+- [Async Enhancement](#async-enhancement)
+- [Debug and Observability](#debug-and-observability)
+  - [Tracing](#tracing)
+  - [Debug Mode](#debug-mode)
+  - [Policy Events](#policy-events)
+- [Performance Considerations](#performance-considerations)
+  - [Object Allocation](#object-allocation)
+  - [Monomorphic Code](#monomorphic-code)
+  - [Fast Path Optimization](#fast-path-optimization)
+- [Extension Points](#extension-points)
+  - [Custom Policies](#custom-policies)
+  - [Framework Integration](#framework-integration)
+  - [Custom Matchers](#custom-matchers)
+- [Future Architecture Considerations](#future-architecture-considerations)
+  - [v0.3.0 Breaking Changes](#v030-breaking-changes)
+  - [Planned Additions](#planned-additions)
+
 ## Overview
 
 ZeroThrow implements a layered architecture inspired by functional programming and Rust's Result type, bringing explicit error handling to TypeScript while maintaining zero runtime dependencies.
@@ -85,7 +124,7 @@ interface Err<E extends Error> {
 
 ## Package Architecture
 
-### Core Package (`@zerothrow/core`)
+### Core Package ([`@zerothrow/core`](../packages/core))
 
 The foundation of the ecosystem, providing:
 
@@ -107,7 +146,7 @@ packages/core/src/
 - Fluent API enables method chaining
 - Type guards provide compile-time safety
 
-### Resilience Package (`@zerothrow/resilience`)
+### Resilience Package ([`@zerothrow/resilience`](../packages/resilience))
 
 Implements production-grade fault tolerance patterns:
 
@@ -130,9 +169,9 @@ packages/resilience/src/
 - Policies compose via wrapping (decorator pattern)
 - Clock abstraction enables deterministic testing
 
-### Testing Packages (`@zerothrow/jest`, `@zerothrow/vitest`)
+### Testing Packages ([`@zerothrow/jest`](../packages/jest), [`@zerothrow/vitest`](../packages/vitest))
 
-Share common matcher logic via `@zerothrow/expect`:
+Share common matcher logic via [`@zerothrow/expect`](../packages/expect):
 
 ```
 packages/expect/src/
@@ -149,7 +188,7 @@ packages/vitest/src/
 └── matchers.ts          # Vitest integration
 ```
 
-### React Package (`@zerothrow/react`)
+### React Package ([`@zerothrow/react`](../packages/react))
 
 Provides React-specific utilities:
 

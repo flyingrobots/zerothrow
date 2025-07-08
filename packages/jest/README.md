@@ -20,6 +20,29 @@
 
 Jest matchers for ZeroThrow Result types - elegant error handling assertions for your tests.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Setup Options](#setup-options)
+  - [Automatic Setup (Default)](#automatic-setup-default)
+  - [Manual Setup](#manual-setup)
+  - [TypeScript Configuration](#typescript-configuration)
+- [API](#api)
+  - [`toBeOk()`](#tobeok)
+  - [`toBeOkWith(expected)`](#tobeokwithexpected)
+  - [`toBeErr()`](#tobeerr)
+  - [`toBeErrWith(error)`](#tobeerrwitherror)
+  - [`toHaveErrorCode(code)`](#tohaveerrorcodecode)
+  - [`toHaveErrorMessage(message)`](#tohaveerrormessagemessage)
+- [Examples](#examples)
+  - [Testing Async Operations with Combinators](#testing-async-operations-with-combinators)
+  - [Testing Error Codes](#testing-error-codes)
+  - [Testing with Custom Error Types and Combinators](#testing-with-custom-error-types-and-combinators)
+- [🚧 Coming Soon in v0.3.0](#-coming-soon-in-v030)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```bash

@@ -19,6 +19,34 @@
 
 Zero-throw Docker utilities for testing and container management, with automatic error handling and recovery suggestions.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [CLI Tool](#cli-tool)
+- [API](#api)
+  - [Docker Status Functions](#docker-status-functions)
+    - [`checkDockerStatus(): Promise<Result<DockerStatus, ZeroError>>`](#checkdockerstatus-promiseresultdockerstatus-zeroerror)
+    - [`isRunningInDocker(): boolean`](#isrunningindocker-boolean)
+    - [`startDocker(): Promise<Result<void, ZeroError>>`](#startdocker-promiseresultvoid-zeroerror)
+  - [Container Management](#container-management)
+    - [`isContainerRunning(name: string): Promise<Result<boolean, ZeroError>>`](#iscontainerrunningname-string-promiseresultboolean-zeroerror)
+    - [`stopContainer(name: string): Promise<Result<void, ZeroError>>`](#stopcontainername-string-promiseresultvoid-zeroerror)
+    - [`removeContainer(name: string): Promise<Result<void, ZeroError>>`](#removecontainername-string-promiseresultvoid-zeroerror)
+  - [Disk Management](#disk-management)
+    - [`checkDiskSpace(): Promise<Result<string, ZeroError>>`](#checkdiskspace-promiseresultstring-zeroerror)
+    - [`pruneDocker(options?: DockerPruneOptions): Promise<Result<string, ZeroError>>`](#prunedockeroptions-dockerpruneoptions-promiseresultstring-zeroerror)
+  - [Utility Functions](#utility-functions)
+    - [`getDockerInstallCommand(): string`](#getdockerinstallcommand-string)
+    - [`handleDockerError(error: ZeroError): Promise<Result<void, ZeroError>>`](#handledockererrorerror-zeroerror-promiseresultvoid-zeroerror)
+    - [`execCmdInteractive(cmd: string): Promise<Result<void, ZeroError>>`](#execcmdinteractivecmd-string-promiseresultvoid-zeroerror)
+- [Examples](#examples)
+  - [Running Integration Tests with Docker](#running-integration-tests-with-docker)
+  - [Error Handling with Recovery](#error-handling-with-recovery)
+  - [Platform Detection](#platform-detection)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ```bash

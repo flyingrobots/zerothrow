@@ -19,6 +19,32 @@ ZeroThrow CLI tool for repo-wide workflows and package management automation.
 <img src="https://raw.githubusercontent.com/flyingrobots/image-dump/refs/heads/main/optimized/marketing/brand/zerothrow-zt-cli.webp" height="300" />
 </div>
 
+## Table of Contents
+
+- [Installation](#installation)
+  - [As a dev dependency in your project](#as-a-dev-dependency-in-your-project)
+  - [Global installation](#global-installation)
+- [Quick Start](#quick-start)
+- [Commands](#commands)
+  - [`zt list` (alias: `zt ls`)](#zt-list-alias-zt-ls)
+  - [`zt package`](#zt-package)
+    - [`zt package ready`](#zt-package-ready)
+    - [`zt package init`](#zt-package-init)
+  - [`zt validate`](#zt-validate)
+  - [`zt ecosystem`](#zt-ecosystem)
+    - [`zt ecosystem sync`](#zt-ecosystem-sync)
+    - [`zt ecosystem check`](#zt-ecosystem-check)
+  - [`zt docs`](#zt-docs)
+    - [`zt docs generate`](#zt-docs-generate)
+- [External Commands](#external-commands)
+- [Development](#development)
+- [Examples](#examples)
+  - [Pre-publish Workflow](#pre-publish-workflow)
+  - [Development Workflow](#development-workflow)
+  - [CI Workflow](#ci-workflow)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Installation
 
 ### As a dev dependency in your project

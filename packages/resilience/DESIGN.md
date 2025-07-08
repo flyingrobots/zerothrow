@@ -1,5 +1,35 @@
 # @zerothrow/resilience - Design Document
 
+## Table of Contents
+
+- [Philosophy](#philosophy)
+- [Architecture Overview](#architecture-overview)
+- [Core Interfaces](#core-interfaces)
+  - [Policy Base](#policy-base)
+  - [Policy Errors](#policy-errors)
+- [Policy Implementations](#policy-implementations)
+  - [Retry Policy](#retry-policy)
+  - [Circuit Breaker](#circuit-breaker)
+  - [Timeout Policy](#timeout-policy)
+  - [Bulkhead Policy](#bulkhead-policy)
+- [Policy Composition](#policy-composition)
+  - [Wrap Composition](#wrap-composition)
+  - [Conditional Policies](#conditional-policies)
+- [Telemetry System](#telemetry-system)
+- [Testing Support](#testing-support)
+  - [Test Clock](#test-clock)
+  - [Policy Test Kit](#policy-test-kit)
+- [Performance Optimizations](#performance-optimizations)
+  - [Fast Path](#fast-path)
+  - [Policy Interning](#policy-interning)
+- [Integration Points](#integration-points)
+  - [Result Extensions](#result-extensions)
+  - [ZT Namespace Extensions](#zt-namespace-extensions)
+- [Future Considerations](#future-considerations)
+  - [Policy Algebra](#policy-algebra)
+  - [Distributed Policies](#distributed-policies)
+  - [Adaptive Policies](#adaptive-policies)
+
 ## Philosophy
 
 The ZeroThrow Resilience library brings production-grade fault tolerance to TypeScript applications while maintaining our core principle: **never throw exceptions**. Every operation returns a `Result<T,E>`, making error handling explicit and type-safe.

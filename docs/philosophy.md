@@ -4,6 +4,34 @@
 
 This document outlines the core philosophy and design principles that guide the ZeroThrow project. These aren't just technical decisions—they represent a fundamental shift in how we think about error handling in TypeScript.
 
+## Table of Contents
+
+- [The Prime Directive](#the-prime-directive)
+- [Core Principles](#core-principles)
+  - [1. Zero Exceptions](#1-zero-exceptions)
+  - [2. Zero Dependencies](#2-zero-dependencies)
+  - [3. Zero Overhead](#3-zero-overhead)
+  - [4. Explicit Over Implicit](#4-explicit-over-implicit)
+- [The Mental Model](#the-mental-model)
+  - [Results Are Your Primary Return Type](#results-are-your-primary-return-type)
+  - [Only Use `try` at Boundaries](#only-use-try-at-boundaries)
+  - [Compose, Don't Nest](#compose-dont-nest)
+- [Design Philosophy](#design-philosophy)
+  - [Errors Deserve Respect](#errors-deserve-respect)
+  - [Make Invalid States Unrepresentable](#make-invalid-states-unrepresentable)
+  - [Railway-Oriented Programming](#railway-oriented-programming)
+  - [Fail Fast, Recover Explicitly](#fail-fast-recover-explicitly)
+- [The Imperial Mandates](#the-imperial-mandates)
+- [Why This Matters](#why-this-matters)
+  - [For Application Code](#for-application-code)
+  - [For Library Authors](#for-library-authors)
+  - [For Teams](#for-teams)
+- [The ZeroThrow Promise](#the-zerothrow-promise)
+- [Living the Philosophy](#living-the-philosophy)
+  - [Start Today](#start-today)
+  - [Spread the Pattern](#spread-the-pattern)
+  - [Embrace the Constraints](#embrace-the-constraints)
+
 ## The Prime Directive
 
 **Errors are values, not control flow.**
