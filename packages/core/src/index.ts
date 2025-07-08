@@ -15,3 +15,9 @@ export type {
 
 // Export ZeroError class for creating custom errors
 export { ZeroError } from './core-exports.js';
+
+// Export debug utilities
+export * as Debug from './debug.js';
+
+// Export trace context utilities
+export * as TraceContext from './trace-context.js';
