@@ -46,7 +46,6 @@ export type {
 
 // Loading state machine utilities
 export { LoadingStateMachine, LoadingStateType, LoadingEvent } from './utils/loadingStateMachine.js'
-export { ResilientLoadingStateMachine, createResilientLoadingMachine } from './utils/loadingStateMachineWithResilience.js'
 
 // Re-export core for convenience
 export { ZT, ZeroThrow } from '@zerothrow/core'

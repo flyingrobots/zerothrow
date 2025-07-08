@@ -5,4 +5,4 @@
  * For extended features, see @zerothrow/graph-ext
  */
 
-export { Graph, GraphIterator } from './minimal.js'
+export { Graph, GraphIterator } from './graph.js'

@@ -36,8 +36,9 @@ export class GraphIterator<N extends number, E extends number> {
   
   go(event: E): N | undefined {
     const edges = this.graph.getEdges(this.node, event)
-    if (edges.length > 0) {
-      this.node = edges[0].to
+    const firstEdge = edges[0]
+    if (firstEdge) {
+      this.node = firstEdge.to
       return this.node
     }
     return undefined
