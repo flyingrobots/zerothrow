@@ -1,15 +1,13 @@
-import type { Result } from '@zerothrow/core'
-import { ZT } from '@zerothrow/core'
+import { ZT, ZeroThrow, ZeroError } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
 import type { BulkheadOptions, BulkheadPolicy, BulkheadMetrics } from '../types.js'
 import { BulkheadRejectedError, BulkheadQueueTimeoutError } from '../types.js'
 import type { Clock } from '../clock.js'
 import { SystemClock } from '../clock.js'
 
-interface QueuedOperation {
-  operation: () => Promise<unknown>
-  resolve: (result: Result<unknown, Error>) => void
-  reject: (error: Error) => void
+interface QueuedOperation<T, E extends ZeroError = ZeroError> {
+  operation: () => ZeroThrow.Async<T, E>
+  resolve: (result: ZeroThrow.Result<T, E>) => void
   enqueuedAt: number
   timeoutId?: NodeJS.Timeout
 }
@@ -21,7 +19,7 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
   
   // Semaphore state
   private activeConcurrent = 0
-  private readonly queue: Array<QueuedOperation> = []
+  private readonly queue: Array<QueuedOperation<unknown, ZeroError>> = []
   
   // Metrics
   private totalExecuted = 0
@@ -48,7 +46,9 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
     }
   }
   
-  override async execute<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
+  override execute<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
     // Fast path: if we have capacity, execute immediately
     if (this.activeConcurrent < this.maxConcurrent) {
       return this.executeOperation(operation)
@@ -57,64 +57,76 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
     // Check if we can queue
     if (this.queue.length >= this.maxQueue) {
       this.totalRejected++
-      return ZT.err(new BulkheadRejectedError(
+      // SAFE_CAST: BulkheadRejectedError extends Error
+      const error = new BulkheadRejectedError(
         this.name,
         this.maxConcurrent,
         this.maxQueue,
         this.activeConcurrent,
         this.queue.length
-      ))
+      )
+      return ZeroThrow.enhance(Promise.resolve(ZT.err(error as unknown as E) as unknown as ZeroThrow.Result<T, E>))
     }
     
     // Queue the operation
     return this.enqueueOperation(operation)
   }
   
-  private async executeOperation<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
+  private executeOperation<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
     this.activeConcurrent++
     this.totalExecuted++
     
-    try {
-      const result = await this.runOperation(operation)
-      return result
-    } finally {
-      this.activeConcurrent--
-      // Don't await here to avoid blocking the return
-      setImmediate(() => this.processQueue())
-    }
+    return ZeroThrow.enhance(
+      operation().then((result) => {
+        this.activeConcurrent--
+        // Don't await here to avoid blocking the return
+        setImmediate(() => this.processQueue())
+        return result
+      })
+    )
   }
   
-  private async enqueueOperation<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
-    return new Promise<Result<T, Error>>((resolve, reject) => {
-      const enqueuedAt = this.clock.now().getTime()
-      const queueItem: QueuedOperation = {
-        operation,
-        resolve: resolve as (result: Result<unknown, Error>) => void,
-        reject,
-        enqueuedAt
-      }
-      
-      this.queue.push(queueItem)
-      this.totalQueued++
-      
-      // Set up timeout
-      const timeoutId = setTimeout(() => {
-        const index = this.queue.indexOf(queueItem)
-        if (index !== -1) {
-          this.queue.splice(index, 1)
-          this.totalQueueTimeout++
-          const waitTime = this.clock.now().getTime() - enqueuedAt
-          resolve(ZT.err(new BulkheadQueueTimeoutError(
-            this.name,
-            this.queueTimeout,
-            waitTime
-          )))
+  private enqueueOperation<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(
+      new Promise<ZeroThrow.Result<T, E>>((resolve) => {
+        const enqueuedAt = this.clock.now().getTime()
+        const queueItem: QueuedOperation<T, E> = {
+          operation,
+          resolve,
+          enqueuedAt
         }
-      }, this.queueTimeout)
-      
-      // Store timeout ID for cleanup
-      queueItem.timeoutId = timeoutId
-    })
+        
+        // SAFE_CAST: Converting generic E to ZeroError for queue storage
+        this.queue.push(queueItem as unknown as QueuedOperation<unknown, ZeroError>)
+        this.totalQueued++
+        
+        // Set up timeout
+        const timeoutId = setTimeout(() => {
+          // SAFE_CAST: Converting generic E to ZeroError for queue lookup
+          const index = this.queue.indexOf(queueItem as unknown as QueuedOperation<unknown, ZeroError>)
+          if (index !== -1) {
+            this.queue.splice(index, 1)
+            this.totalQueueTimeout++
+            const waitTime = this.clock.now().getTime() - enqueuedAt
+            // SAFE_CAST: BulkheadQueueTimeoutError extends Error
+            const error = new BulkheadQueueTimeoutError(
+              this.name,
+              this.queueTimeout,
+              waitTime
+            )
+            // SAFE_CAST: Converting Error to generic E
+            resolve(ZT.err(error as unknown as E) as unknown as ZeroThrow.Result<T, E>)
+          }
+        }, this.queueTimeout)
+        
+        // Store timeout ID for cleanup
+        queueItem.timeoutId = timeoutId
+      })
+    )
   }
   
   private async processQueue(): Promise<void> {
@@ -130,12 +142,10 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
       clearTimeout(queueItem.timeoutId)
     }
     
-    try {
-      const result = await this.executeOperation(queueItem.operation)
-      queueItem.resolve(result)
-    } catch (error) {
-      queueItem.reject(error as Error)
-    }
+    const typedItem = queueItem as QueuedOperation<unknown, ZeroError>
+    const result = await this.executeOperation(typedItem.operation)
+    // SAFE_CAST: Resolve expects Result<unknown, ZeroError>
+    typedItem.resolve(result as ZeroThrow.Result<unknown, ZeroError>)
   }
   
   getMetrics(): BulkheadMetrics {
@@ -178,13 +188,15 @@ export class Bulkhead extends BasePolicy implements BulkheadPolicy {
         }
         
         this.totalRejected++
-        queueItem.resolve(ZT.err(new BulkheadRejectedError(
+        // SAFE_CAST: BulkheadRejectedError extends Error
+        const error = new BulkheadRejectedError(
           this.name,
           this.maxConcurrent,
           this.maxQueue,
           this.activeConcurrent,
           this.queue.length + 1
-        )))
+        )
+        queueItem.resolve(ZT.err(error) as unknown as ZeroThrow.Result<unknown, ZeroError>)
       }
     }
   }

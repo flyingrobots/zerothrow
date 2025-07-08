@@ -1,4 +1,4 @@
-import { ZT, type Result } from '@zerothrow/core'
+import { type ZeroThrow, ZeroError } from '@zerothrow/core'
 import type { Policy } from './types.js'
 import { SystemClock, type Clock } from './clock.js'
 
@@ -8,13 +8,7 @@ export abstract class BasePolicy implements Policy {
     protected readonly clock: Clock = new SystemClock()
   ) {}
 
-  abstract execute<T>(
-    operation: () => Promise<T>
-  ): Promise<Result<T, Error>>
-
-  protected async runOperation<T>(
-    operation: () => Promise<T>
-  ): Promise<Result<T, Error>> {
-    return ZT.tryAsync(operation)
-  }
+  abstract execute<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E>
 }

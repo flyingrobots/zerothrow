@@ -1,6 +1,6 @@
-import { ZT, type Result } from '@zerothrow/core'
+import { ZeroThrow, ZeroError } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
-import { RetryExhaustedError, type RetryOptions, type RetryPolicy as IRetryPolicy, type RetryContext } from '../types.js'
+import { type RetryOptions, type RetryPolicy as IRetryPolicy, type RetryContext, RetryExhaustedError } from '../types.js'
 import type { Clock } from '../clock.js'
 import { RetryEventManager } from '../retry-events.js'
 import { JitterCalculator } from '../jitter.js'
@@ -32,13 +32,13 @@ import { JitterCalculator } from '../jitter.js'
  * })
  */
 export class RetryPolicy extends BasePolicy implements IRetryPolicy {
-  private retryCallback?: (attempt: number, error: unknown, delay: number) => void
+  private retryCallback?: <E>(attempt: number, error: E, delay: number) => void
   private eventManager?: RetryEventManager
   private readonly jitterCalculator: JitterCalculator
   
   constructor(
     private readonly count: number,
-    private readonly options: RetryOptions = {},
+    private readonly options: RetryOptions<ZeroError> = {},
     clock?: Clock
   ) {
     super('retry', clock)
@@ -69,10 +69,16 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
    * @param operation - The async operation to execute with retry protection
    * @returns A Result containing either the successful value or the final error
    */
-  async execute<T>(
-    operation: () => Promise<T>
-  ): Promise<Result<T, Error>> {
-    let lastError: Error | undefined
+  execute<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(this.executeAsync(operation))
+  }
+
+  private async executeAsync<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): Promise<ZeroThrow.Result<T, E>> {
+    let lastResult: ZeroThrow.Result<T, E> | undefined
     let totalDelay = 0
     let lastDelay: number | undefined
     
@@ -82,7 +88,7 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
     for (let attempt = 0; attempt <= this.count; attempt++) {
       // Emit attempt event
       this.eventManager?.emitAttempt(attempt + 1)
-      const result = await this.runOperation(operation)
+      const result = await operation()
       
       if (result.ok) {
         // Emit succeeded event
@@ -90,41 +96,52 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
         return result
       }
       
-      lastError = result.error
+      lastResult = result
       
       // If this is the last attempt, don't check retry conditions
       if (attempt >= this.count) {
         // Emit failed event with willRetry = false for final attempt
-        this.eventManager?.emitFailed(attempt + 1, result.error, false)
+        if (result.ok === false) {
+          // SAFE_CAST: E extends ZeroError, convert for event manager
+          this.eventManager?.emitFailed(attempt + 1, result.error as import('@zerothrow/core').ZeroError, false)
+        }
         break
       }
       
-      // Build retry context for conditional evaluation
-      const retryContext: RetryContext = {
-        attempt: attempt + 1,
-        error: result.error,
-        totalDelay,
-        ...(lastDelay !== undefined && { lastDelay }),
-        ...(this.options.metadata && { metadata: this.options.metadata })
-      }
+      // We can only build retry context if we have an error
+      if (result.ok === false) {
+        // Build retry context for conditional evaluation
+        const retryContext: RetryContext<E> = {
+          attempt: attempt + 1,
+          error: result.error,
+          totalDelay,
+          ...(lastDelay !== undefined && { lastDelay }),
+          ...(this.options.metadata && { metadata: this.options.metadata })
+        }
       
-      // Check if we should retry using the new shouldRetry function if provided
-      if (this.options.shouldRetry) {
-        const shouldRetry = await this.options.shouldRetry(retryContext)
-        if (!shouldRetry) {
+        // Check if we should retry using the new shouldRetry function if provided
+        if (this.options.shouldRetry) {
+          const shouldRetry = await this.options.shouldRetry(retryContext)
+          if (!shouldRetry) {
+            // Emit failed event with willRetry = false
+            // SAFE_CAST: E extends ZeroError, convert for event manager
+          this.eventManager?.emitFailed(attempt + 1, result.error as import('@zerothrow/core').ZeroError, false)
+            return result
+          }
+        } else if (this.options.handle && !this.options.handle(result.error)) {
+          // Fall back to legacy handle function for backward compatibility
           // Emit failed event with willRetry = false
-          this.eventManager?.emitFailed(attempt + 1, result.error, false)
+          // SAFE_CAST: E extends ZeroError, convert for event manager
+          this.eventManager?.emitFailed(attempt + 1, result.error as import('@zerothrow/core').ZeroError, false)
           return result
         }
-      } else if (this.options.handle && !this.options.handle(result.error)) {
-        // Fall back to legacy handle function for backward compatibility
-        // Emit failed event with willRetry = false
-        this.eventManager?.emitFailed(attempt + 1, result.error, false)
-        return result
       }
       
       // Will retry - emit failed event with willRetry = true
-      this.eventManager?.emitFailed(attempt + 1, result.error, true)
+      if (result.ok === false) {
+        // SAFE_CAST: E extends ZeroError, convert for event manager
+        this.eventManager?.emitFailed(attempt + 1, result.error as import('@zerothrow/core').ZeroError, true)
+      }
       
       // Calculate and apply delay
       const delayTime = this.calculateDelay(attempt + 1)
@@ -135,25 +152,34 @@ export class RetryPolicy extends BasePolicy implements IRetryPolicy {
       this.eventManager?.emitBackoff(attempt + 1, delayTime)
       
       // Call legacy callback for backward compatibility
-      if (this.retryCallback) {
-        this.retryCallback(attempt + 1, lastError, delayTime)
+      if (this.retryCallback && lastResult && lastResult.ok === false) {
+        this.retryCallback(attempt + 1, lastResult.error, delayTime)
       }
       
       await this.clock.sleep(delayTime)
     }
     
     // Emit exhausted event
-    this.eventManager?.emitExhausted(this.count + 1, lastError as Error)
+    if (lastResult && lastResult.ok === false) {
+      // SAFE_CAST: E extends ZeroError, convert for event manager
+      this.eventManager?.emitExhausted(this.count + 1, lastResult.error as import('@zerothrow/core').ZeroError)
+    }
     
-    return ZT.err(new RetryExhaustedError(
+    // Create RetryExhaustedError when all retries are exhausted
+    // SAFE_CAST: Create a proper ZeroError if no error available
+    const lastError = lastResult && lastResult.ok === false ? lastResult.error : new ZeroError('UNKNOWN_ERROR', 'Unknown error') as E
+    const exhaustedError = new RetryExhaustedError<E>(
       this.name,
       this.count + 1,
-      lastError as Error
-    ))
+      // SAFE_CAST: E extends ZeroError
+      lastError,
+      { lastResult }
+    ) as unknown as E
+    return { ok: false, error: exhaustedError } as ZeroThrow.Result<T, E>
   }
 
-  onRetry(callback: (attempt: number, error: unknown, delay: number) => void): IRetryPolicy {
-    this.retryCallback = callback
+  onRetry<E>(callback: (attempt: number, error: E, delay: number) => void): IRetryPolicy {
+    this.retryCallback = callback as <F>(attempt: number, error: F, delay: number) => void
     return this
   }
 

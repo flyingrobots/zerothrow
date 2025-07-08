@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PolicyFactory, BulkheadRejectedError, BulkheadQueueTimeoutError, TestClock } from '../src/index.js'
+import { ZT } from '@zerothrow/core'
 
 describe('Bulkhead Policy', () => {
   let clock: TestClock
@@ -11,7 +12,7 @@ describe('Bulkhead Policy', () => {
   describe('Basic Functionality', () => {
     it('should execute operations when under capacity', async () => {
       const bulkhead = PolicyFactory.bulkhead({ maxConcurrent: 3 }, clock)
-      const operation = vi.fn().mockResolvedValue('success')
+      const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
       
       const result = await bulkhead.execute(operation)
       
@@ -26,9 +27,9 @@ describe('Bulkhead Policy', () => {
       let resolve1: (value: string) => void
       let resolve2: (value: string) => void
       
-      const operation1 = () => new Promise<string>((res) => { resolve1 = res })
-      const operation2 = () => new Promise<string>((res) => { resolve2 = res })
-      const operation3 = vi.fn().mockResolvedValue('op3')
+      const operation1 = () => new Promise<ZT.Result<string, Error>>((res) => { resolve1 = (value: string) => res(ZT.ok(value)) })
+      const operation2 = () => new Promise<ZT.Result<string, Error>>((res) => { resolve2 = (value: string) => res(ZT.ok(value)) })
+      const operation3 = vi.fn().mockResolvedValue(ZT.ok('op3'))
       
       // Start two operations to fill capacity
       const promise1 = bulkhead.execute(operation1)
@@ -59,7 +60,7 @@ describe('Bulkhead Policy', () => {
     
     it('should accept number as shorthand for maxConcurrent', async () => {
       const bulkhead = PolicyFactory.bulkhead(5, clock)
-      const operation = vi.fn().mockResolvedValue('success')
+      const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
       
       const result = await bulkhead.execute(operation)
       
@@ -77,7 +78,7 @@ describe('Bulkhead Policy', () => {
       
       const resolves: Array<(value: string) => void> = []
       const createOperation = (_id: string) => () => 
-        new Promise<string>((res) => { resolves.push(res) })
+        new Promise<ZT.Result<string, Error>>((res) => { resolves.push((value: string) => res(ZT.ok(value))) })
       
       // Fill capacity
       const promise1 = bulkhead.execute(createOperation('op1'))
@@ -88,7 +89,7 @@ describe('Bulkhead Policy', () => {
       const promise4 = bulkhead.execute(createOperation('op4'))
       
       // Fifth should be rejected (queue full)
-      const operation5 = vi.fn().mockResolvedValue('op5')
+      const operation5 = vi.fn().mockResolvedValue(ZT.ok('op5'))
       const promise5 = bulkhead.execute(operation5)
       const result5 = await promise5
       
@@ -131,8 +132,8 @@ describe('Bulkhead Policy', () => {
       }, clock)
       
       let resolve1: (value: string) => void
-      const operation1 = () => new Promise<string>((res) => { resolve1 = res })
-      const operation2 = vi.fn().mockResolvedValue('op2')
+      const operation1 = () => new Promise<ZT.Result<string, Error>>((res) => { resolve1 = (value: string) => res(ZT.ok(value)) })
+      const operation2 = vi.fn().mockResolvedValue(ZT.ok('op2'))
       
       // Fill capacity
       const promise1 = bulkhead.execute(operation1)
@@ -167,10 +168,10 @@ describe('Bulkhead Policy', () => {
       const executionOrder: string[] = []
       let resolve: (value: string) => void
       
-      const blockingOp = () => new Promise<string>((res) => { resolve = res })
+      const blockingOp = () => new Promise<ZT.Result<string, Error>>((res) => { resolve = (value: string) => res(ZT.ok(value)) })
       const createOp = (id: string) => vi.fn().mockImplementation(() => {
         executionOrder.push(id)
-        return Promise.resolve(id)
+        return Promise.resolve(ZT.ok(id))
       })
       
       // Block the bulkhead
@@ -212,10 +213,10 @@ describe('Bulkhead Policy', () => {
       })
       
       // Simple operations that complete immediately
-      const op1 = () => Promise.resolve('op1')
-      const op2 = () => Promise.resolve('op2')
-      const op3 = () => Promise.resolve('op3')
-      const op4 = () => Promise.resolve('op4')
+      const op1 = () => Promise.resolve(ZT.ok('op1'))
+      const op2 = () => Promise.resolve(ZT.ok('op2'))
+      const op3 = () => Promise.resolve(ZT.ok('op3'))
+      const op4 = () => Promise.resolve(ZT.ok('op4'))
       
       // Execute operations
       const results = await Promise.all([
@@ -248,10 +249,10 @@ describe('Bulkhead Policy', () => {
       }, clock)
       
       let resolve: (value: string) => void
-      const blockingOp = () => new Promise<string>((res) => { resolve = res })
+      const blockingOp = () => new Promise<ZT.Result<string, Error>>((res) => { resolve = (value: string) => res(ZT.ok(value)) })
       
       const promise1 = bulkhead.execute(blockingOp)
-      const promise2 = bulkhead.execute(() => Promise.resolve('queued'))
+      const promise2 = bulkhead.execute(() => Promise.resolve(ZT.ok('queued')))
       
       // Trigger timeout
       clock.advance(100)
@@ -275,7 +276,7 @@ describe('Bulkhead Policy', () => {
       
       const resolves: Array<(value: string) => void> = []
       const createOperation = () => () => 
-        new Promise<string>((res) => { resolves.push(res) })
+        new Promise<ZT.Result<string, Error>>((res) => { resolves.push((value: string) => res(ZT.ok(value))) })
       
       // Fill capacity and queue
       const promises = [
@@ -311,13 +312,13 @@ describe('Bulkhead Policy', () => {
       }, clock)
       
       let resolve: (value: string) => void
-      const blockingOp = () => new Promise<string>((res) => { resolve = res })
+      const blockingOp = () => new Promise<ZT.Result<string, Error>>((res) => { resolve = (value: string) => res(ZT.ok(value)) })
       
       // Block bulkhead and fill queue
       const promise1 = bulkhead.execute(blockingOp)
-      const promise2 = bulkhead.execute(() => Promise.resolve('q1'))
-      const promise3 = bulkhead.execute(() => Promise.resolve('q2'))
-      const promise4 = bulkhead.execute(() => Promise.resolve('q3'))
+      const promise2 = bulkhead.execute(() => Promise.resolve(ZT.ok('q1')))
+      const promise3 = bulkhead.execute(() => Promise.resolve(ZT.ok('q2')))
+      const promise4 = bulkhead.execute(() => Promise.resolve(ZT.ok('q3')))
       
       let metrics = bulkhead.getMetrics()
       expect(metrics.queuedCount).toBe(3)
@@ -355,7 +356,7 @@ describe('Bulkhead Policy', () => {
     it('should handle operation failures', async () => {
       const bulkhead = PolicyFactory.bulkhead({ maxConcurrent: 2 }, clock)
       const error = new Error('Operation failed')
-      const operation = vi.fn().mockRejectedValue(error)
+      const operation = vi.fn().mockResolvedValue(ZT.err(error))
       
       const result = await bulkhead.execute(operation)
       
@@ -375,8 +376,8 @@ describe('Bulkhead Policy', () => {
       }, clock)
       
       let resolve: (value: string) => void
-      const blockingOp = () => new Promise<string>((res) => { resolve = res })
-      const failingOp = vi.fn().mockRejectedValue(new Error('Queued op failed'))
+      const blockingOp = () => new Promise<ZT.Result<string, Error>>((res) => { resolve = (value: string) => res(ZT.ok(value)) })
+      const failingOp = vi.fn().mockResolvedValue(ZT.err(new Error('Queued op failed')))
       
       const promise1 = bulkhead.execute(blockingOp)
       const promise2 = bulkhead.execute(failingOp)
@@ -407,8 +408,8 @@ describe('Bulkhead Policy', () => {
     it('should work with Result-returning operations', async () => {
       const bulkhead = PolicyFactory.bulkhead({ maxConcurrent: 2 }, clock)
       
-      const successOp = () => Promise.resolve('success')
-      const failOp = () => Promise.reject(new Error('failure'))
+      const successOp = () => Promise.resolve(ZT.ok('success'))
+      const failOp = () => Promise.resolve(ZT.err(new Error('failure')))
       
       const result1 = await bulkhead.execute(successOp)
       const result2 = await bulkhead.execute(failOp)
@@ -429,7 +430,7 @@ describe('Bulkhead Policy', () => {
       }, clock)
       
       const operations = Array.from({ length: 10 }, (_, i) =>
-        vi.fn().mockResolvedValue(`result-${i}`)
+        vi.fn().mockResolvedValue(ZT.ok(`result-${i}`))
       )
       
       const promises = operations.map(op => bulkhead.execute(op))
@@ -458,7 +459,7 @@ describe('Bulkhead Policy', () => {
         maxActive = Math.max(maxActive, activeCount)
         await new Promise(resolve => setTimeout(resolve, delay))
         activeCount--
-        return delay
+        return ZT.ok(delay)
       })
       
       const promises = operations.map(op => bulkhead.execute(op))

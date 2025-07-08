@@ -1,12 +1,6 @@
-import type { Result } from '@zerothrow/core'
-import { ZT } from '@zerothrow/core'
+import { ZeroThrow, ZT, ZeroError } from '@zerothrow/core'
 import type { HedgePolicy, HedgeOptions, HedgeMetrics, DelayStrategy } from '../types.js'
 import { HedgeFailedError as HedgeErrorImpl } from '../types.js'
-
-interface CancellableOperation<T> {
-  promise: Promise<T>
-  cancel?: () => void
-}
 
 export class Hedge implements HedgePolicy {
   private readonly options: HedgeOptions & {
@@ -39,306 +33,182 @@ export class Hedge implements HedgePolicy {
     }
   }
 
-  async execute<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
+  execute<T, E extends ZeroError = ZeroError>(operation: () => ZeroThrow.Async<T, E>): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(this.executeAsync(operation))
+  }
+
+  private async executeAsync<T, E extends ZeroError = ZeroError>(operation: () => ZeroThrow.Async<T, E>): Promise<ZeroThrow.Result<T, E>> {
     const startTime = Date.now()
     this.metrics.totalRequests++
     
-    // Create individual cancellation tokens for each request
-    const cancellationTokens: AbortController[] = []
-    const operations: CancellableOperation<{ result: Result<T, Error>; type: 'primary' | 'hedge'; hedgeIndex: number }>[] = []
+    // Calculate delay for first hedge
+    const delay = this.calculateDelay(0)
     
-    try {
-      // Create primary request with its own cancellation token
+    // If delay is very high or hedging is disabled, just run primary
+    if (delay >= 10000 || !this.options.shouldHedge(0)) {
+      const result = await operation()
+      const latency = Date.now() - startTime
+      this.updateLatencyMetrics(latency)
+      this.primaryLatencies.push(latency)
+      this.metrics.primaryWins++
+      this.updateResourceWaste()
+      return result
+    }
+    
+    return new Promise((resolve) => {
+      let resolved = false
+      const controllers: AbortController[] = []
+      const allErrors: E[] = []
+      
+      // Start primary operation
       const primaryController = new AbortController()
-      cancellationTokens.push(primaryController)
+      controllers.push(primaryController)
       
-      const primaryOperation = this.createCancellableOperation(
-        operation, 
-        'primary', 
-        primaryController.signal,
-        0
-      )
-      operations.push(primaryOperation)
+      // Start primary operation
+      operation()
+        .then(result => {
+          if (!resolved) {
+            const latency = Date.now() - startTime
+            this.updateLatencyMetrics(latency)
+            this.primaryLatencies.push(latency)
+            if (result.ok) {
+              resolved = true
+              this.metrics.primaryWins++
+              this.updateResourceWaste()
+              resolve(result)
+            } else {
+              allErrors.push(result.error)
+            }
+          }
+        })
+        .catch((error) => {
+          // Handle promise rejection (should not happen with Result pattern)
+          if (!resolved) {
+            const zeroError = error instanceof ZeroError ? error : new ZeroError('HEDGE_ERROR', String(error))
+            allErrors.push(zeroError as E)
+          }
+        })
       
-      // If no hedging needed, just return primary result
-      const delay = this.calculateDelay(0)
-      if (delay === Infinity || !this.options.shouldHedge(0)) {
-        const result = await primaryOperation.promise
-        this.updateLatencyMetrics(Date.now() - startTime)
-        return result.result
-      }
-      
-      // Create hedge requests with delays
-      for (let i = 0; i < this.options.maxHedges; i++) {
+      // Schedule hedge requests
+      for (let i = 0; i < this.options.maxHedges && !resolved; i++) {
         if (this.options.shouldHedge(i + 1)) {
           const hedgeDelay = this.calculateDelay(i)
-          const hedgeController = new AbortController()
-          cancellationTokens.push(hedgeController)
           
-          const hedgeOperation = this.createHedgeOperation(
-            operation,
-            i,
-            hedgeDelay,
-            hedgeController.signal
-          )
-          operations.push(hedgeOperation)
-        }
-      }
-      
-      // Use a custom race that continues on errors
-      const raceForSuccess = async () => {
-        return new Promise<{ result: Result<T, Error>; type: 'primary' | 'hedge'; hedgeIndex: number }>((resolve, reject) => {
-          let completed = 0
-          const errors: Error[] = []
-          
-          operations.forEach((op, index) => {
-            op.promise.then(result => {
-              if (result.result.ok) {
-                // First success wins
-                resolve(result)
-                // Cancel other operations
-                cancellationTokens.forEach((controller, idx) => {
-                  if (idx !== index) controller.abort()
-                })
-              } else {
-                // Track error and continue
-                errors[index] = result.result.error
-                completed++
-                if (completed === operations.length) {
-                  // All failed
-                  reject(errors)
+          setTimeout(async () => {
+            if (resolved) return
+            
+            if (this.hedgeCallback) {
+              this.hedgeCallback(i + 1, hedgeDelay)
+            }
+            
+            this.metrics.hedgeRequests++
+            
+            const hedgeController = new AbortController()
+            controllers.push(hedgeController)
+            
+            try {
+              const result = await operation()
+              if (!resolved) {
+                const latency = Date.now() - startTime
+                if (result.ok) {
+                  resolved = true
+                  this.updateLatencyMetrics(latency)
+                  this.hedgeLatencies.push(latency)
+                  this.metrics.hedgeWins++
+                  this.updateResourceWaste()
+                  resolve(result)
+                } else {
+                  // Track error for potential final error response
+                  allErrors.push(result.error)
                 }
               }
-            }).catch(err => {
-              errors[index] = err
-              completed++
-              if (completed === operations.length) {
-                reject(errors)
-              }
-            })
-          })
-        })
-      }
-      
-      try {
-        const winner = await raceForSuccess()
-        
-        // Update metrics based on winner
-        const latency = Date.now() - startTime
-        this.updateLatencyMetrics(latency)
-        
-        if (winner.type === 'primary') {
-          this.metrics.primaryWins++
-          this.primaryLatencies.push(latency)
-        } else {
-          this.metrics.hedgeWins++
-          this.hedgeLatencies.push(latency)
+            } catch {
+              // Hedge failed, continue waiting
+            }
+          }, hedgeDelay)
         }
-        
-        this.updateResourceWaste()
-        return winner.result
-      } catch (errors) {
-        // All operations failed
-        const err = new HedgeErrorImpl(
-          'hedge',
-          operations.length,
-          errors as Error[],
-          { options: this.options }
-        )
-        return ZT.err(err)
       }
       
-    } catch (error) {
-      // Cancel all pending operations
-      cancellationTokens.forEach(controller => controller.abort())
-      
-      // If all requests fail, return error
-      const err = new HedgeErrorImpl(
-        'hedge',
-        this.options.maxHedges + 1,
-        [error as Error],
-        { options: this.options }
-      )
-      return ZT.err(err)
-    }
-  }
-
-  private createCancellableOperation<T>(
-    operation: () => Promise<T>,
-    type: 'primary' | 'hedge',
-    signal: AbortSignal,
-    hedgeIndex: number = 0
-  ): CancellableOperation<{ result: Result<T, Error>; type: 'primary' | 'hedge'; hedgeIndex: number }> {
-    const promise = this.executeWithCancellation(operation, signal)
-      .then(value => ({ result: ZT.ok(value), type, hedgeIndex }))
-      .catch(error => ({ result: ZT.err(error as Error), type, hedgeIndex }))
-    
-    return { promise }
-  }
-
-  private createHedgeOperation<T>(
-    operation: () => Promise<T>,
-    hedgeIndex: number,
-    delay: number,
-    signal: AbortSignal
-  ): CancellableOperation<{ result: Result<T, Error>; type: 'primary' | 'hedge'; hedgeIndex: number }> {
-    const promise = (async () => {
-      // Wait for the hedge delay
-      await this.delay(delay, signal)
-      
-      // Check if cancelled during delay
-      if (signal.aborted) {
-        throw new Error('Hedge request cancelled during delay')
-      }
-      
-      // Notify callback if set
-      if (this.hedgeCallback) {
-        this.hedgeCallback(hedgeIndex + 1, delay)
-      }
-      
-      this.metrics.hedgeRequests++
-      
-      // Execute hedge request
-      const value = await this.executeWithCancellation(operation, signal)
-      return { result: ZT.ok(value), type: 'hedge' as const, hedgeIndex: hedgeIndex + 1 }
-    })().catch(error => ({ result: ZT.err(error as Error), type: 'hedge' as const, hedgeIndex: hedgeIndex + 1 }))
-    
-    return { promise }
-  }
-
-  private async executeWithCancellation<T>(
-    operation: () => Promise<T>,
-    signal: AbortSignal
-  ): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      // If already aborted, reject immediately
-      if (signal.aborted) {
-        reject(new Error('Operation cancelled'))
-        return
-      }
-      
-      // Set up abort handler
-      const abortHandler = () => {
-        reject(new Error('Operation cancelled'))
-      }
-      signal.addEventListener('abort', abortHandler)
-      
-      // Execute the operation
-      try {
-        const result = operation()
-        
-        // Handle both sync and async operations
-        Promise.resolve(result)
-          .then(value => {
-            signal.removeEventListener('abort', abortHandler)
-            resolve(value)
-          })
-          .catch(error => {
-            signal.removeEventListener('abort', abortHandler)
-            reject(error)
-          })
-      } catch (error) {
-        // Handle synchronous errors
-        signal.removeEventListener('abort', abortHandler)
-        reject(error)
-      }
+      // If no success after reasonable time, collect errors and fail
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          // All attempts failed - use collected errors or create default
+          const errors = allErrors.length > 0 ? allErrors : [new ZeroError('HEDGE_TIMEOUT', 'All hedge attempts timed out') as E]
+          const hedgeError = new HedgeErrorImpl<E>(
+            'hedge',
+            Math.min(this.options.maxHedges + 1, 2),
+            errors,
+            { attempts: Math.min(this.options.maxHedges + 1, 2) }
+          ) as unknown as E
+          resolve(ZT.err(hedgeError) as unknown as ZeroThrow.Result<T, E>)
+        }
+      }, Math.max(delay * (this.options.maxHedges + 2), 500))
     })
   }
 
-  private async delay(ms: number, signal?: AbortSignal): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      if (signal?.aborted) {
-        reject(new Error('Delay cancelled'))
-        return
-      }
-      
-      const timer = setTimeout(resolve, ms)
-      
-      if (signal) {
-        const abortHandler = () => {
-          clearTimeout(timer)
-          reject(new Error('Delay cancelled'))
-        }
-        signal.addEventListener('abort', abortHandler, { once: true })
-      }
-    })
-  }
-
-  private calculateDelay(attempt: number): number {
-    const delay = this.options.delay
+  private calculateDelay(attemptIndex: number): number {
+    const { delay } = this.options
     
     if (typeof delay === 'number') {
       return delay
     }
     
     const strategy = delay as DelayStrategy
-    const factor = strategy.factor ?? 2
-    
-    let calculatedDelay: number
+    const { initial, factor = 2, maxDelay = Infinity } = strategy
     
     switch (strategy.type) {
       case 'fixed':
-        calculatedDelay = strategy.initial
-        break
-        
+        return Math.min(initial, maxDelay)
       case 'linear':
-        calculatedDelay = strategy.initial + (strategy.initial * factor * attempt)
-        break
-        
+        return Math.min(initial + (attemptIndex * (factor * initial)), maxDelay)
       case 'exponential':
-        calculatedDelay = strategy.initial * Math.pow(factor, attempt)
-        break
-        
+        return Math.min(initial * Math.pow(factor, attemptIndex), maxDelay)
       default:
-        calculatedDelay = strategy.initial
+        return initial
     }
-    
-    // Apply max delay cap if specified
-    if (strategy.maxDelay !== undefined && calculatedDelay > strategy.maxDelay) {
-      return strategy.maxDelay
-    }
-    
-    return calculatedDelay
   }
 
   private updateLatencyMetrics(latency: number): void {
     this.latencies.push(latency)
     
-    // Update average latencies
-    this.metrics.avgPrimaryLatency = this.calculateAverage(this.primaryLatencies)
-    this.metrics.avgHedgeLatency = this.calculateAverage(this.hedgeLatencies)
+    // Update averages
+    if (this.primaryLatencies.length > 0) {
+      this.metrics.avgPrimaryLatency = this.primaryLatencies.reduce((a, b) => a + b, 0) / this.primaryLatencies.length
+    }
     
-    // Update p99 latency
+    if (this.hedgeLatencies.length > 0) {
+      this.metrics.avgHedgeLatency = this.hedgeLatencies.reduce((a, b) => a + b, 0) / this.hedgeLatencies.length
+    }
+    
+    // Update p99
     if (this.latencies.length > 0) {
       const sorted = [...this.latencies].sort((a, b) => a - b)
       const p99Index = Math.floor(sorted.length * 0.99)
+      // Ensure we always have a valid number
       this.metrics.p99Latency = sorted[p99Index] ?? sorted[sorted.length - 1] ?? 0
     }
   }
 
   private updateResourceWaste(): void {
-    if (this.metrics.hedgeRequests > 0) {
-      // Resource waste = hedge requests that didn't win / total hedge requests
-      const wastedHedges = this.metrics.hedgeRequests - this.metrics.hedgeWins
-      this.metrics.resourceWaste = (wastedHedges / this.metrics.hedgeRequests) * 100
-    }
-  }
-
-  private calculateAverage(values: number[]): number {
-    if (values.length === 0) return 0
-    return values.reduce((sum, val) => sum + val, 0) / values.length
-  }
-
-  getMetrics(): HedgeMetrics {
-    return { ...this.metrics }
+    const totalHedgeRequests = this.metrics.hedgeRequests
+    const wastedRequests = totalHedgeRequests - this.metrics.hedgeWins
+    this.metrics.resourceWaste = totalHedgeRequests > 0 ? (wastedRequests / totalHedgeRequests) * 100 : 0
   }
 
   onHedge(callback: (attempt: number, delay: number) => void): HedgePolicy {
     this.hedgeCallback = callback
     return this
   }
+
+  getMetrics(): HedgeMetrics {
+    return { ...this.metrics }
+  }
 }
 
+/**
+ * Creates a hedge policy for tail latency reduction
+ */
 export function hedge(options: HedgeOptions): HedgePolicy {
   return new Hedge(options)
 }

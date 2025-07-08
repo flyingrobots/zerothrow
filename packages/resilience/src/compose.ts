@@ -1,4 +1,5 @@
-import type { Result } from '@zerothrow/core'
+import type { ZeroThrow } from '@zerothrow/core'
+import { ZeroError } from '@zerothrow/core'
 import type { Policy } from './types.js'
 
 /**
@@ -9,21 +10,14 @@ import type { Policy } from './types.js'
  */
 export function wrap(outer: Policy, inner: Policy): Policy {
   return {
-    async execute<T>(
-      operation: () => Promise<T>
-    ): Promise<Result<T, Error>> {
+    execute<T, E extends ZeroError = ZeroError>(
+      operation: () => ZeroThrow.Async<T, E>
+    ): ZeroThrow.Async<T, E> {
       // The outer policy wraps the inner policy's execution
       return outer.execute(() => 
-        // The inner policy executes the actual operation
-        inner.execute(operation).then(result => {
-          // If inner policy returns an error Result, we need to throw
-          // so the outer policy can handle it (e.g., retry on error)
-          if (!result.ok) {
-            throw result.error
-          }
-          return result.value
-        })
-      )
+        // The inner policy executes the actual operation and returns its Result
+        inner.execute(operation)
+      ) as ZeroThrow.Async<T, E>
     }
   }
 }

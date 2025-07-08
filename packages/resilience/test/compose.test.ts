@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { PolicyFactory as Policy, wrap, compose, TestClock } from '../src/index.js'
+import { ZT } from '@zerothrow/core'
+import '@zerothrow/vitest'
 
 describe('Policy composition', () => {
   describe('wrap', () => {
@@ -13,15 +15,14 @@ describe('Policy composition', () => {
       const operation = vi.fn(async () => {
         attempts++
         if (attempts < 2) {
-          throw new Error('fail')
+          return ZT.err(new Error('fail'))
         }
-        return 'success'
+        return ZT.ok('success')
       })
       
       const result = await combined.execute(operation)
       
-      expect(result.ok).toBe(true)
-      expect(result.value).toBe('success')
+      expect(result).toBeOkWith('success')
       expect(operation).toHaveBeenCalledTimes(2)
     })
 
@@ -32,12 +33,12 @@ describe('Policy composition', () => {
       const combined = wrap(retry, timeout)
       const operation = vi.fn(async () => {
         await new Promise(resolve => setTimeout(resolve, 100))
-        return 'too late'
+        return ZT.ok('too late')
       })
       
       const result = await combined.execute(operation)
       
-      expect(result.ok).toBe(false)
+      expect(result).toBeErr()
       // The retry policy will see the timeout error and retry once
       expect(operation).toHaveBeenCalledTimes(2)
     })
@@ -52,11 +53,10 @@ describe('Policy composition', () => {
       
       const combined = compose(retry, circuit, timeout)
       
-      const operation = vi.fn().mockResolvedValue('success')
+      const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
       const result = await combined.execute(operation)
       
-      expect(result.ok).toBe(true)
-      expect(result.value).toBe('success')
+      expect(result).toBeOkWith('success')
     })
 
     it('should throw with no policies', () => {
@@ -67,11 +67,10 @@ describe('Policy composition', () => {
       const timeout = Policy.timeout(100)
       const composed = compose(timeout)
       
-      const operation = vi.fn().mockResolvedValue('success')
+      const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
       const result = await composed.execute(operation)
       
-      expect(result.ok).toBe(true)
-      expect(result.value).toBe('success')
+      expect(result).toBeOkWith('success')
     })
   })
 
@@ -86,15 +85,14 @@ describe('Policy composition', () => {
       const operation = vi.fn(async () => {
         attempts++
         if (attempts === 1) {
-          throw new Error('first attempt fails')
+          return ZT.err(new Error('first attempt fails'))
         }
-        return 'success on retry'
+        return ZT.ok('success on retry')
       })
       
       const result = await policy.execute(operation)
       
-      expect(result.ok).toBe(true)
-      expect(result.value).toBe('success on retry')
+      expect(result).toBeOkWith('success on retry')
       expect(operation).toHaveBeenCalledTimes(2)
     })
   })

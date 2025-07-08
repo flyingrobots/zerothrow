@@ -1,10 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { PolicyFactory as Policy } from '../src/index.js'
+import { ZT } from '@zerothrow/core'
 
 describe('Conditional Policies', () => {
   describe('ConditionalPolicy', () => {
     it('should execute whenTrue policy when condition is true', async () => {
-      const whenTrueMock = vi.fn(() => Promise.resolve(42))
+      const whenTrueMock = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.conditional({
         condition: () => true,
@@ -20,7 +21,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should execute whenFalse policy when condition is false', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.conditional({
         condition: () => false,
@@ -37,7 +38,7 @@ describe('Conditional Policies', () => {
 
     it('should use context in condition evaluation', async () => {
       const executionCounts: number[] = []
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.conditional({
         condition: (context) => {
@@ -58,8 +59,8 @@ describe('Conditional Policies', () => {
     })
 
     it('should track execution metrics', async () => {
-      const failingOp = vi.fn(() => Promise.reject(new Error('Test error')))
-      const successOp = vi.fn(() => Promise.resolve(42))
+      const failingOp = vi.fn(() => Promise.resolve(ZT.err(new Error('Test error'))))
+      const successOp = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.conditional({
         condition: (ctx) => ctx.failureRate > 0.5,
@@ -83,7 +84,7 @@ describe('Conditional Policies', () => {
 
   describe('BranchPolicy', () => {
     it('should select first matching branch', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.branch({
         branches: [
@@ -110,7 +111,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should use default policy when no branches match', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.branch({
         branches: [
@@ -132,8 +133,8 @@ describe('Conditional Policies', () => {
     })
 
     it('should evaluate branches based on context', async () => {
-      const failingOp = vi.fn(() => Promise.reject(new Error('Test error')))
-      const successOp = vi.fn(() => Promise.resolve(42))
+      const failingOp = vi.fn(() => Promise.resolve(ZT.err(new Error('Test error'))))
+      const successOp = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policy = Policy.branch({
         branches: [
@@ -165,7 +166,7 @@ describe('Conditional Policies', () => {
 
   describe('AdaptivePolicy', () => {
     it('should use first policy during warmup period', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
       let selectorCalled = false
 
       const policy = Policy.adaptive({
@@ -189,7 +190,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should call selector after warmup period', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
       let selectorCallCount = 0
 
       const policies = [
@@ -218,8 +219,8 @@ describe('Conditional Policies', () => {
     })
 
     it('should adapt based on failure rate', async () => {
-      const failingOp = vi.fn(() => Promise.reject(new Error('Test error')))
-      const successOp = vi.fn(() => Promise.resolve(42))
+      const failingOp = vi.fn(() => Promise.resolve(ZT.err(new Error('Test error'))))
+      const successOp = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const policies = [
         Policy.timeout(100),
@@ -253,7 +254,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should avoid thrashing between policies', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
       const selectedPolicies: string[] = []
 
       const policies = [
@@ -288,9 +289,9 @@ describe('Conditional Policies', () => {
       const failingOp = vi.fn(() => {
         attempts++
         if (attempts < 3) {
-          return Promise.reject(new Error('Test error'))
+          return Promise.resolve(ZT.err(new Error('Test error')))
         }
-        return Promise.resolve(42)
+        return Promise.resolve(ZT.ok(42))
       })
 
       // Use retry policy directly in the conditional
@@ -307,7 +308,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should wrap conditional policy with circuit breaker', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const conditional = Policy.conditional({
         condition: (ctx) => ctx.executionCount < 5,
@@ -326,7 +327,7 @@ describe('Conditional Policies', () => {
     })
 
     it('should use branch policy in adaptive policy', async () => {
-      const operation = vi.fn(() => Promise.resolve(42))
+      const operation = vi.fn(() => Promise.resolve(ZT.ok(42)))
 
       const branchPolicy = Policy.branch({
         branches: [

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { hedge } from '../src/policies/hedge.js'
+import { ZT } from '@zerothrow/core'
 
 describe('hedge policy', () => {
   beforeEach(() => {
@@ -16,7 +17,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         callCount++
         await new Promise(resolve => setTimeout(resolve, 50))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({ delay: 1000 })
@@ -38,7 +39,7 @@ describe('hedge policy', () => {
         // Primary takes longer, hedge completes faster
         const delay = id === 1 ? 300 : 100
         await new Promise(resolve => setTimeout(resolve, delay))
-        return `success-${id}`
+        return ZT.ok(`success-${id}`)
       })
 
       const policy = hedge({ delay: 100 })
@@ -66,7 +67,7 @@ describe('hedge policy', () => {
         const id = ++callCount
         const delay = id === 1 ? 50 : 200 // Primary faster
         await new Promise(resolve => setTimeout(resolve, delay))
-        return `success-${id}`
+        return ZT.ok(`success-${id}`)
       })
 
       const policy = hedge({ delay: 100 })
@@ -86,7 +87,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         hedgeStartTimes.push(Date.now())
         await new Promise(resolve => setTimeout(resolve, 500))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({
@@ -110,7 +111,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         hedgeStartTimes.push(Date.now())
         await new Promise(resolve => setTimeout(resolve, 1000))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({
@@ -134,7 +135,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         hedgeStartTimes.push(Date.now())
         await new Promise(resolve => setTimeout(resolve, 1000))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({
@@ -158,7 +159,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         hedgeStartTimes.push(Date.now())
         await new Promise(resolve => setTimeout(resolve, 1000))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({
@@ -182,7 +183,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         callCount++
         await new Promise(resolve => setTimeout(resolve, 200))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({
@@ -204,17 +205,22 @@ describe('hedge policy', () => {
       const abortedRequests: string[] = []
       const operation = vi.fn(async () => {
         const id = `request-${Date.now()}`
-        return new Promise((resolve, reject) => {
-          const timer = setTimeout(() => resolve(`success-${id}`), 200)
-          
-          // Simulate operation that can be cancelled
-          const signal = new AbortController().signal
-          signal.addEventListener('abort', () => {
-            clearTimeout(timer)
-            abortedRequests.push(id)
-            reject(new Error('Cancelled'))
+        try {
+          await new Promise<string>((resolve, reject) => {
+            const timer = setTimeout(() => resolve(`success-${id}`), 200)
+            
+            // Simulate operation that can be cancelled
+            const signal = new AbortController().signal
+            signal.addEventListener('abort', () => {
+              clearTimeout(timer)
+              abortedRequests.push(id)
+              reject(new Error('Cancelled'))
+            })
           })
-        })
+          return ZT.ok(`success-${id}`)
+        } catch (error) {
+          return ZT.err(error as Error)
+        }
       })
 
       const policy = hedge({ delay: 100 })
@@ -234,14 +240,15 @@ describe('hedge policy', () => {
       const callTimes: number[] = []
       const operation = vi.fn(async () => {
         callTimes.push(Date.now())
-        throw new Error('Operation failed')
+        return ZT.err(new Error('Operation failed'))
       })
 
       const policy = hedge({ delay: 50, maxHedges: 2 })
       const resultPromise = policy.execute(operation)
       
-      // Let hedge requests start
-      await vi.advanceTimersByTimeAsync(150)
+      // Let hedge requests start and timeout handler fire
+      // With delay=50, maxHedges=2, timeout is max(50 * 4, 500) = 500ms
+      await vi.advanceTimersByTimeAsync(600)
       const result = await resultPromise
 
 
@@ -254,9 +261,9 @@ describe('hedge policy', () => {
       let callCount = 0
       const operation = vi.fn(async () => {
         const id = ++callCount
-        if (id === 1) throw new Error('Primary failed')
+        if (id === 1) return ZT.err(new Error('Primary failed'))
         await new Promise(resolve => setTimeout(resolve, 50))
-        return `success-${id}`
+        return ZT.ok(`success-${id}`)
       })
 
       const policy = hedge({ delay: 100 })
@@ -275,7 +282,7 @@ describe('hedge policy', () => {
     it('should track basic metrics', async () => {
       const operation = vi.fn(async () => {
         await new Promise(resolve => setTimeout(resolve, 150))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({ delay: 100 })
@@ -305,7 +312,7 @@ describe('hedge policy', () => {
           const id = ++callCount
           const delay = id === 2 ? 50 : 200 // Second request (hedge) always wins
           await new Promise(resolve => setTimeout(resolve, delay))
-          return `success-${id}`
+          return ZT.ok(`success-${id}`)
         })
         
         const resultPromise = policy.execute(operation)
@@ -326,7 +333,7 @@ describe('hedge policy', () => {
       const operation = vi.fn(async () => {
         const delay = delays[callIndex++ % delays.length]
         await new Promise(resolve => setTimeout(resolve, delay))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({ delay: 1000 }) // High delay so no hedging
@@ -350,7 +357,7 @@ describe('hedge policy', () => {
       
       const operation = vi.fn(async () => {
         await new Promise(resolve => setTimeout(resolve, 300))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({ delay: 100, maxHedges: 2 })
@@ -370,7 +377,7 @@ describe('hedge policy', () => {
 
   describe('edge cases', () => {
     it('should handle immediate primary success', async () => {
-      const operation = vi.fn(async () => 'instant')
+      const operation = vi.fn(async () => ZT.ok('instant'))
 
       const policy = hedge({ delay: 100 })
       const result = await policy.execute(operation)
@@ -383,7 +390,7 @@ describe('hedge policy', () => {
     it('should handle maxHedges of 0', async () => {
       const operation = vi.fn(async () => {
         await new Promise(resolve => setTimeout(resolve, 100))
-        return 'success'
+        return ZT.ok('success')
       })
 
       const policy = hedge({ delay: 50, maxHedges: 0 })
@@ -398,14 +405,15 @@ describe('hedge policy', () => {
 
     it('should handle synchronous errors', async () => {
       const operation = vi.fn(async () => {
-        throw new Error('Sync error')
+        return ZT.err(new Error('Sync error'))
       })
 
       const policy = hedge({ delay: 50, maxHedges: 1 })
       const resultPromise = policy.execute(operation)
       
-      // Let hedges start
-      await vi.advanceTimersByTimeAsync(100)
+      // Let hedges start and timeout handler fire
+      // With delay=50, maxHedges=1, timeout is max(50 * 3, 500) = 500ms
+      await vi.advanceTimersByTimeAsync(600)
       const result = await resultPromise
 
       expect(result.ok).toBe(false)

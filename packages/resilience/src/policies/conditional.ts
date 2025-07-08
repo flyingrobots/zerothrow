@@ -1,4 +1,4 @@
-import { type Result } from '@zerothrow/core'
+import { ZeroThrow, ZeroError } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
 import type { 
   Policy, 
@@ -23,7 +23,15 @@ export class ConditionalPolicyImpl extends BasePolicy implements ConditionalPoli
     this.whenFalse = options.whenFalse
   }
 
-  async execute<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
+  execute<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(this.executeAsync(operation))
+  }
+
+  private async executeAsync<T, E extends ZeroError = ZeroError>(
+    operation: () => ZeroThrow.Async<T, E>
+  ): Promise<ZeroThrow.Result<T, E>> {
     const startTime = Date.now()
     const selectedPolicy = this.condition(this.context) ? this.whenTrue : this.whenFalse
     
@@ -32,10 +40,12 @@ export class ConditionalPolicyImpl extends BasePolicy implements ConditionalPoli
     const duration = Date.now() - startTime
     this.context.recordExecution(result.ok, result.ok ? undefined : result.error, duration)
     
-    return result
+    // SAFE_CAST: Policy base type uses ZeroError
+    return result as ZeroThrow.Result<T, E>
   }
 
-  getContext(): PolicyContext {
-    return this.context
+  getContext<E extends ZeroError = ZeroError>(): PolicyContext<E> {
+    // SAFE_CAST: MutablePolicyContext extends PolicyContext
+    return this.context as unknown as PolicyContext<E>
   }
 }

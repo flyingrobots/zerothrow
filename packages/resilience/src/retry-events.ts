@@ -23,7 +23,7 @@ export class RetryEventManager {
   constructor(
     private readonly policyName: string,
     private readonly clock: Clock,
-    handlers?: RetryEventHandlers,
+    handlers?: RetryEventHandlers<import('@zerothrow/core').ZeroError>,
     options?: import('./types.js').EventEmitterOptions
   ) {
     this.emitter = new RetryEventEmitter(options)
@@ -85,7 +85,7 @@ export class RetryEventManager {
   /**
    * Emit retry failed event
    */
-  emitFailed(attemptNumber: number, error: Error, willRetry: boolean): void {
+  emitFailed(attemptNumber: number, error: import('@zerothrow/core').ZeroError, willRetry: boolean): void {
     const event: RetryFailedEvent = {
       type: 'retry:failed',
       timestamp: this.clock.now().getTime(),
@@ -134,7 +134,7 @@ export class RetryEventManager {
   /**
    * Emit retry exhausted event
    */
-  emitExhausted(totalAttempts: number, lastError: Error): void {
+  emitExhausted(totalAttempts: number, lastError: import('@zerothrow/core').ZeroError): void {
     const event: RetryExhaustedEvent = {
       type: 'retry:exhausted',
       timestamp: this.clock.now().getTime(),

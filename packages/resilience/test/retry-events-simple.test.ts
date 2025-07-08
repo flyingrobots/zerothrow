@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { RetryPolicy } from '../src/index.js'
 import type { RetryEvent, RetryEventHandlers } from '../src/types.js'
+import { ZT } from '@zerothrow/core'
 
 describe('Retry Events - Simple Tests', () => {
   it('should emit events for successful retry', async () => {
@@ -15,8 +16,8 @@ describe('Retry Events - Simple Tests', () => {
     })
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('fail 1'))
-      .mockResolvedValue('success')
+      .mockResolvedValueOnce(ZT.err(new Error('fail 1')))
+      .mockResolvedValue(ZT.ok('success'))
     
     const result = await policy.execute(operation)
     
@@ -43,7 +44,7 @@ describe('Retry Events - Simple Tests', () => {
       events: handlers 
     })
     
-    const operation = vi.fn().mockRejectedValue(new Error('always fails'))
+    const operation = vi.fn().mockResolvedValue(ZT.err(new Error('always fails')))
     
     const result = await policy.execute(operation)
     
@@ -79,8 +80,8 @@ describe('Retry Events - Simple Tests', () => {
     })
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue('success')
+      .mockResolvedValueOnce(ZT.err(new Error('fail')))
+      .mockResolvedValue(ZT.ok('success'))
     
     await policy.execute(operation)
     
@@ -103,7 +104,7 @@ describe('Retry Events - Simple Tests', () => {
     })
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('do not retry'))
+      .mockResolvedValueOnce(ZT.err(new Error('do not retry')))
     
     const result = await policy.execute(operation)
     
@@ -127,7 +128,7 @@ describe('Retry Events - Simple Tests', () => {
     
     policy.withOperationId('test-operation-123')
     
-    const operation = vi.fn().mockResolvedValue('success')
+    const operation = vi.fn().mockResolvedValue(ZT.ok('success'))
     
     await policy.execute(operation)
     
@@ -151,8 +152,8 @@ describe('Retry Events - Simple Tests', () => {
     policy.onRetry(onRetryCallback)
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue('success')
+      .mockResolvedValueOnce(ZT.err(new Error('fail')))
+      .mockResolvedValue(ZT.ok('success'))
     
     await policy.execute(operation)
     
@@ -173,8 +174,8 @@ describe('Retry Events - Simple Tests', () => {
     })
     
     const operation = vi.fn()
-      .mockRejectedValueOnce(new Error('fail'))
-      .mockResolvedValue('success')
+      .mockResolvedValueOnce(ZT.err(new Error('fail')))
+      .mockResolvedValue(ZT.ok('success'))
     
     await policy.execute(operation)
     
@@ -207,7 +208,7 @@ describe('Retry Events - Simple Tests', () => {
       events: handlers 
     })
     
-    const operation = vi.fn().mockRejectedValue(new Error('fail'))
+    const operation = vi.fn().mockResolvedValue(ZT.err(new Error('fail')))
     
     await policy.execute(operation)
     

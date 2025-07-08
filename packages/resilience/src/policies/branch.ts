@@ -1,4 +1,4 @@
-import { type Result } from '@zerothrow/core'
+import { type Result, ZeroThrow, ZeroError } from '@zerothrow/core'
 import { BasePolicy } from '../policy.js'
 import type { 
   Policy, 
@@ -22,7 +22,11 @@ export class BranchPolicyImpl extends BasePolicy implements ConditionalPolicy {
     this.defaultPolicy = options.default
   }
 
-  async execute<T>(operation: () => Promise<T>): Promise<Result<T, Error>> {
+  execute<T, E extends ZeroError = ZeroError>(operation: () => ZeroThrow.Async<T, E>): ZeroThrow.Async<T, E> {
+    return ZeroThrow.enhance(this.executeAsync(operation))
+  }
+
+  private async executeAsync<T, E extends ZeroError = ZeroError>(operation: () => ZeroThrow.Async<T, E>): Promise<Result<T, E>> {
     const startTime = Date.now()
     
     // Find the first branch whose condition is true
@@ -34,15 +38,18 @@ export class BranchPolicyImpl extends BasePolicy implements ConditionalPolicy {
       }
     }
     
+    // Delegate to the selected policy
     const result = await selectedPolicy.execute(operation)
     
     const duration = Date.now() - startTime
     this.context.recordExecution(result.ok, result.ok ? undefined : result.error, duration)
     
-    return result
+    // SAFE_CAST: Policy base type uses ZeroError
+    return result as Result<T, E>
   }
 
-  getContext(): PolicyContext {
-    return this.context
+  getContext<E extends ZeroError = ZeroError>(): PolicyContext<E> {
+    // SAFE_CAST: MutablePolicyContext extends PolicyContext
+    return this.context as unknown as PolicyContext<E>
   }
 }
