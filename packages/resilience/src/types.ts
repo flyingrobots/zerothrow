@@ -18,8 +18,13 @@ export interface CircuitBreakerPolicy extends Policy {
 // Using a type alias instead of an empty interface
 export type TimeoutPolicy = Policy
 
+export interface HedgePolicy extends Policy {
+  getMetrics(): HedgeMetrics
+  onHedge(callback: (attempt: number, delay: number) => void): HedgePolicy
+}
+
 // Union type for all policies
-export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | Policy
+export type AnyPolicy = RetryPolicy | CircuitBreakerPolicy | TimeoutPolicy | HedgePolicy | Policy
 
 /**
  * Context provided to the shouldRetry predicate for making informed retry decisions.
@@ -143,6 +148,30 @@ export interface ConditionalPolicy extends Policy {
   getContext(): PolicyContext
 }
 
+export interface HedgeOptions {
+  delay: number | DelayStrategy  // When to start hedge request
+  maxHedges?: number              // Max parallel requests (default: 1)
+  shouldHedge?: (attempt: number) => boolean  // Conditional hedging
+}
+
+export interface DelayStrategy {
+  type: 'fixed' | 'linear' | 'exponential'
+  initial: number    // Initial delay in ms
+  factor?: number    // Multiplier for linear/exponential (default: 2)
+  maxDelay?: number  // Cap for delays
+}
+
+export interface HedgeMetrics {
+  totalRequests: number
+  hedgeRequests: number
+  primaryWins: number
+  hedgeWins: number
+  resourceWaste: number  // Percentage of wasted hedge requests
+  avgPrimaryLatency: number
+  avgHedgeLatency: number
+  p99Latency: number
+}
+
 // Policy error types
 export interface PolicyError extends Error {
   type: PolicyErrorType
@@ -154,6 +183,7 @@ export type PolicyErrorType =
   | 'retry-exhausted'
   | 'circuit-open'
   | 'timeout'
+  | 'hedge-failed'
 
 export class RetryExhaustedError extends Error implements PolicyError {
   readonly type = 'retry-exhausted' as const
@@ -194,6 +224,20 @@ export class TimeoutError extends Error implements PolicyError {
   ) {
     super(`Operation timed out after ${elapsed}ms (limit: ${timeout}ms)`)
     this.name = 'TimeoutError'
+  }
+}
+
+export class HedgeFailedError extends Error implements PolicyError {
+  readonly type = 'hedge-failed' as const
+  
+  constructor(
+    public readonly policyName: string,
+    public readonly attempts: number,
+    public readonly errors: Error[],
+    public readonly context?: unknown
+  ) {
+    super(`All ${attempts} hedge attempts failed`)
+    this.name = 'HedgeFailedError'
   }
 }
 

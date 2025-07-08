@@ -5,6 +5,7 @@ export type {
   CircuitBreakerPolicy as CircuitBreakerPolicyInterface,
   TimeoutPolicy as TimeoutPolicyInterface,
   ConditionalPolicy,
+  HedgePolicy as HedgePolicyInterface,
   AnyPolicy,
   RetryOptions,
   RetryContext,
@@ -16,6 +17,9 @@ export type {
   PolicyContext,
   PolicyCondition,
   BranchCase,
+  HedgeOptions,
+  DelayStrategy,
+  HedgeMetrics,
   PolicyError,
   PolicyErrorType,
   // Event types
@@ -37,6 +41,7 @@ export {
   RetryExhaustedError,
   CircuitOpenError,
   TimeoutError,
+  HedgeFailedError,
   MutablePolicyContext
 } from './types.js'
 
@@ -47,6 +52,7 @@ export { TimeoutPolicy } from './policies/timeout.js'
 export { ConditionalPolicyImpl } from './policies/conditional.js'
 export { BranchPolicyImpl } from './policies/branch.js'
 export { AdaptivePolicyImpl } from './policies/adaptive.js'
+export { Hedge as HedgePolicy, hedge } from './policies/hedge.js'
 
 // Composition utilities
 export { wrap, compose } from './compose.js'
