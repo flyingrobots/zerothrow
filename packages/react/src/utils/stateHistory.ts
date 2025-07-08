@@ -29,7 +29,7 @@ export interface Metrics {
   errorCount: number
   averageDuration: number
   successRate: number
-  lastError?: { error: any; timestamp: number }
+  lastError?: { error: unknown; timestamp: number }
   fastestRequest: number | undefined
   slowestRequest: number | undefined
 }
@@ -87,7 +87,7 @@ export class StateHistory<T, E extends Error> {
     const errorEntries = this.history.filter(entry => !entry.state.ok)
     
     const durations = entriesWithDuration
-      .map(entry => entry.duration!)
+      .map(entry => entry.duration as number)
       .filter(duration => duration > 0)
     
     const averageDuration = durations.length > 0 

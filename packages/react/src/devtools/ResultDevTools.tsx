@@ -48,7 +48,7 @@ export interface ResultDevToolsProps {
  * Global registry for Result state introspection data
  */
 interface DevToolsRegistry {
-  [key: string]: IntrospectionData<any, any>
+  [key: string]: IntrospectionData<unknown, Error>
 }
 
 /**
@@ -88,7 +88,7 @@ export function ResultDevTools({
   // Set up global DevTools registry
   useEffect(() => {
     const devTools = {
-      register: (name: string, data: IntrospectionData<any, any>) => {
+      register: (name: string, data: IntrospectionData<unknown, Error>) => {
         setRegistry(prev => ({ ...prev, [name]: data }))
       },
       unregister: (name: string) => {
@@ -154,7 +154,7 @@ export function ResultDevTools({
     return new Date(timestamp).toLocaleTimeString()
   }
   
-  const getStatusColor = (data: IntrospectionData<any, any>): string => {
+  const getStatusColor = (data: IntrospectionData<unknown, Error>): string => {
     if (data.loading.type === 'error') return '#ef4444'
     if (data.loading.type === 'success') return '#10b981'
     if (data.loading.type === 'pending' || data.loading.type === 'refreshing') return '#3b82f6'

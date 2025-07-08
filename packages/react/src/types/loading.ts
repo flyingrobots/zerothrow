@@ -26,7 +26,7 @@ export interface PendingState {
 
 export interface RefreshingState {
   type: 'refreshing'
-  previousData: any
+  previousData: unknown
   startedAt: number
   progress?: number
 }

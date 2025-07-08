@@ -83,7 +83,7 @@ export interface UseStateIntrospectionReturn<T, E extends Error> {
 declare global {
   interface Window {
     __ZEROTHROW_DEVTOOLS__?: {
-      register: (name: string, data: IntrospectionData<any, any>) => void
+      register: (name: string, data: IntrospectionData<unknown, Error>) => void
       unregister: (name: string) => void
     }
   }
@@ -212,7 +212,7 @@ export function useStateIntrospection<T, E extends Error>(
   // DevTools integration
   useEffect(() => {
     if (enableDevTools && typeof window !== 'undefined' && window.__ZEROTHROW_DEVTOOLS__) {
-      window.__ZEROTHROW_DEVTOOLS__.register(name, introspection as IntrospectionData<any, any>)
+      window.__ZEROTHROW_DEVTOOLS__.register(name, introspection as IntrospectionData<unknown, Error>)
       return () => {
         window.__ZEROTHROW_DEVTOOLS__?.unregister(name)
       }
@@ -223,18 +223,21 @@ export function useStateIntrospection<T, E extends Error>(
   // Time travel implementation (development only)
   const timeTravel = (index: number): void => {
     if (!enableDevTools) {
+      // eslint-disable-next-line no-console
       console.warn('Time travel is only available in development mode')
       return
     }
     
     const historyEntries = history.getHistory()
     if (index < 0 || index >= historyEntries.length) {
+      // eslint-disable-next-line no-console
       console.warn(`Invalid time travel index: ${index}. Valid range: 0-${historyEntries.length - 1}`)
       return
     }
     
     // In a real implementation, this would trigger the parent hook to update
     // For now, we just log the action
+    // eslint-disable-next-line no-console
     console.log('Time travel to entry:', historyEntries[index])
     return // Explicit return to satisfy all code paths
   }
