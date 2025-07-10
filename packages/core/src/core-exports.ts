@@ -62,20 +62,20 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
 // Factory functions
 export { ok };
 
-// Enhanced err with string overloads
+// Enhanced err with generic error code support
 export function err(error: globalThis.Error): Result<never, globalThis.Error>;
-export function err(code: string): Result<never, _ZeroError>;
-export function err(code: string, message: string): Result<never, _ZeroError>;
-export function err(
-  errorOrCode: globalThis.Error | string, 
+export function err<TCode extends string | number | symbol>(code: TCode): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(code: TCode, message: string): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(
+  errorOrCode: globalThis.Error | TCode, 
   message?: string
 ): Result<never, globalThis.Error> {
-  if (typeof errorOrCode === 'string') {
-    // String overload - create ZeroError
-    return _err(new _ZeroError(errorOrCode, message || errorOrCode));
+  if (errorOrCode instanceof globalThis.Error) {
+    // Error object - use as-is (preserves all error types)
+    return _err(errorOrCode);
   }
-  // Error object - use as-is (preserves all error types)
-  return _err(errorOrCode);
+  // Accept string | number | symbol as code — fallback to string conversion for message
+  return _err(new _ZeroError(errorOrCode as ErrorCode, message || String(errorOrCode)));
 }
 
 // NEW: attempt function (replaces tryR, tryRSync, tryRBatch)

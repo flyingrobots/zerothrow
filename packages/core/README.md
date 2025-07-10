@@ -19,7 +19,6 @@ Core ZeroThrow functionality - Rust-style `Result<T, E>` for TypeScript. Type-sa
 ## 🚧 Coming Soon in v0.3.0 "SHATTER THE CORE"
 
 **Major breaking changes and new features coming Q1 2025:**
-- **ErrorCode Standardization** (#69) - Enum-based error codes replacing strings
 - **Error Tracing Utilities** (#70) - `.trace()` method and `ZT.debug()` for debugging chains
 - **Full Monad API** (#81) - Complete combinator set: `.map()`, `.andThen()`, `.mapErr()`, `.orElse()`, `.unwrapOr()`, and more
 - **Side-effect Utilities** (#82) - `.tap()`, `.tapErr()`, `.finally()`, `.void()` for better control flow
@@ -149,6 +148,10 @@ ZT.ok(value)                       // Result<T, never>
 ZT.err(error)                      // Result<never, Error>
 ZT.err('CODE')                     // Result<never, ZeroError>
 ZT.err('CODE', 'message')          // Result<never, ZeroError>
+
+// Type-safe error codes (NEW)
+ZT.err<MyErrorCode>(MyErrorCode.NOT_FOUND)              // Result<never, ZeroError>
+ZT.err<MyErrorCode>(MyErrorCode.NOT_FOUND, 'No user')  // Result<never, ZeroError>
 
 // Debug utilities (NEW in v0.3.0)
 ZT.debug.enable()                  // Enable debug mode
@@ -297,6 +300,84 @@ return fetchUser(id)
 ### 4. Design Error-First
 
 Use ZeroError for rich, type-safe errors:
+
+```typescript
+// ❌ Stringly-typed errors
+function validatePayment(amount: number): Result<Payment, Error> {
+  if (amount <= 0) {
+    return ZT.err('INVALID_AMOUNT');  // What if you typo this?
+  }
+  // ...
+}
+
+// ✅ Type-safe error codes with enums
+enum PaymentError {
+  INVALID_AMOUNT = 'INVALID_AMOUNT',
+  INSUFFICIENT_FUNDS = 'INSUFFICIENT_FUNDS',
+  CARD_DECLINED = 'CARD_DECLINED',
+  FRAUD_DETECTED = 'FRAUD_DETECTED'
+}
+
+function validatePayment(amount: number): Result<Payment, Error> {
+  if (amount <= 0) {
+    return ZT.err<PaymentError>(
+      PaymentError.INVALID_AMOUNT,
+      `Amount must be positive, got ${amount}`
+    );
+  }
+  // ...
+}
+
+// TypeScript ensures you handle known error types
+const result = validatePayment(100);
+if (!result.ok && result.error.code === PaymentError.CARD_DECLINED) {
+  // Handle declined card specifically
+}
+```
+
+### 5. Use Domain-Specific Error Types
+
+Create error enums for different domains in your application:
+
+```typescript
+// API errors
+enum ApiError {
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  TIMEOUT = 'TIMEOUT',
+  RATE_LIMITED = 'RATE_LIMITED',
+  UNAUTHORIZED = 'UNAUTHORIZED'
+}
+
+// Database errors (can use numeric codes too)
+enum DbError {
+  CONNECTION_FAILED = 1001,
+  QUERY_TIMEOUT = 1002,
+  CONSTRAINT_VIOLATION = 1003,
+  DEADLOCK = 1004
+}
+
+// Domain-specific usage
+function fetchUser(id: string): Result<User, Error> {
+  const dbResult = db.query(/* ... */);
+  if (!dbResult.ok) {
+    return ZT.err<DbError>(
+      DbError.QUERY_TIMEOUT,
+      `Query timed out fetching user ${id}`
+    );
+  }
+  // ...
+}
+
+// Symbol-based error codes for internal errors
+const InternalError = {
+  FATAL: Symbol('FATAL'),
+  CORRUPTION: Symbol('CORRUPTION'),
+  INVARIANT: Symbol('INVARIANT')
+} as const;
+
+// All error code types work seamlessly
+ZT.err(InternalError.FATAL, 'Unrecoverable error');
+```
 
 ```typescript
 import { ZT, ZeroError, type Result } from '@zerothrow/core';
