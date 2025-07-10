@@ -27,6 +27,8 @@ import {
   firstSuccess as _firstSuccess
 } from './combinators.js';
 
+import { debug as _debug } from './debug.js';
+
 // ==========================================
 // TYPES - Clean names for ZeroThrow namespace
 // ==========================================
@@ -62,20 +64,20 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
 // Factory functions
 export { ok };
 
-// Enhanced err with string overloads
+// Enhanced err with generic error code support
 export function err(error: globalThis.Error): Result<never, globalThis.Error>;
-export function err(code: string): Result<never, _ZeroError>;
-export function err(code: string, message: string): Result<never, _ZeroError>;
-export function err(
-  errorOrCode: globalThis.Error | string, 
+export function err<TCode extends string | number | symbol>(code: TCode): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(code: TCode, message: string): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(
+  errorOrCode: globalThis.Error | TCode, 
   message?: string
 ): Result<never, globalThis.Error> {
-  if (typeof errorOrCode === 'string') {
-    // String overload - create ZeroError
-    return _err(new _ZeroError(errorOrCode, message || errorOrCode));
+  if (errorOrCode instanceof globalThis.Error) {
+    // Error object - use as-is (preserves all error types)
+    return _err(errorOrCode);
   }
-  // Error object - use as-is (preserves all error types)
-  return _err(errorOrCode);
+  // Accept string | number | symbol as code — fallback to string conversion for message
+  return _err(new _ZeroError(errorOrCode as ErrorCode, message || String(errorOrCode)));
 }
 
 // NEW: attempt function (replaces tryR, tryRSync, tryRBatch)
@@ -103,7 +105,14 @@ export function attempt<T>(
     if (result && typeof result === 'object' && 'then' in result) {
       // Don't call fn again, use the existing promise
       return (result as Promise<T>).then(
-        (value) => ok(value),
+        (value) => {
+          // Check if the resolved value is already a Result and auto-flatten
+          if (isResult(value)) {
+            _debug('try', '⚠️  Detected async Result-returning function — auto-flattening. Consider awaiting the function directly instead of wrapping it in ZT.try().');
+            return value as Result<T, _ZeroError>;
+          }
+          return ok(value);
+        },
         (error) => {
           const base = _normalise(error);
           return _err(mapError ? mapError(base) : base);
@@ -111,7 +120,12 @@ export function attempt<T>(
       );
     }
     
-    // Sync result
+    // Sync result - check if it's already a Result and auto-flatten
+    if (isResult(result)) {
+      _debug('try', '⚠️  Detected Result-returning function — auto-flattening. Consider calling the function directly instead of wrapping it in ZT.try().');
+      return result as Result<T, _ZeroError>;
+    }
+    
     return ok(result as T);
   } catch (e) {
     // Function threw synchronously

@@ -55,29 +55,35 @@ export function RegistrationForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<Result<string, string> | null>(null);
 
-  const validateForm = (): Result<FormData, ValidationError[]> => {
+  const validateForm = (): { ok: true; value: FormData } | { ok: false; errors: ValidationError[] } => {
     const validationErrors: ValidationError[] = [];
     
     const usernameResult = validateUsername(formData.username);
     if (!usernameResult.ok) {
-      validationErrors.push(usernameResult.error);
+      // Extract the ValidationError from the ZeroError.code
+      const validationError = usernameResult.error.code as ValidationError;
+      validationErrors.push(validationError);
     }
     
     const emailResult = validateEmail(formData.email);
     if (!emailResult.ok) {
-      validationErrors.push(emailResult.error);
+      // Extract the ValidationError from the ZeroError.code
+      const validationError = emailResult.error.code as ValidationError;
+      validationErrors.push(validationError);
     }
     
     const passwordResult = validatePassword(formData.password);
     if (!passwordResult.ok) {
-      validationErrors.push(passwordResult.error);
+      // Extract the ValidationError from the ZeroError.code
+      const validationError = passwordResult.error.code as ValidationError;
+      validationErrors.push(validationError);
     }
     
     if (validationErrors.length > 0) {
-      return err(validationErrors);
+      return { ok: false, errors: validationErrors };
     }
     
-    return ok(formData);
+    return { ok: true, value: formData };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,7 +95,7 @@ export function RegistrationForm() {
     
     if (!validation.ok) {
       const errorMap: Record<string, string> = {};
-      validation.error.forEach(error => {
+      validation.errors.forEach((error: ValidationError) => {
         errorMap[error.field] = error.message;
       });
       setErrors(errorMap);
