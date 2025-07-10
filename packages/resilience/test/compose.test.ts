@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { Policy, wrap, compose, TestClock } from '../src/index.js'
+import { PolicyFactory as Policy, wrap, compose, TestClock } from '../src/index.js'
 
 describe('Policy composition', () => {
   describe('wrap', () => {

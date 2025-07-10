@@ -56,8 +56,8 @@ function getDebuggingTip(testName: string): string {
   const tips: Record<string, string> = {
     'Unit Tests': 'Check for broken imports or syntax errors',
     'Integration Tests': 'Verify external dependencies are mocked',
-    'Coverage': "Run 'npm test -- --coverage' to see uncovered lines",
-    'Lint': "Run 'npm run lint -- --fix' to auto-fix issues",
+    'Coverage': "Run 'pnpm test -- --coverage' to see uncovered lines",
+    'Lint': "Run 'pnpm run lint -- --fix' to auto-fix issues",
     'Build': 'Check for TypeScript errors or missing dependencies'
   };
   

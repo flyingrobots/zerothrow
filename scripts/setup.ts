@@ -27,7 +27,7 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
 
   // Install dependencies
   const depsSpinner = ora('Installing dependencies...').start();
-  const npmResult = await execCmd('npm install');
+  const npmResult = await execCmd('pnpm install');
   if (!npmResult.ok) {
     depsSpinner.fail('Failed to install dependencies');
     return npmResult;
@@ -88,10 +88,10 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
 
   // Set up Git hooks
   console.log(chalk.blue('\n🪝 Setting up Git hooks...\n'));
-  const hooksResult = await execCmd('npm run githooks');
+  const hooksResult = await execCmd('pnpm run githooks');
   if (!hooksResult.ok) {
     console.log(chalk.yellow('⚠️  Failed to set up Git hooks'));
-    console.log(chalk.gray('   Run "npm run githooks" manually to set them up.'));
+    console.log(chalk.gray('   Run "pnpm run githooks" manually to set them up.'));
   } else {
     console.log(chalk.green('✅ Git hooks installed'));
   }
@@ -99,7 +99,7 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
   // Build the project
   console.log(chalk.blue('\n🔨 Building the project...\n'));
   const buildSpinner = ora('Running build...').start();
-  const buildResult = await execCmd('npm run build');
+  const buildResult = await execCmd('pnpm run build');
   if (!buildResult.ok) {
     buildSpinner.fail('Build failed');
     return buildResult;
@@ -121,7 +121,7 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
   }]);
 
   if (runTests !== 'skip') {
-    const testCmd = runTests === 'all' ? 'npm run test:all' : 'npm test';
+    const testCmd = runTests === 'all' ? 'pnpm run test:all' : 'pnpm test';
     const testResult = await execCmd(testCmd);
     if (!testResult.ok) {
       console.log(chalk.yellow('\n⚠️  Some tests failed.'));
@@ -139,12 +139,12 @@ async function setupZeroThrow(): Promise<ZeroThrow.Result<void, ZeroThrow.ZeroEr
 `));
 
   console.log(chalk.white('You\'re ready to use ZeroThrow! Here are some useful commands:\n'));
-  console.log(chalk.gray('  npm test              # Run unit tests'));
-  console.log(chalk.gray('  npm run test:all      # Run all tests (requires Docker)'));
-  console.log(chalk.gray('  npm run test:watch    # Run tests in watch mode'));
-  console.log(chalk.gray('  npm run lint          # Run linter'));
-  console.log(chalk.gray('  npm run bench         # Run benchmarks'));
-  console.log(chalk.gray('  npm run build         # Build the project\n'));
+  console.log(chalk.gray('  pnpm test              # Run unit tests'));
+  console.log(chalk.gray('  pnpm run test:all      # Run all tests (requires Docker)'));
+  console.log(chalk.gray('  pnpm run test:watch    # Run tests in watch mode'));
+  console.log(chalk.gray('  pnpm run lint          # Run linter'));
+  console.log(chalk.gray('  pnpm run bench        # Run benchmarks'));
+  console.log(chalk.gray('  pnpm run build        # Build the project\n'));
 
   return ZT.ok(undefined);
 }

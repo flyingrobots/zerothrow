@@ -4,10 +4,11 @@ WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
-RUN npm install
+COPY pnpm-lock.yaml ./
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm install
 
 # Install database testing dependencies
-RUN npm install --save-dev \
+RUN pnpm install --save-dev \
     sqlite3 \
     mongodb \
     @types/node \
@@ -24,4 +25,4 @@ COPY examples/database/ ./examples/database/
 COPY examples/database/vitest.config.ts ./vitest.config.ts
 COPY examples/database/tsconfig.json ./tsconfig.json
 
-CMD ["npm", "test"]
+CMD ["pnpm", "test"]

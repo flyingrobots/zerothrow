@@ -1,0 +1,1 @@
+| [`@zerothrow/jest`](packages/jest) | [![npm](https://img.shields.io/npm/v/@zerothrow/jest.svg?style=flat-square)](https://npm.im/@zerothrow/jest) | Jest matchers for ZeroThrow Result types |

@@ -18,6 +18,7 @@ describe('Result Combinators', () => {
     expect(typeof result.orElse).toBe('function');
     expect(typeof result.unwrapOr).toBe('function');
     expect(typeof result.unwrapOrThrow).toBe('function');
+    expect(typeof result.unwrapOrElse).toBe('function');
   });
 
   describe('andThen', () => {
@@ -134,6 +135,108 @@ describe('Result Combinators', () => {
       const error = new Error('Test error');
       expect(() => ZT.err(error).unwrapOrThrow()).toThrow(error);
     });
+  });
+
+  describe('unwrapOrElse', () => {
+    it('returns value on success', () => {
+      const value = ZT.ok(42).unwrapOrElse(() => 99);
+      expect(value).toBe(42);
+    });
+
+    it('returns computed fallback on error', () => {
+      const error = new ZeroThrow.ZeroError('TEST_ERR', 'Test error');
+      const value = ZT.err<number>(error).unwrapOrElse((e) => {
+        expect(e.code).toBe('TEST_ERR');
+        return 99;
+      });
+      expect(value).toBe(99);
+    });
+
+    it('passes error to fallback function', () => {
+      const error = new ZeroThrow.ZeroError('CALC_ERR', 'Calculation failed');
+      const value = ZT.err<number>(error).unwrapOrElse((e) => {
+        if (e.code === 'CALC_ERR') return 0;
+        return -1;
+      });
+      expect(value).toBe(0);
+    });
+
+    it('supports complex fallback computation', () => {
+      const error = new ZeroThrow.ZeroError('NETWORK_ERR', 'Network timeout');
+      const value = ZT.err<string>(error).unwrapOrElse((e) => {
+        return `Fallback: ${e.message}`;
+      });
+      expect(value).toBe('Fallback: Network timeout');
+    });
+  });
+});
+
+describe('Monad API Chaining', () => {
+  it('supports complex method chaining', () => {
+    // Simulate a complex workflow: parse number, double it, validate range, format
+    const parseNumber = (input: string): ZeroThrow.Result<number, ZeroThrow.ZeroError> => {
+      const num = Number(input);
+      return isNaN(num) ? ZT.err(new ZeroThrow.ZeroError('PARSE_ERR', 'Invalid number')) : ZT.ok(num);
+    };
+
+    const validateRange = (num: number): ZeroThrow.Result<number, ZeroThrow.ZeroError> => {
+      return num > 100 ? ZT.err(new ZeroThrow.ZeroError('RANGE_ERR', 'Number too large')) : ZT.ok(num);
+    };
+
+    const result = parseNumber('5')
+      .map(n => n * 2)                           // Transform: 5 -> 10
+      .andThen(n => validateRange(n))            // Chain validation
+      .mapErr(e => new ZeroThrow.ZeroError('CALC_ERR', `Calculation failed: ${e.message}`))
+      .orElse(() => ZT.ok(0))                    // Fallback to 0 on error
+      .map(n => `Result: ${n}`)                  // Format as string
+      .unwrapOr('No result');
+
+    expect(result).toBe('Result: 10');
+  });
+
+  it('chains with error propagation', () => {
+    const parseNumber = (input: string): ZeroThrow.Result<number, ZeroThrow.ZeroError> => {
+      const num = Number(input);
+      return isNaN(num) ? ZT.err(new ZeroThrow.ZeroError('PARSE_ERR', 'Invalid number')) : ZT.ok(num);
+    };
+
+    const validateRange = (num: number): ZeroThrow.Result<number, ZeroThrow.ZeroError> => {
+      return num > 100 ? ZT.err(new ZeroThrow.ZeroError('RANGE_ERR', 'Number too large')) : ZT.ok(num);
+    };
+
+    const result = parseNumber('invalid')
+      .map(n => n * 2)                           // Should not execute
+      .andThen(n => validateRange(n))            // Should not execute
+      .mapErr(e => new ZeroThrow.ZeroError('CALC_ERR', `Calculation failed: ${e.message}`))
+      .map(n => `Result: ${n}`)                  // Should not execute
+      .unwrapOrElse(e => `Error: ${e.message}`); // Should execute with transformed error
+
+    expect(result).toBe('Error: Calculation failed: Invalid number');
+  });
+
+  it('chains with orElse recovery', () => {
+    const parseNumber = (input: string): ZeroThrow.Result<number, ZeroThrow.ZeroError> => {
+      const num = Number(input);
+      return isNaN(num) ? ZT.err(new ZeroThrow.ZeroError('PARSE_ERR', 'Invalid number')) : ZT.ok(num);
+    };
+
+    const result = parseNumber('invalid')
+      .map(n => n * 2)                           // Should not execute
+      .orElse(() => ZT.ok(42))                   // Recover with default value
+      .map(n => n + 8)                           // Should execute: 42 + 8 = 50
+      .unwrapOr(0);
+
+    expect(result).toBe(50);
+  });
+
+  it('preserves types through chain', () => {
+    const result = ZT.ok(42)
+      .map(n => n.toString())                    // number -> string
+      .andThen(s => ZT.ok(s.length))             // string -> number
+      .map(len => len > 1)                       // number -> boolean
+      .unwrapOr(false);
+
+    expect(result).toBe(true);  // "42".length = 2, which is > 1
   });
 });
 

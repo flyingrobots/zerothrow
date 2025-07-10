@@ -1,340 +1,372 @@
-# OPERATION "ZERO-THROW ALPHA" 🎯
+# ZeroThrow Project Guide
 
-## 📊 LATEST SITREP (2025-01-04 14:40 PDT)
+This guide contains essential information about the ZeroThrow monorepo for AI assistants.
 
-**STATUS:** RESILIENCE PACKAGE COMPLETE! 🎯 Ready for npm publish.
+## Project Overview
 
-**MISSION ACCOMPLISHED:**
-- ✅ **STABLE VERSIONS PUBLISHED** - All packages now on stable semver
-- ✅ **DOCS/BENCHMARKS DELETED** - Clean slate for rapid iteration
-- ✅ **tryR REFERENCES PURGED** - 252 references eliminated via deletion
-- ✅ **Test matchers complete** - Jest/Vitest/Testing packages published
+ZeroThrow is a TypeScript error handling library that replaces exceptions with type-safe Result types. The core philosophy: **Stop throwing, start returning.**
 
-**CURRENT RELEASES:**
-- **@zerothrow/core v0.1.0** - Stable release with all alpha features
-- **@zerothrow/expect v0.1.0** - Shared matcher logic
-- **@zerothrow/jest v1.0.0** - Jest matchers (unintended 1.0, but we're keeping it)
-- **@zerothrow/vitest v1.0.0** - Vitest matchers
-- **@zerothrow/testing v1.0.0** - Unified test package
-- **@zerothrow/resilience v0.1.0** - MVP COMPLETE! Ready to publish
+### Key Mental Model
+1. **Write functions that return Results from the beginning** - Don't throw then wrap
+2. **Only use `ZT.try` at absolute boundaries** - When interfacing with code you don't control
+3. **Results are your primary return type** - Not an afterthought or wrapper
 
-**SECRETS STATUS:**
-- **GH_PAT:** ✅ Added to repo (enables extra features)
-- **NPM_TOKEN:** ⚠️ Need to add for auto-publishing
+## Repository Structure
 
-**CURRENT STATE:**
-- **Remaining `tryR` references:** 0 in code, few in MD files
-- **Docs/Benchmarks:** DELETED (2025-01-04) - Clean slate for future
-- **Published versions:** 0.1.0 for core/expect, 1.0.0 for test packages
-
----
-
-## 🎯 IMMEDIATE OBJECTIVES - BETA DX SPRINT
-
-**CRITICAL FIXES (Based on Alpha Feedback):**
-1. **Add ZT.tryAsync** - Clear async ergonomics
-2. **String overload for ZT.err** - `ZT.err('CODE')` convenience
-3. **Test matchers** - `expect(result).toBeOk()` for jest/vitest
-4. **Async combinators** - Reduce verbose nested handling
-
-**LATEST ACHIEVEMENTS:**
-- ✅ Added ZT.tryAsync for `Promise<Result<T,E>>` 
-- ✅ Added string overloads to ZT.err
-- ✅ Created @zerothrow/jest matchers (published)
-- ✅ Created @zerothrow/vitest matchers (PR merged)
-- ✅ Refactored to @zerothrow/expect architecture
-- ✅ Added ECOSYSTEM.md with 34-package roadmap
-- ✅ **RESILIENCE PACKAGE COMPLETE!**
-  - RetryPolicy with backoff strategies
-  - CircuitBreakerPolicy with state machine
-  - TimeoutPolicy with Promise.race
-  - Policy.compose() for chaining
-  - 21 passing tests, 100% behavior coverage
-
-**NEXT MISSION:** Ship resilience to npm!
-
-**STILL PENDING (Lower Priority):**
-- [ ] Delete ALL `tryR` references (11 remaining)
-- [ ] Add ESLint rule to ban old names
-- [ ] Resilience API (retry, circuit breaker)
-
----
-
-## 📊 ALPHA USER FEEDBACK ANALYSIS
-
-### Pain Points Discovered
-| Issue | Root Cause | Impact |
-|-------|------------|--------|
-| Async confusion with ZT.try | Returns `Result<Promise<T>>` not `Promise<Result<T>>` | Devs expect to await directly |
-| Can't pass strings to ZT.err | Typed to only accept Error objects | Extra boilerplate, TS errors |
-| Test helpers throw | Jest/Vitest mental model | Violates zero-throw philosophy |
-| Verbose async handling | Missing async combinators | Hard to read nested blocks |
-
-### Solution Priority
-1. **ZT.tryAsync** - New function that returns `Promise<Result<T,E>>`
-2. **ZT.err overloads** - Accept strings: `ZT.err('CODE')` or `ZT.err('CODE', 'message')`
-3. **@zerothrow/jest** - Test matchers: `expect(result).toBeOk()`
-4. **Async helpers** - `flatMapAsync`, `awaitOk`, etc.
-
----
-
-## 🧠 BASIC MEMORY INTEGRATION
-
-**IMPORTANT:** Always check basic memory at conversation start:
-```bash
-# Search for project info
-mcp__basic-memory__search "zerothrow"
-
-# Read specific notes
-mcp__basic-memory__read_note "projects/zerothrow/..."
+```
+zerothrow/
+├── packages/
+│   ├── core/           # Core Result<T,E> type (v0.2.3)
+│   ├── resilience/     # Retry, circuit breaker, timeout (v0.2.1)
+│   ├── jest/           # Jest matchers (v1.1.1)
+│   ├── vitest/         # Vitest matchers (v1.1.1)
+│   ├── testing/        # Unified test package (v1.1.1)
+│   ├── expect/         # Shared matcher logic (v0.2.1)
+│   ├── docker/         # Docker utilities (v0.1.3)
+│   ├── zt-cli/         # CLI tooling (v0.1.3)
+│   ├── eslint-plugin/  # ESLint rules (unpublished)
+│   └── react/          # React hooks (v0.2.1)
+├── docs-src/           # Source for transcluded documentation
+├── scripts/            # Build and release scripts
+├── README.md           # Monorepo control tower
+└── ECOSYSTEM.md        # Complete package listing
 ```
 
-**AFTER EACH COMMIT:** Update basic memory with SITREP:
+## Development Workflow
+
+### 🎯 CRITICAL: GitHub Issue-Driven Development
+
+**ALL WORK MUST BE TRACKED THROUGH GITHUB ISSUES!**
+
+1. **Before starting ANY work:**
+   - Check if an issue exists: `gh issue list --search "keywords"`
+   - If not, create one: `gh issue create --title "feat: description" --label "appropriate-labels"`
+   - Assign yourself: `gh issue edit {number} --add-assignee @me`
+
+2. **Project Board Workflow:**
+   - New issues → Auto-added to "Backlog"
+   - Starting work → Move to "In Progress" (happens when assigned)
+   - PR created → Auto-moves to "In Review"
+   - PR merged → Auto-moves to "Done" + closes issue
+
+3. **Issue Status Commands:**
+   ```bash
+   # View project board status
+   gh project item-list 1 --owner zerothrow --limit 20
+   
+   # Check your assigned issues
+   gh issue list --assignee @me
+   
+   # View issues in progress
+   gh issue list --label "in-progress"
+   ```
+
+### Prerequisites
+- Node.js 18+
+- pnpm 9+ (`npm install -g pnpm`)
+- Docker (optional, for full test matrix)
+- GitHub CLI (`gh`) - REQUIRED for issue tracking
+
+### Common Commands
 ```bash
-# Create/update SITREP note
+# Setup
+pnpm install
+
+# Development
+pnpm build              # Build all packages
+pnpm test               # Run all tests
+pnpm lint               # Lint check
+pnpm run ci:local       # Full CI simulation
+
+# Package-specific
+pnpm --filter @zerothrow/core test
+pnpm --filter @zerothrow/core build
+```
+
+### Git Workflow (Issue-Based)
+
+**EVERY BRANCH MUST REFERENCE AN ISSUE!**
+
+#### ⚠️ v0.3.0 Release Branch Workflow (ACTIVE UNTIL v0.3.0 RELEASE)
+
+```bash
+# 1. First, claim your issue
+gh issue edit {number} --add-assignee @me
+
+# 2. Create branch FROM release/v0.3.0 (not main!)
+git checkout release/v0.3.0
+git pull origin release/v0.3.0
+git checkout -b feat/#{issue-number}-description
+
+# 3. Keep your branch updated
+git checkout release/v0.3.0
+git pull origin release/v0.3.0
+git checkout feat/#{issue-number}-description
+git rebase release/v0.3.0
+
+# 4. Link commits to issue
+git commit -m "[package] feat: description (#issue-number)"
+
+# 5. Create PR targeting release/v0.3.0 (not main!)
+gh pr create --base release/v0.3.0 --title "feat: description" --body "Closes #issue-number"
+```
+
+**This ensures all v0.3.0 features are integrated together before merging to main.**
+
+#### Standard Workflow (POST v0.3.0)
+
+```bash
+# 1. First, claim your issue
+gh issue edit {number} --add-assignee @me
+
+# 2. Create branch from main
+git checkout -b feat/#{issue-number}-description
+# Examples:
+#   feat/#69-error-code-standardization
+#   fix/#70-tracing-utilities
+#   chore/#55-automated-publishing
+
+# 3. Link commits to issue
+git commit -m "[package] feat: description (#issue-number)"
+
+# 4. Create PR linked to issue
+gh pr create --title "feat: description" --body "Closes #issue-number"
+```
+
+**Branch Naming Convention:**
+- `feat/#{number}-{description}` - New features
+- `fix/#{number}-{description}` - Bug fixes
+- `chore/#{number}-{description}` - Maintenance tasks
+- `docs/#{number}-{description}` - Documentation only
+
+## Commit Guidelines
+
+### Format (WITH ISSUE REFERENCE)
+```
+[{package}] {type}: {subject} (#{issue-number})
+
+{body}
+
+Closes #{issue-number}
+(optional) BREAKING CHANGE: {details}
+```
+
+**EVERY COMMIT MUST REFERENCE AN ISSUE!**
+
+> [!important] If you can't find a package name that describes your commit, you're probably committing too much at once. Target packages with your commits: one commit affecting one package.
+
+### Examples (WITH ISSUE NUMBERS)
+```
+[core] feat: add Result.tap method for side effects (#123)
+[jest] fix: handle undefined values in toBeOkWith matcher (#124)
+[resilience] docs: add circuit breaker examples (#125)
+
+# Commit bodies should close issues:
+[core] feat: implement ErrorCode standardization (#69)
+
+Implements enum-based error codes to replace stringly-typed errors.
+
+Closes #69
+BREAKING CHANGE: ZT.err() now requires ErrorCode enum
+```
+
+### Rules
+- **One package per commit** - Keep changes focused
+- **Atomic commits** - Each commit should be independently valid
+- **Test with code** - Include tests in the same commit as features
+- **Build before commit** - Ensure packages build successfully
+
+## Documentation System
+
+We use markdown-transclusion for modular documentation:
+
+```bash
+# Generate docs from templates
+pnpm zt docs generate
+
+# Templates live in docs-src/
+# Shared components in docs-src/shared/
+```
+
+## Release Process
+
+### 1. Version Bump
+```bash
+# Update package.json versions
+# Update CHANGELOG.md
+# Update README/ECOSYSTEM versions
+```
+
+### 2. Commit and Push
+```bash
+git add -A
+git commit -m "chore: release v{version}"
+git push
+```
+
+### 3. Publish to npm
+```bash
+cd packages/{package}
+npm publish --otp={otp}
+```
+
+### Publishing Order (respect dependencies)
+1. Core first
+2. Packages that depend on core (resilience, expect)
+3. Test packages last (jest, vitest, testing)
+
+## Testing Philosophy
+
+- **Write behavior tests, not implementation tests**
+- **Test the public API, not internals**
+- **Use Result matchers for clean assertions**
+- **No try/catch in tests - use Result patterns**
+
+## Key Design Decisions
+
+### Zero Dependencies
+All packages aim for zero runtime dependencies. This ensures:
+- Small bundle sizes
+- No dependency conflicts
+- Predictable behavior
+
+### Modular Architecture
+- Small, focused packages that do one thing well
+- Compose packages for complex use cases
+- Each package has its own README and tests
+
+### Result-First API
+- Functions return Results, not throw exceptions
+- Errors are values, not control flow
+- Composable error handling with combinators
+
+## Common Patterns
+
+### Creating Results
+```typescript
+// Your functions
+function divide(a: number, b: number): Result<number, Error> {
+  if (b === 0) return ZT.err('DIV_BY_ZERO');
+  return ZT.ok(a / b);
+}
+
+// Third-party code
+const parsed = ZT.try(() => JSON.parse(input));
+```
+
+### Chaining Operations
+```typescript
+userResult
+  .map(user => user.name)
+  .andThen(name => validateName(name))
+  .tap(name => console.log('Valid name:', name))
+  .unwrapOr('Anonymous')
+```
+
+## GitHub Issue Integration
+
+### Starting Work on ZeroThrow:
+
+1. **Check the project board:**
+   ```bash
+   # View all issues by status
+   gh project item-list 1 --owner zerothrow --limit 30
+   
+   # Find issues in Priority Queue
+   gh issue list --search "project:zerothrow/1 status:Priority Queue"
+   ```
+
+2. **Claim an issue:**
+   ```bash
+   # Assign yourself
+   gh issue edit {number} --add-assignee @me
+   
+   # This automatically moves it to "In Progress" on the board!
+   ```
+
+3. **Create feature branch:**
+   ```bash
+   git checkout -b feat/#{number}-short-description
+   ```
+
+4. **Track progress:**
+   - Comment on the issue with updates
+   - Reference issue in all commits
+   - PR will auto-link when you mention "Closes #{number}"
+
+### Project Board Views:
+- **By Phase** - See Phase 2/3/4 work distribution
+- **By Package** - Work organized by package (Core, Resilience, React, etc.)
+- **By Priority** - Critical → High → Medium → Low
+- **By Status** - Backlog → Priority Queue → In Progress → In Review → Done
+
+## Memory Integration
+
+After completing work on an issue:
+```
 mcp__basic-memory__write_note
-  title: "ZeroThrow SITREP [DATE]"
-  folder: "projects/zerothrow"
-  content: [current status]
-  tags: ["#zerothrow", "#sitrep", "#progress"]
+  title: "ZeroThrow #{issue} - {title}"
+  folder: "projects/zerothrow/issues"
+  content: {implementation details, decisions, learnings}
+  tags: ["#zerothrow", "#issue-{number}", "#{package}"]
 ```
 
----
-
-## 📊 CURRENT STATUS
-
-**Branch:** `main` (alpha released)
-**Next feature branch:** TBD based on next objective
-
-| Phase | Status | Description |
-|-------|--------|-------------|
-| 0 | ✅ COMPLETE | Operational readiness |
-| 1 | ✅ COMPLETE | Fast fixes (build, types, DB tests) |
-| 2 | ✅ COMPLETE | Monorepo skeleton |
-| 3 | 🔄 PARTIAL | ZT Surface Lift (P0-P3 done, P4-P7 TODO) |
-| 4 | ⏳ PENDING | Docker & CI Infrastructure |
-| 5 | ✅ COMPLETE | Zero-Throw Resilience API |
-| 6 | ⏳ PENDING | New helpers & tests |
-| 7 | ⏳ PENDING | Beta release preparation |
-
----
-
-## 🚀 THE API (Stable)
-
-### Pocket Knife (99% of use cases)
-```typescript
-import { ZT } from '@zerothrow/core'
-
-ZT.try(() => risky())     // Wrap throwing functions
-ZT.ok(value)              // Create success
-ZT.err(error)             // Create failure
+After significant changes, create a SITREP using POSIX timestamp:
+```
+mcp__basic-memory__write_note
+  title: "ZeroThrow SITREP $(date +%s)_{subject}"
+  folder: "projects/zerothrow/sitreps"
+  content: {summary of changes}
+  tags: ["#zerothrow", "#sitrep"]
 ```
 
-### Full Arsenal (advanced usage)
-```typescript
-import { ZeroThrow } from '@zerothrow/core'
+### SITREP File Naming Convention
+- Use POSIX timestamps to avoid date/timezone confusion
+- Format: `{timestamp}_{subject}.md`
+- Example: `1736219729_release-v0.2.3-preparation.md`
+- This ensures chronological sorting and unique filenames
 
-ZeroThrow.attempt()       // Advanced try with overloads
-ZeroThrow.wrap()          // Wrap promises
-ZeroThrow.fromAsync()     // Handle async functions
-ZeroThrow.pipe()          // Compose operations
-ZeroThrow.collect()       // Batch operations
-```
+## Important Notes
 
----
+### Issue-Driven Development Rules:
+1. **NO WORK WITHOUT AN ISSUE** - Every change must track to an issue
+2. **ASSIGN BEFORE STARTING** - Claims the work and updates project board
+3. **REFERENCE IN COMMITS** - Every commit message includes `(#{number})`
+4. **CLOSE WITH PR** - Use "Closes #{number}" in PR description
+5. **UPDATE ISSUE STATUS** - Comment progress on complex issues
 
-## 📦 COMPLETED: NPM ALPHA RELEASE ✅
+### Technical Requirements:
+- **Check package versions** before releasing
+- **Update documentation** when APIs change
+- **Run tests locally** before pushing
+- **Use pnpm** for all package operations
+- **Follow Result-first patterns** in all examples
 
-### What Was Accomplished:
-1. ✅ Extracted all non-core code to separate packages
-2. ✅ Clean package structure (only core functionality)
-3. ✅ Zero runtime dependencies
-4. ✅ Full TypeScript support
-5. ✅ Published to npm with alpha tag
-6. ✅ GitHub release created with signed tag
-
-### Package Structure Achieved:
-```
-packages/
-├── core/                 # ✅ Pure Result<T,E> (PUBLISHED)
-├── eslint-plugin/       # ✅ ESLint rules (extracted)
-├── logger-winston/      # ✅ Winston integration (extracted)
-├── logger-pino/         # ✅ Pino integration (extracted)
-└── react/               # ✅ React hooks (extracted)
-```
-
----
-
-## 📋 NEXT SPRINT: Beta Preparation
-
-### Remaining Phase 3 Tasks
-- [x] **P4: PURGE `tryR` FROM 11 FILES** - DONE by deleting docs/benchmarks
-- [x] **P5: Update tests & examples** - No tryR in tests, examples deleted
-- [ ] **P6: Add ESLint rule** - Already exists in .config/eslint.base.js!
-- [x] **P7: Create PR** - This one!
-
-### Phase 5: Zero-Throw Resilience ✅ COMPLETE!
-- ✅ Retry strategies (constant/linear/exponential)
-- ✅ Circuit breaker pattern
-- ✅ Timeout handling
-- ✅ Composable API (Policy.compose)
-- ✅ ZERO runtime dependencies
-
-#### Resilience API Design (`@zerothrow/resilience`)
-
-**Core Strategies (Polly-inspired):**
-1. **Retry** - Automatic retry with backoff strategies
-2. **Circuit Breaker** - Fail fast when service is down
-3. **Timeout** - Prevent hanging operations
-4. **Bulkhead** - Limit concurrent operations
-5. **Fallback** - Graceful degradation
-6. **Hedge** - Race multiple attempts for speed
-
-**Key Design Principles:**
-- Result-first: All strategies work with `Result<T,E>`
-- Zero-cost abstraction: No overhead when not retrying
-- Composable: Chain multiple strategies with Policy builder
-- Type-safe: Full error context preserved
-
-**Example API:**
-```typescript
-const policy = Policy
-  .timeout(5000)
-  .retry(3, { delay: 'exponential' })
-  .circuitBreaker({ threshold: 5 })
-  .fallback(() => ZT.ok(cachedData))
-  .build()
-
-const result = await policy.execute(() => 
-  fetch('/api/data').then(r => r.json())
-)
-```
-
----
-
-## ⚔️ RULES OF ENGAGEMENT
-
-> [!important] **ALWAYS** check basic memory when starting work
-
-> [!failure] **ALWAYS FETCH WHEN STARTING NEW FEATURES, AND PUT EACH ONE IN THEIR OWN BRANCH OFF OF ORIGIN/MAIN. MICRO-COMMITS EVERY STEP OF THE WAY.**
-
-> [!important] **COMMIT MESSAGE FORMAT:**
-> ```
-> [{npm-package}] {type}: {subject}
-> 
-> {body}
-> 
-> (optional) BREAKING CHANGE: {details}
-> ```
-
-> [!warning] **ATOMIC COMMITS: One module per commit!**
-> - NEVER mix changes from multiple packages in one commit
-> - NEVER mix src/ and test/ changes unless they're directly related
-> - NEVER mix feature code and documentation unless inseparable
-> - Keep commits bisectable and focused
-
-> [!important] **ALWAYS** update basic memory after commits
-
-> [!success] **ALWAYS** tick boxes as you complete TASKS
-
-> [!failure] **NEVER** `git add -A` or stage everything
-
-> [!success] **ALWAYS** write behavior tests, not implementation tests
-
----
-
-## 📦 PACKAGE RELEASE CHECKLIST
-
-**IMPORTANT:** Whenever we release ANY package, we MUST:
-1. ✅ Update the root-level README.md 
-2. ✅ Update ECOSYSTEM.md with the new package
-3. ✅ Update the core package's README if it's a companion package
-4. ✅ Create a GitHub release with changelog
-5. ✅ Update CLAUDE.md with release status
-
-## 🎖️ ACHIEVEMENTS UNLOCKED
-
-**Alpha Release Badge** 🏅
-- ✅ Published @zerothrow/core v0.0.1-alpha
-- ✅ Zero dependencies achieved
-- ✅ Clean monorepo structure
-- ✅ CI pipeline green
-
-**Next Achievement:** Beta Release
-- [ ] Zero `tryR` references
-- [ ] ESLint rules enforced
-- ✅ Resilience API implemented
-- [ ] 95%+ test coverage
-
----
-
-## 📝 QUICK REFERENCE
-
-**NPM Commands:**
+### Quick Issue Commands:
 ```bash
-npm install @zerothrow/core@alpha  # Install alpha
-npm view @zerothrow/core           # Check package info
+# Find something to work on
+gh issue list --label "good first issue"
+gh issue list --label "help wanted"
+gh project item-list 1 --owner zerothrow | grep "Priority Queue"
+
+# Create new issue
+gh issue create --title "feat: amazing feature" \
+  --body "Description of the feature" \
+  --label "enhancement,zt-core" \
+  --milestone "Phase 2: Developer Experience"
+
+# Start work
+gh issue edit 123 --add-assignee @me
+git checkout -b feat/#123-amazing-feature
+
+# Finish work
+git commit -m "[core] feat: implement amazing feature (#123)"
+gh pr create --title "feat: amazing feature" --body "Closes #123"
 ```
 
-**Development:**
-```bash
-turbo run build      # Build all packages
-turbo run test       # Run all tests
-turbo run lint       # Lint check
-npm run ci:local     # Full CI simulation
-```
+## Resources
 
-**Git Flow:**
-```bash
-git checkout -b feat/[feature-name]  # New feature
-git checkout -b fix/[issue]          # Bug fix
-gh pr create                         # Create PR
-```
-
----
-
-## 📊 TECH DEBT TRACKER
-
-### High Priority
-- [x] ~~11 files using `tryR`~~ - RESOLVED by deleting docs/benchmarks
-- [ ] ESLint rule not implemented (but exists in config)
-- [ ] Rewrite documentation from scratch
-- [ ] Create new benchmarks with current API
-
-### Medium Priority
-- [ ] Docker creates files in working dir
-- [ ] Port conflicts (only 67 available)
-- [ ] `db-transaction.test.ts` disabled
-
-### Low Priority
-- [ ] 2 ESLint tests skipped
-- [ ] Add ZT.ok() void overload
-
----
-
-## 🚀 BETA ROADMAP
-
-1. **Clean House** (1 day)
-   - Eliminate all `tryR` usage
-   - Implement ESLint rules
-   - Update all tests/examples
-
-2. **Resilience API** (2-3 days)
-   - Design zero-overhead retry system
-   - Implement circuit breaker
-   - Add timeout handling
-   - Create fluent API
-
-3. **Polish & Ship** (1 day)
-   - Update documentation
-   - Add more examples
-   - Performance benchmarks
-   - Release v0.1.0-beta
-
----
-
-> **"ALPHA SECURED, BETA IN SIGHT!"** — Cmdr Chat
-
-**REMEMBER:** Check basic memory for project context and update after each session!
-
-**HOO-RAH!** 🎖️
+- [API Documentation](packages/core/docs/api.md)
+- [Ecosystem Overview](ECOSYSTEM.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [GitHub Discussions](https://github.com/zerothrow/zerothrow/discussions)

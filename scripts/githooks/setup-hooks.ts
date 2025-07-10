@@ -42,7 +42,7 @@ function checkVanillaHooks(): boolean {
 }
 
 async function checkEslint(): Promise<ZeroThrow.Result<boolean, ZeroThrow.ZeroError>> {
-  const localCheck = await execCmd('npx eslint --version');
+  const localCheck = await execCmd('pnpm exec eslint --version');
   const globalCheck = await execCmd('eslint --version');
   
   return ZT.ok(localCheck.ok || globalCheck.ok);
@@ -73,13 +73,24 @@ async function setupHuskyHooks(pkgManager: string): Promise<ZeroThrow.Result<voi
     }
   }
   
-  // Write our TypeScript pre-commit hook
+  // Write our TypeScript hooks
   try {
-    writeFileSync('.husky/pre-commit', '#!/usr/bin/env bash\nnpx tsx scripts/githooks/zerohook.ts\n');
+    // Pre-commit hook
+    writeFileSync('.husky/pre-commit', '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/pre-commit.ts\n');
     chmodSync('.husky/pre-commit', 0o755);
     console.log(chalk.green('✅ Created .husky/pre-commit hook'));
+    
+    // Commit-msg hook
+    writeFileSync('.husky/commit-msg', '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/commit-msg.ts "$1"\n');
+    chmodSync('.husky/commit-msg', 0o755);
+    console.log(chalk.green('✅ Created .husky/commit-msg hook'));
+    
+    // Pre-push hook
+    writeFileSync('.husky/pre-push', '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/pre-push.ts\n');
+    chmodSync('.husky/pre-push', 0o755);
+    console.log(chalk.green('✅ Created .husky/pre-push hook'));
   } catch (error: any) {
-    return ZT.err(new ZeroThrow.ZeroError('HOOK_CREATE_FAILED', 'Failed to create pre-commit hook', { cause: error }));
+    return ZT.err(new ZeroThrow.ZeroError('HOOK_CREATE_FAILED', 'Failed to create hooks', { cause: error }));
   }
   
   return ZT.ok(undefined);
@@ -103,7 +114,7 @@ async function setupVanillaHooks(): Promise<ZeroThrow.Result<void, ZeroThrow.Zer
     if (content.length > 500) console.log('... (truncated)');
     console.log('---\n');
     
-    if (content.includes('ZeroThrow') || content.includes('zerohook')) {
+    if (content.includes('ZeroThrow') || content.includes('pre-commit.ts')) {
       console.log(chalk.green('✅ ZeroThrow hook is already installed'));
       return ZT.ok(undefined);
     }
@@ -121,11 +132,24 @@ async function setupVanillaHooks(): Promise<ZeroThrow.Result<void, ZeroThrow.Zer
     }
   }
   
-  // Write TypeScript hook
+  // Write TypeScript hooks
   try {
-    writeFileSync(hookFile, '#!/usr/bin/env bash\nnpx tsx scripts/zerohook.ts\n');
+    // Pre-commit hook
+    writeFileSync(hookFile, '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/pre-commit.ts\n');
     chmodSync(hookFile, 0o755);
     console.log(chalk.green('✅ Created .githooks/pre-commit hook'));
+    
+    // Commit-msg hook
+    const commitMsgFile = '.githooks/commit-msg';
+    writeFileSync(commitMsgFile, '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/commit-msg.ts "$1"\n');
+    chmodSync(commitMsgFile, 0o755);
+    console.log(chalk.green('✅ Created .githooks/commit-msg hook'));
+    
+    // Pre-push hook
+    const prePushFile = '.githooks/pre-push';
+    writeFileSync(prePushFile, '#!/usr/bin/env bash\npnpm exec tsx scripts/githooks/pre-push.ts\n');
+    chmodSync(prePushFile, 0o755);
+    console.log(chalk.green('✅ Created .githooks/pre-push hook'));
     
     // Configure git to use .githooks
     const gitConfigResult = await execCmd('git config core.hooksPath .githooks');
@@ -134,7 +158,7 @@ async function setupVanillaHooks(): Promise<ZeroThrow.Result<void, ZeroThrow.Zer
     }
     console.log(chalk.green('✅ Configured Git to use .githooks directory'));
   } catch (error: any) {
-    return ZT.err(new ZeroThrow.ZeroError('GIT_HOOK_FAILED', 'Failed to create git hook', { cause: error }));
+    return ZT.err(new ZeroThrow.ZeroError('GIT_HOOK_FAILED', 'Failed to create git hooks', { cause: error }));
   }
   
   return ZT.ok(undefined);
@@ -158,8 +182,8 @@ async function ensureEslint(pkgManager: string): Promise<ZeroThrow.Result<void, 
     }
     
     const installCmd = pkgManager === 'npm' 
-      ? 'npm install --save-dev eslint'
-      : `${pkgManager} add -D eslint`;
+      ? 'pnpm add -D eslint'
+      : pkgManager === 'pnpm' ? 'pnpm add -D eslint' : `${pkgManager} add -D eslint`;
       
     const installResult = await execCmd(installCmd);
     if (!installResult.ok) return ZT.err(installResult.error);
@@ -178,8 +202,8 @@ async function ensureEslint(pkgManager: string): Promise<ZeroThrow.Result<void, 
       if (shouldInstallTS) {
         const tsPkgs = '@typescript-eslint/parser @typescript-eslint/eslint-plugin';
         const tsInstallCmd = pkgManager === 'npm'
-          ? `npm install --save-dev ${tsPkgs}`
-          : `${pkgManager} add -D ${tsPkgs}`;
+          ? `pnpm add -D ${tsPkgs}`
+          : pkgManager === 'pnpm' ? `pnpm add -D ${tsPkgs}` : `${pkgManager} add -D ${tsPkgs}`;
           
         const tsResult = await execCmd(tsInstallCmd);
         if (!tsResult.ok) return ZT.err(tsResult.error);
@@ -277,8 +301,8 @@ async function main(): Promise<number> {
     
     if (shouldInstall) {
       const installCmd = pkgManager === 'npm'
-        ? 'npm install --save-dev tsx'
-        : `${pkgManager} add -D tsx`;
+        ? 'pnpm add -D tsx'
+        : pkgManager === 'pnpm' ? 'pnpm add -D tsx' : `${pkgManager} add -D tsx`;
         
       const result = await execCmd(installCmd);
       if (!result.ok) {
@@ -323,8 +347,8 @@ async function main(): Promise<number> {
       // Install husky if needed
       if (!existsSync('node_modules/husky')) {
         const installCmd = pkgManager === 'npm'
-          ? 'npm install --save-dev husky'
-          : `${pkgManager} add -D husky`;
+          ? 'pnpm add -D husky'
+          : pkgManager === 'pnpm' ? 'pnpm add -D husky' : `${pkgManager} add -D husky`;
           
         console.log(chalk.blue('Installing husky...'));
         const installResult = await execCmd(installCmd);
@@ -334,7 +358,7 @@ async function main(): Promise<number> {
         }
         
         // Initialize husky
-        const initResult = await execCmd('npx husky init');
+        const initResult = await execCmd('pnpm exec husky init');
         if (!initResult.ok) {
           console.error(chalk.red('Failed to initialize husky'));
           return 1;
@@ -359,13 +383,24 @@ async function main(): Promise<number> {
     }
   }
   
-  console.log(chalk.green('\n✨ ZeroThrow setup complete!\n'));
-  console.log('Your commits will now be checked using the zero-throw TypeScript hook.');
-  console.log('The hook will:');
-  console.log('  • Run tests');
+  console.log(chalk.green('\n✨ ZeroThrow Git Hooks setup complete!\n'));
+  console.log('Your commits will now be checked with:');
+  console.log('');
+  console.log(chalk.blue('Pre-commit hook:'));
+  console.log('  • Validate branch name follows issue-driven format');
   console.log('  • Check for partially staged files');
   console.log('  • Provide interactive staging options');
-  console.log('  • Run ESLint with no-throw rules');
+  console.log('  • Run ESLint on staged files');
+  console.log('');
+  console.log(chalk.blue('Commit-msg hook:'));
+  console.log('  • Enforce commit message format: [package] type: subject (#issue)');
+  console.log('  • Require issue references in all commits');
+  console.log('');
+  console.log(chalk.blue('Pre-push hook:'));
+  console.log('  • Run tests before pushing');
+  console.log('  • Verify build passes');
+  console.log('');
+  console.log(chalk.yellow('Remember: Every branch and commit MUST reference a GitHub issue!'));
   console.log('\nFor more info: https://github.com/zerothrow/zerothrow');
   
   return 0;

@@ -19,7 +19,7 @@ run_typecheck() {
     
     cd "$dir"
     
-    if npx tsc --noEmit; then
+    if pnpm exec tsc --noEmit; then
         echo "✅ $description type check passed"
         cd ..
         return 0

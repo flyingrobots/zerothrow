@@ -17,8 +17,9 @@ services:
     command: >
       sh -c "
         cp -r /source/. /app/ &&
-        npm ci --quiet &&
-        npx vitest run --config vitest.prepush.config.ts --coverage
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm exec vitest run --config vitest.prepush.config.ts --coverage
       "
 
   # Integration tests on Node 22
@@ -36,8 +37,9 @@ services:
     command: >
       sh -c "
         cp -r /source/. /app/ &&
-        npm ci --quiet &&
-        npx vitest run --config vitest.integration.prepush.config.ts
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm exec vitest run --config vitest.integration.prepush.config.ts
       "
 
   # TypeScript check
@@ -53,8 +55,9 @@ services:
     command: >
       sh -c "
         cp -r /source/* /app/ &&
-        npm ci --quiet &&
-        npx tsc --noEmit
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm exec tsc --noEmit
       "
 
   # Lint check
@@ -70,8 +73,9 @@ services:
     command: >
       sh -c "
         cp -r /source/* /app/ &&
-        npm ci --quiet &&
-        npm run lint
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm run lint
       "
 
   # Build check
@@ -87,8 +91,9 @@ services:
     command: >
       sh -c "
         cp -r /source/* /app/ &&
-        npm ci --quiet &&
-        npm run build &&
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm run build &&
         test -d dist
       "
 
@@ -107,8 +112,9 @@ services:
     command: >
       sh -c "
         cp -r /source/. /app/ &&
-        npm ci --quiet &&
-        npx vitest run --config vitest.prepush.config.ts --coverage &&
+        corepack enable && corepack prepare pnpm@latest --activate &&
+        pnpm install --frozen-lockfile --quiet &&
+        pnpm exec vitest run --config vitest.prepush.config.ts --coverage &&
         echo '' &&
         echo '📊 Checking coverage meets >90% threshold...' &&
         if [ -f coverage/coverage-summary.json ]; then

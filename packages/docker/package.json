@@ -1,0 +1,70 @@
+{
+  "name": "@zerothrow/docker",
+  "version": "0.1.3",
+  "description": "Zero-throw Docker utilities for testing and container management",
+  "type": "module",
+  "sideEffects": false,
+  "keywords": [
+    "zerothrow",
+    "docker",
+    "containers",
+    "testing",
+    "devops"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "bin": {
+    "zt-docker": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo 'TODO: Fix eslint config'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "inquirer": "^12.6.3",
+    "ora": "^8.2.0"
+  },
+  "peerDependencies": {
+    "@zerothrow/core": ">=0.1.0"
+  },
+  "devDependencies": {
+    "@zerothrow/core": "^0.2.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/docker"
+  },
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "platform": "node"
+}

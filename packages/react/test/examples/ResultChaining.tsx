@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Result, ZeroThrow, ZT } from '@zerothrow/zerothrow';
+import { Result, ZeroThrow, ZT } from '@zerothrow/core';
 const { ok, err, ZeroError } = ZeroThrow;
 
 // Example: Multi-step order processing with Result chaining
@@ -310,7 +310,7 @@ const error = err(new ZeroError('NOT_FOUND', 'User not found'));`
     },
     {
       title: 'Wrapping Errors',
-      code: `import { ZeroThrow } from '@zerothrow/zerothrow';
+      code: `import { ZeroThrow } from '@zerothrow/core';
 const { err } = ZeroThrow;
 
 try {

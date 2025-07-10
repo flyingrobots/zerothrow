@@ -1,0 +1,1 @@
+Core ZeroThrow functionality - Rust-style Result<T,E> for TypeScript

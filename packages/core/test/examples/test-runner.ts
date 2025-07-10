@@ -224,7 +224,7 @@ class ExampleTestRunner {
       const examplePath = join(this.examplesDir, example.directory);
       
       // Run tsc --noEmit for type checking
-      const output = execSync('npx tsc --noEmit', {
+      const output = execSync('pnpm exec tsc --noEmit', {
         cwd: examplePath,
         encoding: 'utf-8',
         stdio: 'pipe'
@@ -313,7 +313,7 @@ class ExampleTestRunner {
     console.log('  • Async Patterns: Comprehensive async pattern types');
     console.log('  • Framework Examples: Next.js and Remix pattern types');
     console.log('\nTo run type checking on examples:');
-    console.log('  npm run test:examples');
+    console.log('  pnpm run test:examples');
 
     return ok(undefined);
   }

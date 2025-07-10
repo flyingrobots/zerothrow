@@ -1,0 +1,85 @@
+{
+  "name": "@zerothrow/react",
+  "version": "0.2.1",
+  "description": "React hooks for type-safe error handling with Result types. Stop throwing, start returning.",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src test --max-warnings 0",
+    "clean": "rm -rf dist node_modules",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "zerothrow",
+    "react",
+    "hooks",
+    "error-handling",
+    "result",
+    "typescript",
+    "type-safe",
+    "resilience",
+    "either",
+    "monad",
+    "functional"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "dependencies": {
+    "@zerothrow/core": "^0.2.3"
+  },
+  "devDependencies": {
+    "@zerothrow/resilience": "^0.2.1",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "jsdom": "^24.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "platform": "browser"
+}

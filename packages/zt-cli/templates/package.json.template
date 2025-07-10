@@ -1,0 +1,56 @@
+{
+  "name": "@zerothrow/{{name}}",
+  "version": "{{version}}",
+  "description": "{{description}}",
+  "type": "module",
+  "sideEffects": false,
+  "keywords": [
+    "zerothrow",
+    "{{keywords}}"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "echo 'Tests are run from monorepo root'",
+    "lint": "echo 'Linting is run from monorepo root'",
+    "clean": "rm -rf dist .turbo",
+    "prepublishOnly": "npm run build"
+  },
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zerothrow/zerothrow.git",
+    "directory": "packages/{{name}}"
+  },
+  "license": "MIT",
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "platform": "universal",
+  "dev": false,
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
+}

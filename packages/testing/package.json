@@ -1,6 +1,6 @@
 {
   "name": "@zerothrow/testing",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Unified test matchers for ZeroThrow Result types - supports Jest and Vitest",
   "keywords": [
     "zerothrow",
@@ -33,10 +33,12 @@
     "dev": "tsup --watch",
     "test": "echo 'Tests run from monorepo root'"
   },
+  "dependencies": {
+    "@zerothrow/jest": "^1.1.1",
+    "@zerothrow/vitest": "^1.1.1"
+  },
   "peerDependencies": {
-    "@zerothrow/core": "0.1.0",
-    "@zerothrow/jest": ">=0.1.2-alpha.0",
-    "@zerothrow/vitest": ">=0.1.1-alpha.0",
+    "@zerothrow/core": ">=0.1.0",
     "jest": ">=26.0.0",
     "vitest": ">=0.30.0"
   },
@@ -46,22 +48,22 @@
     },
     "vitest": {
       "optional": true
-    },
-    "@zerothrow/jest": {
-      "optional": true
-    },
-    "@zerothrow/vitest": {
-      "optional": true
     }
-  },
-  "devDependencies": {
-    "@zerothrow/core": "file:../core",
-    "@zerothrow/jest": "file:../jest",
-    "@zerothrow/vitest": "file:../vitest",
-    "tsup": "^8.5.0",
-    "typescript": "^5.7.2"
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "platform": "node",
+  "sideEffects": false,
+  "author": "J. Kirby Ross <james@flyingrobots.dev> (https://github.com/flyingrobots)",
+  "homepage": "https://github.com/zerothrow/zerothrow#readme",
+  "bugs": {
+    "url": "https://github.com/zerothrow/zerothrow/issues"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
 }

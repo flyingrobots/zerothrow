@@ -1,5 +1,23 @@
 # @zerothrow/expect
 
+## 0.2.1 - 2025-07-07
+
+### Patch Changes
+
+- Fixed workspace protocol dependencies for npm compatibility
+  - Replaced `workspace:*` with actual version numbers in devDependencies
+  - This resolves npm installation issues when packages are published
+
+## 0.2.0 - 2025-07-07
+
+### Minor Changes
+
+- Raised minimum Node.js version from 16.14 to 18.17.0
+  - Node 16 reached end-of-life in September 2023
+  - Aligns with core package requirement
+  - Enables use of modern Node.js features
+- Added `platform: "universal"` to package.json for clarity
+
 ## 0.1.0
 
 ### Minor Changes

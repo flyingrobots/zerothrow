@@ -184,6 +184,57 @@ describe('New Combinator Extensions', () => {
     });
   });
   
+  describe('void', () => {
+    it('should discard success value and return Result<void, E>', () => {
+      const result = ZT.ok(42).void();
+      
+      expect(result.ok).toBe(true);
+      expect(result.value).toBe(undefined);
+    });
+    
+    it('should preserve error when discarding value', () => {
+      const error = new Error('test error');
+      const result = ZT.err(error).void();
+      
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe(error);
+    });
+    
+    it('should work in fire-and-forget patterns', () => {
+      const log: string[] = [];
+      
+      const sendNotification = (message: string) =>
+        ZT.ok(`Sent: ${message}`)
+          .tap(result => log.push(result))
+          .void(); // Don't care about return value
+      
+      const result = sendNotification('Hello World');
+      
+      expect(result.ok).toBe(true);
+      expect(result.value).toBe(undefined);
+      expect(log).toEqual(['Sent: Hello World']);
+    });
+    
+    it('should chain with other combinators', () => {
+      const result = ZT.ok(100)
+        .map(x => x * 2)
+        .void()
+        .andThen(() => ZT.ok('next operation'));
+      
+      expect(result.ok).toBe(true);
+      expect(result.value).toBe('next operation');
+    });
+    
+    it('should work with async operations', async () => {
+      const result = await ZeroThrow.enhance(
+        Promise.resolve(ZT.ok('async result'))
+      ).void();
+      
+      expect(result.ok).toBe(true);
+      expect(result.value).toBe(undefined);
+    });
+  });
+  
   describe('Real-world usage patterns', () => {
     it('should enable clean debugging flows', () => {
       const debugLog: any[] = [];

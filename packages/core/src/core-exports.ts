@@ -8,7 +8,7 @@ import {
   type Result as _Result,
   type Ok as _Ok,
   type Err as _Err,
-  ok as _ok,
+  ok,
   err as _err,
   wrap as _wrap,
   normalise as _normalise
@@ -21,13 +21,13 @@ import {
 } from './error.js';
 
 import {
-  makeCombinable as _makeCombinable,
-  type ResultCombinable as _ResultCombinable,
   pipe as _pipe,
   collect as _collect,
   collectAsync as _collectAsync,
   firstSuccess as _firstSuccess
 } from './combinators.js';
+
+import { debug as _debug } from './debug.js';
 
 // ==========================================
 // TYPES - Clean names for ZeroThrow namespace
@@ -44,7 +44,7 @@ export type ErrorCode = _ErrorCode;
 export type ErrorContext = _ErrorContext;
 
 // NEW: Async type to replace Promise interface
-export interface Async<TValue, TError extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<TValue, TError> & _ResultCombinable<TValue, TError>> {
+export interface Async<TValue, TError extends globalThis.Error = _ZeroError> extends globalThis.Promise<Result<TValue, TError>> {
   andThen<UValue>(fn: (value: TValue) => Result<UValue, TError> | Async<UValue, TError>): Async<UValue, TError>;
   map<UValue>(fn: (value: TValue) => UValue): Async<UValue, TError>;
   mapErr<FError extends globalThis.Error>(fn: (error: TError) => FError): Async<TValue, FError>;
@@ -62,36 +62,36 @@ export interface Async<TValue, TError extends globalThis.Error = _ZeroError> ext
 // ==========================================
 
 // Factory functions
-export const ok = _ok;
+export { ok };
 
-// Enhanced err with string overloads
-export function err(error: globalThis.Error): Result<never, globalThis.Error> & _ResultCombinable<never, globalThis.Error>;
-export function err(code: string): Result<never, _ZeroError> & _ResultCombinable<never, _ZeroError>;
-export function err(code: string, message: string): Result<never, _ZeroError> & _ResultCombinable<never, _ZeroError>;
-export function err(
-  errorOrCode: globalThis.Error | string, 
+// Enhanced err with generic error code support
+export function err(error: globalThis.Error): Result<never, globalThis.Error>;
+export function err<TCode extends string | number | symbol>(code: TCode): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(code: TCode, message: string): Result<never, _ZeroError>;
+export function err<TCode extends string | number | symbol>(
+  errorOrCode: globalThis.Error | TCode, 
   message?: string
-): Result<never, globalThis.Error> & _ResultCombinable<never, globalThis.Error> {
-  if (typeof errorOrCode === 'string') {
-    // String overload - create ZeroError
-    return _err(new _ZeroError(errorOrCode, message || errorOrCode));
+): Result<never, globalThis.Error> {
+  if (errorOrCode instanceof globalThis.Error) {
+    // Error object - use as-is (preserves all error types)
+    return _err(errorOrCode);
   }
-  // Error object - use as-is
-  return _err(errorOrCode);
+  // Accept string | number | symbol as code — fallback to string conversion for message
+  return _err(new _ZeroError(errorOrCode as ErrorCode, message || String(errorOrCode)));
 }
 
 // NEW: attempt function (replaces tryR, tryRSync, tryRBatch)
 // Single overloaded function that handles all cases
-export function attempt<T>(fn: () => T): Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>;
-export function attempt<T>(fn: () => Promise<T>): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>>;
-export function attempt<T>(fn: () => T, mapError: (e: unknown) => _ZeroError): Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>;
-export function attempt<T>(fn: () => Promise<T>, mapError: (e: unknown) => _ZeroError): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>>;
-export function attempt<T>(operations: Array<() => T | Promise<T>>): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>>;
-export function attempt<T>(operations: Array<() => T | Promise<T>>, mapError: (e: unknown) => _ZeroError): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>>;
+export function attempt<T>(fn: () => T): Result<T, _ZeroError>;
+export function attempt<T>(fn: () => Promise<T>): Promise<Result<T, _ZeroError>>;
+export function attempt<T>(fn: () => T, mapError: (e: unknown) => _ZeroError): Result<T, _ZeroError>;
+export function attempt<T>(fn: () => Promise<T>, mapError: (e: unknown) => _ZeroError): Promise<Result<T, _ZeroError>>;
+export function attempt<T>(operations: Array<() => T | Promise<T>>): Promise<Result<T[], _ZeroError>>;
+export function attempt<T>(operations: Array<() => T | Promise<T>>, mapError: (e: unknown) => _ZeroError): Promise<Result<T[], _ZeroError>>;
 export function attempt<T>(
   fnOrOps: (() => T) | (() => Promise<T>) | Array<() => T | Promise<T>>,
   mapError?: (e: unknown) => _ZeroError
-): (Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>) | Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> | Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>> {
+): (Result<T, _ZeroError>) | Promise<Result<T, _ZeroError>> | Promise<Result<T[], _ZeroError>> {
   // Handle array of operations (batch)
   if (Array.isArray(fnOrOps)) {
     return attemptBatch(fnOrOps, mapError);
@@ -105,7 +105,14 @@ export function attempt<T>(
     if (result && typeof result === 'object' && 'then' in result) {
       // Don't call fn again, use the existing promise
       return (result as Promise<T>).then(
-        (value) => ok(value),
+        (value) => {
+          // Check if the resolved value is already a Result and auto-flatten
+          if (isResult(value)) {
+            _debug('try', '⚠️  Detected async Result-returning function — auto-flattening. Consider awaiting the function directly instead of wrapping it in ZT.try().');
+            return value as Result<T, _ZeroError>;
+          }
+          return ok(value);
+        },
         (error) => {
           const base = _normalise(error);
           return _err(mapError ? mapError(base) : base);
@@ -113,7 +120,12 @@ export function attempt<T>(
       );
     }
     
-    // Sync result
+    // Sync result - check if it's already a Result and auto-flatten
+    if (isResult(result)) {
+      _debug('try', '⚠️  Detected Result-returning function — auto-flattening. Consider calling the function directly instead of wrapping it in ZT.try().');
+      return result as Result<T, _ZeroError>;
+    }
+    
     return ok(result as T);
   } catch (e) {
     // Function threw synchronously
@@ -127,7 +139,7 @@ export function attempt<T>(
 async function attemptBatch<T>(
   fns: Array<() => T | Promise<T>>,
   map?: (e: unknown) => _ZeroError
-): Promise<Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>> {
+): Promise<Result<T[], _ZeroError>> {
   const results: T[] = [];
 
   for (const fn of fns) {
@@ -142,7 +154,7 @@ async function attemptBatch<T>(
     
     const result = await promisedResult;
     if (!result.ok) {
-      return result as Result<T[], _ZeroError> & _ResultCombinable<T[], _ZeroError>;
+      return result as Result<T[], _ZeroError>;
     }
     results.push(result.value);
   }
@@ -156,7 +168,7 @@ export { attempt as try };
 // NEW: tryAsync for cleaner async ergonomics
 export async function tryAsync<T>(
   fn: () => Promise<T>
-): Promise<Result<T, _ZeroError> & _ResultCombinable<T, _ZeroError>> {
+): Promise<Result<T, _ZeroError>> {
   try {
     const value = await fn();
     return ok(value);
@@ -173,11 +185,11 @@ export { _wrap as wrap };
 export function enhance<TValue, TError extends globalThis.Error = _ZeroError>(
   promise: globalThis.Promise<Result<TValue, TError>>
 ): Async<TValue, TError> {
-  const enhanced = promise.then(_makeCombinable) as Async<TValue, TError>;
+  const enhanced = promise as Async<TValue, TError>;
   
   enhanced.andThen = function<UValue>(fn: (value: TValue) => Result<UValue, TError> | Async<UValue, TError>): Async<UValue, TError> {
     return enhance(this.then(result => {
-      if (!result.ok) return result as Result<UValue, TError>;
+      if (!result.ok) return _err(result.error) as Result<UValue, TError>;
       const fnResult = fn(result.value);
       // If it's already an Async, return it; otherwise wrap the Result
       if (fnResult && typeof fnResult === 'object' && 'then' in fnResult) {

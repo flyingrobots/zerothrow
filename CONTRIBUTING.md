@@ -28,19 +28,49 @@ This project and everyone participating in it is governed by the [ZeroThrow Code
 
 - [ ] Fork the repo on GitHub
 - [ ] Clone your fork locally
-- [ ] Install dependencies: `npm install`
-- [ ] **Set up Git hooks**: `npm run githooks` (see [Git Hooks Documentation](docs/githooks.md))
-- [ ] Run tests to verify setup: `npm test`
+- [ ] Install dependencies: `pnpm install`
+- [ ] **Set up Git hooks**: `pnpm run githooks` (see [Git Hooks Documentation](docs/githooks.md))
+- [ ] Run tests to verify setup: `pnpm test`
 - [ ] Configure your editor for TypeScript and ESLint
 
 ### Making Changes
 
-1. Create a branch for your changes
+#### ⚠️ v0.3.0 Release Branch Workflow (ACTIVE UNTIL v0.3.0 RELEASE)
+
+For all feature work targeting v0.3.0:
+
+1. **Check out the release branch**:
+   ```bash
+   git checkout release/v0.3.0
+   git pull origin release/v0.3.0
+   ```
+
+2. **Create your feature branch from release/v0.3.0**:
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+
+3. **Make your changes**
+
+4. **Run tests and lint**: `pnpm test && pnpm run lint`
+
+5. **Commit your changes** (pre-commit hooks will run automatically)
+
+6. **Push to your fork** (pre-push hooks will run comprehensive tests)
+
+7. **Submit a pull request targeting release/v0.3.0**:
+   ```bash
+   gh pr create --base release/v0.3.0
+   ```
+
+#### Standard Workflow (POST v0.3.0)
+
+1. Create a branch for your changes from `main`
 2. Make your changes
-3. Run tests and lint: `npm test && npm run lint`
+3. Run tests and lint: `pnpm test && pnpm run lint`
 4. Commit your changes (pre-commit hooks will run automatically)
 5. Push to your fork (pre-push hooks will run comprehensive tests)
-6. Submit a pull request
+6. Submit a pull request to `main`
 
 ## How Can I Contribute?
 
@@ -84,26 +114,26 @@ git clone https://github.com/your-username/zerothrow
 cd zerothrow
 
 # Install dependencies
-npm install
+pnpm install
 
 # IMPORTANT: Set up git hooks for automated quality checks
-npm run githooks
+pnpm run githooks
 # This enables:
 # - Pre-commit: runs tests and linting on staged files
 # - Pre-push: runs full test suite in Docker containers
 # See docs/githooks.md for details
 
 # Run tests
-npm test
+pnpm test
 
 # Run tests with coverage
-npm run test:coverage
+pnpm run test:coverage
 
 # Run linting
-npm run lint
+pnpm run lint
 
 # Build the project
-npm run build
+pnpm run build
 ```
 
 ### Git Hooks
@@ -170,13 +200,13 @@ test: add coverage for wrap function
 
 ```bash
 # Run all tests
-npm test
+pnpm test
 
 # Run tests in watch mode
-npm run test:watch
+pnpm run test:watch
 
 # Run tests with coverage
-npm run test:coverage
+pnpm run test:coverage
 ```
 
 ## Project Structure

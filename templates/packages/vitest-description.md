@@ -1,0 +1,1 @@
+Vitest matchers for ZeroThrow Result types

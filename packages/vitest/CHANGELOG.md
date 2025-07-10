@@ -1,3 +1,40 @@
+# Changelog
+
+## 1.1.1 - 2025-07-07
+
+### Patch Changes
+
+- Fixed workspace protocol dependencies for npm compatibility
+  - Replaced `workspace:*` with actual version numbers in devDependencies
+  - This resolves npm installation issues when packages are published
+
+## 1.1.0 - 2025-07-07
+
+### Minor Changes
+
+- Raised minimum Node.js version from 16.14 to 18.17.0
+  - Node 16 reached end-of-life in September 2023
+  - Aligns with core package requirement
+  - Enables use of modern Node.js features
+- Added `platform: "node"` to package.json for clarity
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated peer dependency for @zerothrow/expect to support wider range
+  - Changed from exact version `0.1.0` to range `>=0.1.0 <1.0.0`
+  - This provides more flexibility for users while maintaining compatibility
+  - Follows semantic versioning best practices for peer dependencies
+
+## 1.0.1
+
+### Patch Changes
+
+- Updated peer dependency for @zerothrow/core to support v0.2.0
+  - Changed from `^0.1.0` to `>=0.1.0` (peer deps) or `^0.2.0` (regular deps)
+  - This allows the package to work with core v0.2.0 without warnings
+
 # @zerothrow/vitest
 
 ## 1.0.0
